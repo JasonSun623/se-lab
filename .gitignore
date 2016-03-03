@@ -1,3 +1,6 @@
 # Ignore generated folders
 build/
 devel/
+
+# Ignore generated documentation
+Documentation/doxygen/
