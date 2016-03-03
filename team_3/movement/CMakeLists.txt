@@ -188,5 +188,5 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(transform_publisher transform_publisher.cpp)
+add_executable(transform_publisher src/transform_publisher.cpp)
 target_link_libraries(transform_publisher ${catkin_LIBRARIES})
