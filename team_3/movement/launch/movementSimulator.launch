@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	<node name="movementSimulator" pkg="stage_ros" type="stageros" args="$(find movement)/worlds/comp-simple.world"/>
+	<node pkg="movement" type="transform_publisher" name="transform_publisher" output="screen"/>
+</launch>

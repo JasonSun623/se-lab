@@ -1,0 +1,85 @@
+#include <ros/ros.h>
+#include <tf/transform_broadcaster.h>
+#include <nav_msgs/Odometry.h>
+
+int main(int argc, char** argv)
+{
+  ros::init(argc, argv, "movement_publisher");
+
+  ros::NodeHandle n;
+
+  ros::Publisher pub = n.advertise<nav_msgs::Odometry>("odom", 100);
+  tf::TransformBroadcaster broadcaster;
+  ros::Time current_time, prev_time;
+  prev_time = ros::Time::now();
+	
+  // initial position of the robot (0,0) - 2D with initial angle
+  double x = 0;
+  double y = 0;
+  double phi = 0;
+  
+  // initial rate of change in x, y and time (a circle movement)
+  double vx = 0.1;
+  double vy = -0.1;
+  double vPhi = 0.1;
+  
+  ros::Rate rate(1);
+
+  while( n.ok() )
+  {
+    ros::spinOnce(); //check for incoming messages
+    current_time = ros::Time::now();
+
+    // compute odometry of the robot
+    double delta_t = (current_time - prev_time).toSec();
+    double delta_x = (vx * cos(vPhi) - vy * sin(vPhi))*delta_t;
+    double delta_y = (vy * sin(vPhi) + vx * cos(vPhi))*delta_t;
+    double delta_phi = vPhi * delta_t;
+	
+    // updating components
+    x+= delta_x;
+    y+= delta_y;
+    phi+= delta_phi;
+
+    // as we have 6 degrees of freedom we need a quaternion for rotation of the robot
+    geometry_msgs::Quaternion q = tf::createQuaternionMsgFromYaw(phi);
+
+    // publishing transform(std_msgs/Header(uint32, time, string), string child frame, geometry_msgs/Transform(Vector3, Quaternion))
+    geometry_msgs::TransformStamped trans;
+    trans.header.stamp = current_time;
+    trans.header.frame_id = "movement_publisher";
+    trans.child_frame_id = "base_link";
+
+    trans.transform.translation.x = x;
+    trans.transform.translation.y = y;
+    trans.transform.translation.z = 0; //robot is moving in 2 dimensions
+    trans.transform.rotation = q;
+
+    // send the transform
+    broadcaster.sendTransform(trans);
+    
+    // publish the odometry(Header header, string child_frame_id, geometry_msgs/PoseWithCovariance pose, geometry_msgs/TwistWithCovariance twist) change
+    nav_msgs::Odometry odom;
+    odom.header.stamp = current_time;
+    odom.header.frame_id = "movement_publisher";
+
+    odom.pose.pose.position.x = x;
+    odom.pose.pose.position.y = y;
+    odom.pose.pose.position.z = 0; //robot is moving in 2 dimensions
+    odom.pose.pose.position.orientation = q;
+
+    odom.child_frame_id = "base_link";
+    odom.twist.twist.linear.x = vx;
+    odom.twist.twist.linear,y = vy;
+    odom.twist.twist.angular.z = vPhi;
+
+    pub.publish(odom);
+    ROS_INFO_STREAM("published!");
+
+    prev_time = current_time;
+    
+    rate.sleep();
+  }
+
+  return 0;
+}
