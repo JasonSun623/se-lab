@@ -16,16 +16,18 @@ const geometry_msgs::Twist RandomWalkStrategy::getControlOutput()
 {
   geometry_msgs::Twist msg;
 
-  if(circleVisible) {
-    msg.linear.x = LINEAR_VEL;
-
+  if(circleVisible)
+  {
     float variation = SCAN_CENTER - circleAngle;
 
-    if(abs(variation) > VARIATION_THRESHOLD) {
+    if(abs(variation) > VARIATION_THRESHOLD)
+    {
       if(variation > 0)
         msg.angular.z = TURN_CORRECTION;
       else
         msg.angular.z = TURN_CORRECTION * -1;
+    } else {
+        msg.linear.x = LINEAR_VEL;
     }
   } else {
     msg.linear.x = 0;

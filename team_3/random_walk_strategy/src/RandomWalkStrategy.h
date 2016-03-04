@@ -15,7 +15,7 @@
 #define VARIATION_THRESHOLD 8
 
 // Angular velocity value that is used to turn
-#define TURN_CORRECTION 0.2
+#define TURN_CORRECTION 0.5
 
 
 class RandomWalkStrategy

@@ -20,6 +20,8 @@ int main(int argc, char** argv)
 
   ros::Rate rate(10);
 
+  ROS_INFO("Starting random walk strategy.");
+
   while( ros::ok() )
   {
     geometry_msgs::Twist msg;
