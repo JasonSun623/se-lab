@@ -6,17 +6,22 @@
 #include <cmath>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <vector>
 
+
+typedef std::pair<int, int> Point;
 
 class HalfCircleDetector 
 {
-  public:
 
+  public:
     void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr& laserScan);
     cv::Mat createOpenCVImageFromLaserScan(const sensor_msgs::LaserScan::ConstPtr& laserScan);
-    bool semiCircleDetected();
-    void processLaserScan(sensor_msgs::LaserScan laserScan);
+    Point detectHalfCircle(cv::Mat& image);
 
+  private:
+    std::vector<Point> points; 
+    float interpolate(int index, int resolution, std::vector<float> data, int size);
 };
 
 #endif
