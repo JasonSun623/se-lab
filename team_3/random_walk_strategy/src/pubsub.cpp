@@ -3,7 +3,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include "RandomWalkStrategy.h"
 
-// Subscribe to: base_scan, circle_pos
+// Subscribe to: base_scan, half_circle_detection
 // Publish to: cmd_vel
 
 int main(int argc, char** argv)
@@ -12,8 +12,8 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
   RandomWalkStrategy* strategy = new RandomWalkStrategy();
 
-  ros::Subscriber sub = n.subscribe("base_scan", 1, &RandomWalkStrategy::receiveLaserScan, strategy);
-  //ros::Subscriber sub = n.subscribe("half_circle_detection", 1, &RandomWalkStrategy::receiveLaserScan, detector);
+  ros::Subscriber laserSub = n.subscribe("base_scan", 1, &RandomWalkStrategy::receiveLaserScan, strategy);
+  ros::Subscriber circleSub = n.subscribe("half_circle_detection", 1, &RandomWalkStrategy::receiveCirclePosition, strategy);
 
 
   ros::Publisher pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
