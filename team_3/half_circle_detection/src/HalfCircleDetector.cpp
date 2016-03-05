@@ -175,7 +175,7 @@ geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
   } else {
     msg.x = posX - robotX;
     msg.y = posY - robotY;
-    msg.theta = std::tan(msg.y / msg.x);
+    msg.theta = std::atan2(msg.y, msg.x);
   }
 
   return msg;
