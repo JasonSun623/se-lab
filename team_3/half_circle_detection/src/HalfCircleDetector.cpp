@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include "HalfCircleDetector.h"
+
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
 void HalfCircleDetector::receiveLaserScan(
@@ -76,7 +77,6 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 }
 
 geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
-  std::vector<cv::Vec3f> circles;
 
   cv::cvtColor(image, image, CV_BGR2GRAY);
   cv::Mat res = image.clone();
@@ -175,7 +175,7 @@ geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
   } else {
     msg.x = posX - robotX;
     msg.y = posY - robotY;
-    msg.theta = std::tan(msg.x / msg.y);
+    msg.theta = std::tan(msg.y / msg.x);
   }
 
   return msg;
