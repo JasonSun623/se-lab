@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS geometry_msgs
   sensor_msgs
 )
 
+find_package(gtest)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -116,6 +118,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${GTEST_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -179,6 +182,10 @@ include_directories(
 ## Testing ##
 #############
 
+catkin_add_gtest(tests_movement
+	test/Robot_test.cpp)
+
+target_link_libraries(tests_movement ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_movement.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
@@ -187,6 +194,10 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+# Tests
+
+
 
 add_executable(movement_publisher src/movement_publisher.cpp)
 target_link_libraries(movement_publisher ${catkin_LIBRARIES})
