@@ -1,6 +1,7 @@
 # Ignore generated folders
 build/
 devel/
+*.swp
 
 # Ignore generated documentation
 Documentation/doxygen/
