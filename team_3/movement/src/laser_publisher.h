@@ -59,9 +59,5 @@ public:
 		}
 	}
 
-	void laserScanCallBack(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-    		this->setRanges(*laserScan);
-	}
-
 };
 #endif 
