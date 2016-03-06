@@ -35,7 +35,7 @@ const geometry_msgs::Twist RandomWalkStrategy::getControlOutput()
     if(abs(variation) < VARIATION_THRESHOLD - HYSTERESIS)
       correcting = false;
 
-    ROS_INFO("V: %f\tC: %s", variation, correcting ? "true" : "false");
+    //ROS_INFO("V: %f\tC: %s", variation, correcting ? "true" : "false");
 
     if(correcting)
     {
