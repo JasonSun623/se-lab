@@ -99,17 +99,17 @@ public:
 
     void driveX(geometry_msgs::Twist& msg, double x){
     	msg.linear.x = x;
-    	this->setX(x);
+    	this->setX(this->getX() + x);
     }
 
     void driveY(geometry_msgs::Twist& msg, double y){
     	msg.linear.y = y;
-    	this->setY(y);
+    	this->setY(this->getY() + y);
     }
 
     void turn(geometry_msgs::Twist& msg, double phi){
     	msg.angular.z = phi;
-    	this->setPhi(phi);
+    	this->setPhi(this->getPhi() + phi);
     }
 
     void updateAll(double x, double y, double phi, double velX, double velY){

@@ -22,8 +22,6 @@ int main(int argc, char** argv)
 
   ros::Publisher pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 100);
   ros::Publisher scan_pub = n.advertise<sensor_msgs::LaserScan>("scan", 50);
-  ros::Subscriber laserSub = n.subscribe(
-          "base_scan", 1, &LaserScanPublisher::laserScanCallBack, laserWrap);
   ros::Rate rate(1);
 
   while( n.ok() )
@@ -32,8 +30,11 @@ int main(int argc, char** argv)
 
     // creating a message to cmd_vel and sending it to be executed
     geometry_msgs::Twist msg;
-    r->driveX(msg, 2);
-    r->turn(msg, 0.1); 
+    
+    if (r->getPhi() < 16.6)
+      r->turn(msg, 1.2);
+    else
+      r->driveX(msg, 0.5); 
 
     pub.publish(msg);
     ROS_INFO("Position and turning angle of the robot: \n    x:%lf\n    y:%lf\n    phi: %lf\n",r->getX(),r->getY(),r->getPhi());

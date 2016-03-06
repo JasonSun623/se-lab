@@ -43,13 +43,13 @@ public:
 
 	void initializeLaser(ros::Time scan_time){
 		scan.header.stamp = scan_time;
-    	scan.header.frame_id = "laser_frame";
-    	scan.angle_min = -1.57;
-    	scan.angle_max = 1.57;
-    	scan.angle_increment = 3.14 / num_readings;
-    	scan.time_increment = (1 / laser_frequency) / num_readings;
-    	scan.range_min = 0.0;
-    	scan.range_max = 100.0;
+    		scan.header.frame_id = "laser_frame";
+    		scan.angle_min = -1.57;
+    		scan.angle_max = 1.57;
+    		scan.angle_increment = 3.14 / num_readings;
+    		scan.time_increment = (1 / laser_frequency) / num_readings;
+    		scan.range_min = 0.0;
+    		scan.range_max = 100.0;
 	}
 
 	void setRanges(sensor_msgs::LaserScan input){
@@ -60,7 +60,7 @@ public:
 	}
 
 	void laserScanCallBack(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-    	this->setRanges(*laserScan);
+    		this->setRanges(*laserScan);
 	}
 
 };
