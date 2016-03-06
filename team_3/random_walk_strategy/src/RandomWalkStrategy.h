@@ -23,30 +23,52 @@
 // Angular velocity for scanning for circle
 #define SCAN_VELOCITY 0.5
 
-class RandomWalkStrategy
-{
-  public:
-    void receiveCirclePosition(const geometry_msgs::Pose2D::ConstPtr& circlePose);
-    void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr& laserScan);
+/** Implements the random walk strategy.
+  * If a half-circle is detected it moves towards it, otherwise it just turns at
+  * the same spot.
+  */
+class RandomWalkStrategy {
+public:
+  /**
+    * Receives a message with a halfcircle-pose or a dummy message.
+    * Currently just uses the angle for actual navigation.
+    * @param circlePose A message with a supposed circle or x == -1 for a dummy.
+    */
+  void receiveCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePose);
 
-    const geometry_msgs::Twist getControlOutput();
+  /**
+    * Receives a LaserScan in order to avoid walls.
+    * @param laserScan LaserScan with distances to walls.
+    */
+  void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
-  private:
-    bool circleVisible;
-    float circleAngle;
-    float circleDistance;
+  /**
+    * Cointains the actual logic of the strategy.
+    * Decides on where to move next and by how much.
+    * @return Next move to be done.
+    */
+  const geometry_msgs::Twist getControlOutput();
 
-    bool correcting;
+  bool getCircleVisible();
 
-    sensor_msgs::LaserScan lastScan;
+private:
+  bool circleVisible;
+  float circleAngle;
+  float circleDistance;
 
-    enum State {
-      STARTUP,
-      LOOKING,
-      FOUND
-    };
+  bool correcting;
 
-    RandomWalkStrategy::State currentState;
+  /**
+    * Last received LaserScan.
+    */
+  sensor_msgs::LaserScan lastScan;
+
+  /**
+    * Different states within the strategy.
+    */
+  enum State { STARTUP, LOOKING, FOUND };
+
+  RandomWalkStrategy::State currentState;
 };
 
 #endif

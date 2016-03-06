@@ -8,7 +8,13 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
 	geometry_msgs
+  rostest
 )
+
+find_package(gtest)
+
+
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -115,6 +121,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${GTEST_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -178,6 +185,10 @@ target_link_libraries(random_walk_strategy_node
 ## Testing ##
 #############
 
+catkin_add_gtest(tests_random_walk_strategy 
+  test/RandomWalkStrategyTest.cpp src/RandomWalkStrategy.cpp)
+
+target_link_libraries(tests_random_walk_strategy ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_random_walk_strategy.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
