@@ -25,7 +25,7 @@
 
 /** Implements the random walk strategy.
   * If a half-circle is detected it moves towards it, otherwise it just turns at
- * the same spot.
+  * the same spot.
   */
 class RandomWalkStrategy {
 public:
@@ -48,6 +48,8 @@ public:
     * @return Next move to be done.
     */
   const geometry_msgs::Twist getControlOutput();
+
+  bool getCircleVisible();
 
 private:
   bool circleVisible;

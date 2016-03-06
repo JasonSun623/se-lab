@@ -1,9 +1,13 @@
 #include "RandomWalkStrategy.h"
 #include <geometry_msgs/Pose2D.h>
 
+#define EPSILON 0.1
+
+bool RandomWalkStrategy::getCircleVisible() { return circleVisible; }
+
 void RandomWalkStrategy::receiveCirclePosition(
     const geometry_msgs::Pose2D::ConstPtr &circlePose) {
-  if (circlePose->x == -1) {
+  if ((circlePose->x - -1.0) < EPSILON) {
     circleVisible = false;
     return;
   }
