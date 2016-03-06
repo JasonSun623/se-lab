@@ -81,6 +81,45 @@ public:
         instanceFlag = false;
     }
 
+    void initialize(){
+    	x = 0;
+  		y = 0;
+  		phi = 0;
+  		velX = 0;
+  		velY = 0;
+    }
+
+    void incrementVelX(){
+    	velX++;
+    }
+
+    void incrementVelY(){
+    	velX++;
+    }
+
+    void driveX(geometry_msgs::Twist& msg, double x){
+    	msg.linear.x = x;
+    	this->setX(x);
+    }
+
+    void driveY(geometry_msgs::Twist& msg, double y){
+    	msg.linear.y = y;
+    	this->setY(y);
+    }
+
+    void turn(geometry_msgs::Twist& msg, double phi){
+    	msg.angular.z = phi;
+    	this->setPhi(phi);
+    }
+
+    void updateAll(double x, double y, double phi, double velX, double velY){
+    	this->x = x;
+    	this->y = y;
+    	this->phi = phi;
+    	this->velX = velX;
+    	this->velY = velY;
+    }
+
 };
 
 bool Robot::instanceFlag = false;
