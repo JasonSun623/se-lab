@@ -2,5 +2,5 @@
 build/
 devel/
 
-# Ignore documentation
-Documentation/doxygen
+# Ignore generated documentation
+Documentation/doxygen/

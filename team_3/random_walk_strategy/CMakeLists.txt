@@ -1,15 +1,20 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(team_3)
+project(random_walk_strategy)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  catkin_simple
-  geometry_msgs
-  laser_filters
-  tf
+  roscpp
+  sensor_msgs
+	geometry_msgs
+  rostest
 )
+
+find_package(gtest)
+
+
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -68,7 +73,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   geometry_msgs
+#   sensor_msgs
 # )
 
 ################################################
@@ -102,8 +107,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES team_3
-#  CATKIN_DEPENDS catkin_simple geometry_msgs laser_filters tf
+#  LIBRARIES random_walk_strategy
+#  CATKIN_DEPENDS roscpp sensor_msgs
 #  DEPENDS system_lib
 )
 
@@ -116,29 +121,30 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${GTEST_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(team_3
-#   src/${PROJECT_NAME}/team_3.cpp
+# add_library(random_walk_strategy
+#   src/${PROJECT_NAME}/random_walk_strategy.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(team_3 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(random_walk_strategy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(team_3_node src/team_3_node.cpp)
+add_executable(random_walk_strategy_node src/pubsub.cpp src/RandomWalkStrategy.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(team_3_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(random_walk_strategy_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(team_3_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(random_walk_strategy_node
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -155,7 +161,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS team_3 team_3_node
+# install(TARGETS random_walk_strategy random_walk_strategy_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -179,8 +185,12 @@ include_directories(
 ## Testing ##
 #############
 
+catkin_add_gtest(tests_random_walk_strategy 
+  test/RandomWalkStrategyTest.cpp src/RandomWalkStrategy.cpp)
+
+target_link_libraries(tests_random_walk_strategy ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_team_3.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_random_walk_strategy.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
