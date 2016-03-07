@@ -1,7 +1,8 @@
 #include "RandomWalkStrategy.h"
 #include <geometry_msgs/Pose2D.h>
 
-#define EPSILON 0.1
+// Number of laser samples
+#define RANGES 250
 
 bool RandomWalkStrategy::getCircleVisible() { return circleVisible; }
 
@@ -25,6 +26,17 @@ void RandomWalkStrategy::receiveLaserScan(
   lastScan = *laserScan;
 }
 
+float RandomWalkStrategy::findMinim(int num_readings) {
+  lastScan.ranges.resize(num_readings);
+  float minim = lastScan.ranges[0];
+
+  for (int i = 0; i < num_readings; i++) {
+    minim = std::min(minim, lastScan.ranges[i]);
+  }
+
+  return minim;
+}
+
 const geometry_msgs::Twist RandomWalkStrategy::getControlOutput() {
   geometry_msgs::Twist msg;
 
@@ -46,8 +58,14 @@ const geometry_msgs::Twist RandomWalkStrategy::getControlOutput() {
       msg.linear.x = LINEAR_VEL;
     }
   } else {
-    msg.linear.x = 0;
-    msg.angular.z = SCAN_VELOCITY;
+    float min = findMinim(RANGES);
+
+    if (min > MIN_DISTANCE) {
+      msg.linear.x = LINEAR_VEL / 2;
+    } else {
+      msg.linear.x = 0;
+      msg.angular.z = SCAN_VELOCITY;
+    }
   }
 
   return msg;

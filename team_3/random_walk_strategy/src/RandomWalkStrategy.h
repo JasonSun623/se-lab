@@ -10,10 +10,9 @@
 #define LINEAR_VEL 1.0
 
 // The angle of circle detector that is straight ahead [deg]
-<<<<<<< HEAD
+
 #define SCAN_CENTER 100
 #define SCAN_CENTER 90
->>>>>>> feature-random-walk-strategy
 
 // The amount of variation that is allowed before direction is corrected [deg]
 #define VARIATION_THRESHOLD 8
@@ -26,12 +25,15 @@
 // Angular velocity for scanning for circle
 #define SCAN_VELOCITY 0.5
 
-    /** Implements the random walk strategy.
-      * If a half-circle is detected it moves towards it, otherwise it just
-     * turns at
-      * the same spot.
-      */
-    class RandomWalkStrategy {
+// Minimum allowed distance to obstacles
+#define MIN_DISTANCE 0.5
+
+/** Implements the random walk strategy.
+  * If a half-circle is detected it moves towards it, otherwise it just
+ * turns at
+  * the same spot.
+  */
+class RandomWalkStrategy {
 public:
   /**
     * Receives a message with a halfcircle-pose or a dummy message.
@@ -66,6 +68,11 @@ private:
     * Last received LaserScan.
     */
   sensor_msgs::LaserScan lastScan;
+
+  /**
+    * Find the smallest laser scan reading
+    */
+  float findMinim(int num_readings);
 
   /**
     * Different states within the strategy.
