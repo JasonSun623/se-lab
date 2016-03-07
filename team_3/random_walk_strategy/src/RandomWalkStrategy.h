@@ -11,7 +11,6 @@
 
 // The angle of circle detector that is straight ahead [deg]
 
-#define SCAN_CENTER 100
 #define SCAN_CENTER 90
 
 // The amount of variation that is allowed before direction is corrected [deg]
