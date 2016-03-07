@@ -23,6 +23,7 @@ float HalfCircleDetector::interpolate(int index, int resolution,
   int leftIndex = RANGE(0, (int)(step * index), size - 1);
   int rightIndex = RANGE(0, leftIndex + 1, size - 1);
 
+  // Linear interpolation
   float offset = step * index - leftIndex;
   float value = (1 - offset) * data[leftIndex] + offset * data[rightIndex];
 
