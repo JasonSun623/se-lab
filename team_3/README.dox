@@ -3,10 +3,38 @@
  * @mainpage Team 3
  *
  * @author Leonhard Kuboschek (kuboschek)
+ * @author Felix Schmoll (LiftnLearn)
  *
- * There are currently two packages in our project:
+ *Team members:
  *
- * * ```half_circle_detection``` to convert laser data into half circle positions
- * * ```random_walk_strategy``` to drive the robot based on circle position 
+ *  - Jehanzeb Ayaz (jahanzaibayaz)
+ *  - Sulav Timilsina (stimilsina)
+ *  - Maria Gladkova (mgladkova)
+ *  - Leonhard Kuboschek (kuboschek)
+ *  - Felix Schmoll (LiftnLearn)
+ *
+ *Our project consists currently out of two packages:
+ *
+ * - ```half_circle_detection``` to convert laser data into half circle
+ *positions
+ * - ```random_walk_strategy``` to drive the robot based on circle position
+ *
+ * The general idea is that the ```laserScan```-data are received by the
+ *```half_circle_detection```-package and it is processing whether it can find a
+ *halfcircle. It then publishes its result on another topic. It has currently
+ *only been tested in the simulator and without any error in the laser-data, but
+ *with the current implementation the circle-detection seems to work almost
+ *questionably accurate (seriously, it's magic).
+ *
+ * The ```random_walk_strategy```-package then subscribes to this topic as well
+ *as the
+ *laserScan-data one and decides which move to make next. If a circle has been
+ *detected it drives straight towards it and otherwise it just drives into some
+ *direction until it comes to close to a wall and turns.
+ *
+ * The individual contributions of the team members were so far quite
+ *heterogeneous. Also is the test coverage too low.
+ *
+ * We would also like to thank the TAs. Keep up the good work!
  *
  */
