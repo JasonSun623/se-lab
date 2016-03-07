@@ -23,6 +23,9 @@
 // Angular velocity for scanning for circle
 #define SCAN_VELOCITY 0.5
 
+// Minimum allowed distance to obstacles
+#define MIN_DISTANCE 0.5
+
 /** Implements the random walk strategy.
   * If a half-circle is detected it moves towards it, otherwise it just turns at
   * the same spot.
@@ -62,6 +65,11 @@ private:
     * Last received LaserScan.
     */
   sensor_msgs::LaserScan lastScan;
+
+  /**
+    * Find the smallest laser scan reading
+    */
+  float findMinim(int num_readings);
 
   /**
     * Different states within the strategy.

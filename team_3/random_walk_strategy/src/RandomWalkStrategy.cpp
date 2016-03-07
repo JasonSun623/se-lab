@@ -1,6 +1,9 @@
 #include "RandomWalkStrategy.h"
 #include <geometry_msgs/Pose2D.h>
 
+// Number of laser samples
+#define RANGES 250
+
 bool RandomWalkStrategy::getCircleVisible() { return circleVisible; }
 
 void RandomWalkStrategy::receiveCirclePosition(
@@ -21,6 +24,17 @@ void RandomWalkStrategy::receiveCirclePosition(
 void RandomWalkStrategy::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   lastScan = *laserScan;
+}
+
+float RandomWalkStrategy::findMinim(int num_readings) {
+  lastScan.ranges.resize(num_readings);
+  float minim = lastScan.ranges[0];
+
+  for (int i = 0; i < num_readings; i++) {
+    minim = std::min(minim, lastScan.ranges[i]);
+  }
+
+  return minim;
 }
 
 const geometry_msgs::Twist RandomWalkStrategy::getControlOutput() {
@@ -44,8 +58,14 @@ const geometry_msgs::Twist RandomWalkStrategy::getControlOutput() {
       msg.linear.x = LINEAR_VEL;
     }
   } else {
-    msg.linear.x = 0;
-    msg.angular.z = SCAN_VELOCITY;
+    float min = findMinim(RANGES);
+
+    if(min > MIN_DISTANCE) {
+      msg.linear.x = LINEAR_VEL / 2;
+    } else {
+      msg.linear.x = 0;
+      msg.angular.z = SCAN_VELOCITY;
+    }
   }
 
   return msg;
