@@ -1,14 +1,13 @@
-#include <ros/ros.h>
 #include "HalfCircleDetector.h"
 
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
+/*
+ * The actual magic happens in the called functions.
+ * This is just the glue combining everything.
+ */
 void HalfCircleDetector::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-  int middle = (int)((laserScan->angle_max - laserScan->angle_min) /
-                     laserScan->angle_increment) /
-               2;
-
   cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
 
   geometry_msgs::Pose2D pose = HalfCircleDetector::detectHalfCircle(image);
@@ -16,20 +15,31 @@ void HalfCircleDetector::receiveLaserScan(
   setHalfCirclePose(pose);
 }
 
+/* Interpolates the data up to the requested resolution using linear
+ * interpolation.
+ */
 float HalfCircleDetector::interpolate(int index, int resolution,
-                                      std::vector<float> data, int size) {
+                                      std::vector<float> data) {
+  int size = data.size();
+
   float step = 1.0 / ((float)resolution);
 
+  // finding closest actual data in the dataset
   int leftIndex = RANGE(0, (int)(step * index), size - 1);
   int rightIndex = RANGE(0, leftIndex + 1, size - 1);
 
-  // Linear interpolation
+  // interpolation
   float offset = step * index - leftIndex;
   float value = (1 - offset) * data[leftIndex] + offset * data[rightIndex];
 
   return value;
 }
 
+/*
+ * Converts the laserScan-data from polar into cartesian coordinates.
+ * Then cleans the data from various problems and finally translates the points
+ * into pixels on an actual image (in form of an OpenCV-matrix).
+ */
 cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   HalfCircleDetector::points.clear();
@@ -44,8 +54,8 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 
   int resolution = 8;
   for (int i = 0; i < numOfValues * resolution; ++i) {
-    float hyp = HalfCircleDetector::interpolate(i, resolution,
-                                                laserScan->ranges, numOfValues);
+    float hyp =
+        HalfCircleDetector::interpolate(i, resolution, laserScan->ranges);
 
     float laserRange = 0.9 * 4.0;
 
@@ -77,24 +87,30 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
   return image;
 }
 
+/*
+ * Uses OpenCV to detect all lines in the image. Then calculates the lines
+ * equations and checks for all drawn points if they are in proximity of a line.
+ * If not we consider it a deviation. If we have more than a certain amount of
+ * deviations we assume that we found a half-circle. The position is assumed to
+ * be at the average of all deviation points.
+ */
 geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
 
   cv::cvtColor(image, image, CV_BGR2GRAY);
   cv::Mat res = image.clone();
 
+  // use probabilistic Hough-transform to find lines
   std::vector<cv::Vec4i> lines;
   cv::HoughLinesP(image, lines, 1, CV_PI / 180, 20, 20, 20);
 
-  for (int i = 0; i < lines.size(); ++i) {
-    cv::Vec4i l = lines[i];
-    cv::line(res, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]),
-             cv::Scalar(255, 255, 255), 20, CV_AA);
-  }
-
   int deviationCount = 0;
   float errorMargin = 20;
+
+  // variables for averaging the deviation
   long sumDeviationX = 0;
   long sumDeviationY = 0;
+
+  // iterate over all points and check if it is close to a line
   for (int i = 0; i < HalfCircleDetector::points.size(); ++i) {
     bool detected = false;
     for (int j = 0; j < (int)lines.size(); ++j) {
@@ -137,20 +153,20 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     }
   }
 
-  int halfCircleX = -1; // returns negative values if nothing detected
+  // returns negative values if nothing detected
+  int halfCircleX = -1;
   int halfCircleY = -1;
 
   int deviationThreshold = 100;
   if (deviationCount > deviationThreshold) {
     halfCircleX = (int)sumDeviationX / deviationCount;
     halfCircleY = (int)sumDeviationY / deviationCount;
-    //    ROS_INFO("Half-circle detected: %d at x: %d y: %d", deviationCount,
-    //    halfCircleX, halfCircleY);
+
+    ROS_INFO("Half-circle detected: %d at x: %d y: %d", deviationCount,
+             halfCircleX, halfCircleY);
 
     cv::circle(res, cv::Point(halfCircleX, halfCircleY), 20,
                cv::Scalar(255, 255, 255));
-
-    // cv::imwrite("/home/robotics/res.jpg", res);
   }
 
   geometry_msgs::Pose2D pose =
@@ -167,6 +183,9 @@ void HalfCircleDetector::setHalfCirclePose(geometry_msgs::Pose2D &pose) {
   HalfCircleDetector::halfCirclePose = pose;
 }
 
+/*
+ * Just uses basic trigonometry.
+ */
 geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
                                                      int robotX, int robotY) {
   geometry_msgs::Pose2D msg;
