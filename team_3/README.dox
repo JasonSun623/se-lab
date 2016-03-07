@@ -1,0 +1,12 @@
+/**
+ *
+ * @mainpage Team 3
+ *
+ * @author Leonhard Kuboschek (kuboschek)
+ *
+ * There are currently two packages in our project:
+ *
+ * * ```half_circle_detection``` to convert laser data into half circle positions
+ * * ```random_walk_strategy``` to drive the robot based on circle position 
+ *
+ */
