@@ -57,17 +57,9 @@ public:
 
   ~Robot() { instanceFlag = false; }
 
-  void initialize() {
-    x = 0;
-    y = 0;
-    phi = 0;
-    velX = 0;
-    velY = 0;
-  }
-
   void incrementVelX() { velX++; }
 
-  void incrementVelY() { velX++; }
+  void incrementVelY() { velY++; }
 
   void driveX(geometry_msgs::Twist &msg, double x) {
     msg.linear.x = x;
