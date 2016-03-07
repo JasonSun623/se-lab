@@ -1,13 +1,11 @@
 #include "RandomWalkStrategy.h"
 #include <geometry_msgs/Pose2D.h>
 
-#define EPSILON 0.1
-
 bool RandomWalkStrategy::getCircleVisible() { return circleVisible; }
 
 void RandomWalkStrategy::receiveCirclePosition(
     const geometry_msgs::Pose2D::ConstPtr &circlePose) {
-  if ((circlePose->x - -1.0) < EPSILON) {
+  if (circlePose->x == -1) {
     circleVisible = false;
     return;
   }
@@ -16,8 +14,8 @@ void RandomWalkStrategy::receiveCirclePosition(
   circleAngle = circlePose->theta * (180 / M_PI);
   circleDistance = sqrt(pow(circlePose->x, 2) + pow(circlePose->y, 2));
 
-  // ROS_INFO("Circle angle: %f", circleAngle);
-  // ROS_INFO("Circle distance: %f", circleDistance);
+  //ROS_INFO("Circle angle: %f", circleAngle);
+  //ROS_INFO("Circle distance: %f", circleDistance);
 }
 
 void RandomWalkStrategy::receiveLaserScan(
