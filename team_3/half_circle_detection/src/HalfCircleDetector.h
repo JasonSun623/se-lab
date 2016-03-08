@@ -8,7 +8,7 @@
  *  relative to the robot.
  * @author Felix Schmoll
  * @author Leonhard Kuboschek
- * @bugs The function createPose is currently not setting the proper x and y
+ * @bug The function createPose is currently not setting the proper x and y
  *values.
  */
 
@@ -34,17 +34,27 @@
 /* libs includes */
 #include <cmath>
 
-//threshold from which on distance values are not considered objects anymore
+/**
+  * @brief Threshold from which on distance values are not considered objects
+ * anymore
+  */
 #define LASER_RANGE 3.9
 
-//epsilon for comparing floating point numbers
-//currently used only for comparing pixels, has to be 1 at least
+/**
+  * @brief Epsilon for comparing floating point numbers.
+  * Currently used only for comparing pixels, has to be 1 at least
+  */
 #define EPSILON 1.01
 
+/**
+  * @brief Shorthand for representing points.
+  */
 typedef std::pair<int, int> Point;
 
+/**
+  * @brief Compound class for detecting half-circles.
+  */
 class HalfCircleDetector {
-
 public:
   /** @brief Processes a sensor_msgs::LaserScan and calls necessary other
    * functions
@@ -98,7 +108,8 @@ private:
    *  @param posY y-coordinate of the object
    *  @param robotX x-coordinate of the robot
    *  @param robotY y-coordinate of the robot
-   *  @returns The pose of the given point within the robot frame.
+   *  @returns The pose of the given point within the robot frame. Currently
+   * returns in pixel and radian.
    *  @bug Currently the returned x- and y-coordinates are in pixels and thus
    * useless.
    */
