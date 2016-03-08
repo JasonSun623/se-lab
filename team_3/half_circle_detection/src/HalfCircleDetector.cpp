@@ -21,12 +21,17 @@ void HalfCircleDetector::receiveLaserScan(
 float HalfCircleDetector::interpolate(int index, int resolution,
                                       std::vector<float> data) {
   int size = data.size();
-
   float step = 1.0 / ((float)resolution);
 
   // finding closest actual data in the dataset
   int leftIndex = RANGE(0, (int)(step * index), size - 1);
   int rightIndex = RANGE(0, leftIndex + 1, size - 1);
+
+  // everthing more distant than the laserRange can mean just the end of the
+  // sensor and distorts the actual measurements
+  if(data[leftIndex] > LASER_RANGE || data[rightIndex] > LASER_RANGE) {
+    return -1.0;
+  }
 
   // interpolation
   float offset = step * index - leftIndex;
@@ -57,13 +62,8 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     float hyp =
         HalfCircleDetector::interpolate(i, resolution, laserScan->ranges);
 
-    float laserRange = 0.9 * 4.0;
-
-    // everthing more distant than the laserRange can mean just the end of the
-    // sensor and distorts the actual measurements
-    if (hyp > laserRange || laserScan->ranges[i / resolution] > laserRange ||
-        laserScan->ranges[std::min((i / resolution) + 1, numOfValues - 1)] >
-            laserRange) {
+    //skip invalid values
+    if(hyp < 0) {
       continue;
     }
 
@@ -95,13 +95,11 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
  * be at the average of all deviation points.
  */
 geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
-
   cv::cvtColor(image, image, CV_BGR2GRAY);
-  cv::Mat res = image.clone();
 
   // use probabilistic Hough-transform to find lines
   std::vector<cv::Vec4i> lines;
-  cv::HoughLinesP(image, lines, 1, CV_PI / 180, 20, 20, 20);
+  cv::HoughLinesP(image, lines, 1, CV_PI / 180, 20, 10, 20);
 
   int deviationCount = 0;
   float errorMargin = 20;
@@ -113,32 +111,24 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   // iterate over all points and check if it is close to a line
   for (int i = 0; i < HalfCircleDetector::points.size(); ++i) {
     bool detected = false;
+
     for (int j = 0; j < (int)lines.size(); ++j) {
       cv::Vec4i l = lines[j];
       float numerator = (l[1] - l[3]);
       float denominator = (l[0] - l[2]);
 
       float error;
-      float epsilon = 1;
-      //     if(std::abs(numerator) < epsilon)
-      //     {
-      //       error = abs(l[1] - HalfCircleDetector::points[i].second);
-      //     }
-      // else if(std::abs(denominator) < epsilon))
-      //{
-      //     error = abs(l[0] - HalfCircleDetector::points[i].first);
-      //} else {
-      //        if(denominator < epsilon) m = 0;
 
-      if (abs(denominator) < epsilon) {
+      //don't detect circles when there are straight lines, otherwise things get too inaccurate
+      if (abs(denominator) < EPSILON || abs(numerator) < EPSILON) {
         detected = true;
         break;
       }
+
       float m = numerator / denominator;
       float lineY = l[1] + m * (HalfCircleDetector::points[i].first - l[0]);
 
       error = abs(lineY - HalfCircleDetector::points[i].second);
-      //}
 
       if (error < errorMargin) {
         detected = true;
@@ -162,11 +152,8 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     halfCircleX = (int)sumDeviationX / deviationCount;
     halfCircleY = (int)sumDeviationY / deviationCount;
 
-    ROS_INFO("Half-circle detected: %d at x: %d y: %d", deviationCount,
+    ROS_DEBUG("Half-circle detected: %d at x: %d y: %d", deviationCount,
              halfCircleX, halfCircleY);
-
-    cv::circle(res, cv::Point(halfCircleX, halfCircleY), 20,
-               cv::Scalar(255, 255, 255));
   }
 
   geometry_msgs::Pose2D pose =

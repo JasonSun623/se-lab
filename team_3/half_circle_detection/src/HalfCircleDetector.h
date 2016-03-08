@@ -34,6 +34,13 @@
 /* libs includes */
 #include <cmath>
 
+//threshold from which on distance values are not considered objects anymore
+#define LASER_RANGE 3.9
+
+//epsilon for comparing floating point numbers
+//currently used only for comparing pixels, has to be 1 at least
+#define EPSILON 1.01
+
 typedef std::pair<int, int> Point;
 
 class HalfCircleDetector {
