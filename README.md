@@ -2,7 +2,11 @@
 
 ## How to run
 
-To launch the full robot-suite you currently have to do the following:
+Primary way of launching the project is running a script from the workspace root:
+
+`./src/team-3/launch.sh`
+
+It is also possible to launch all the commands manually:
 
 `catkin_make`
 `roscore`
