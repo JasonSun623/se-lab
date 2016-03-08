@@ -10,6 +10,9 @@ To launch the full robot-suite you currently have to do the following:
 `rosrun half_circle_detection half_circle_detection_node`
 `rosrun random_walk_strategy random_walk_strategy_node`
 
+Alternatively to the lab_simulator you can run the following command:
+`roslaunch movement movementSimulator.launch`
+
 If ROS tells you that no package with the name "lab_simulator" exists, you may have forgotten to source your workspace. Fix it by:
 
 `source /home/robotics/ros_ws/devel/setup.bash`
