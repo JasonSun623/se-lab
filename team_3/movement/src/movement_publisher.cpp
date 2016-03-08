@@ -16,6 +16,8 @@ int main(int argc, char **argv) {
   Robot *r;
   r = Robot::getInstance();
 
+  r->initialize();
+
   ros::init(argc, argv, "movement_publisher");
 
   ros::NodeHandle n;
