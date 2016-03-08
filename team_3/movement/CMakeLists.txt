@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(team_3)
+project(movement)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  catkin_simple
-  geometry_msgs
-  laser_filters
+find_package(catkin REQUIRED COMPONENTS geometry_msgs
+  roscpp
   tf
+  nav_msgs
+  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -102,8 +102,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES team_3
-#  CATKIN_DEPENDS catkin_simple geometry_msgs laser_filters tf
+#  LIBRARIES movement
+#  CATKIN_DEPENDS geometry_msgs
 #  DEPENDS system_lib
 )
 
@@ -116,27 +116,28 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${GTEST_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(team_3
-#   src/${PROJECT_NAME}/team_3.cpp
+# add_library(movement
+#   src/${PROJECT_NAME}/movement.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(team_3 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(movement ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(team_3_node src/team_3_node.cpp)
+# add_executable(movement_node src/movement_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(team_3_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(movement_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(team_3_node
+# target_link_libraries(movement_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -155,7 +156,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS team_3 team_3_node
+# install(TARGETS movement movement_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -179,11 +180,22 @@ include_directories(
 ## Testing ##
 #############
 
+catkin_add_gtest(tests_movement
+	test/Robot_test.cpp)
+
+target_link_libraries(tests_movement ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_team_3.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_movement.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+# Tests
+
+
+
+add_executable(movement_publisher src/movement_publisher.cpp)
+target_link_libraries(movement_publisher ${catkin_LIBRARIES})
