@@ -2,6 +2,9 @@
 
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
+//
+#define STRETCH_FACTOR 100
+
 /*
  * The actual magic happens in the called functions.
  * This is just the glue combining everything.
@@ -29,7 +32,7 @@ float HalfCircleDetector::interpolate(int index, int resolution,
 
   // everthing more distant than the laserRange can mean just the end of the
   // sensor and distorts the actual measurements
-  if(data[leftIndex] > LASER_RANGE || data[rightIndex] > LASER_RANGE) {
+  if (data[leftIndex] > LASER_RANGE || data[rightIndex] > LASER_RANGE) {
     return -1.0;
   }
 
@@ -52,8 +55,8 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
   int numOfValues = (laserScan->angle_max - laserScan->angle_min) /
                     laserScan->angle_increment;
 
-  int imageHeight = 800;
-  int imageWidth = 1600;
+  int imageHeight = 8 * STRETCH_FACTOR;
+  int imageWidth = 16 * STRETCH_FACTOR;
 
   cv::Mat image(imageHeight, imageWidth, CV_8UC3, cv::Scalar::all(0));
 
@@ -62,8 +65,8 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     float hyp =
         HalfCircleDetector::interpolate(i, resolution, laserScan->ranges);
 
-    //skip invalid values
-    if(hyp < 0) {
+    // skip invalid values
+    if (hyp < 0) {
       continue;
     }
 
@@ -75,9 +78,10 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     float adj = hyp * std::cos(alpha);
 
     // make sure that values are always within bounds
-    int x =
-        RANGE(0, (int)((imageWidth / 2) + 100 * opp * sign), imageWidth - 1);
-    int y = RANGE(0, (int)((imageHeight / 2) + adj * 100), imageHeight - 1);
+    int x = RANGE(0, (int)((imageWidth / 2) + STRETCH_FACTOR * opp * sign),
+                  imageWidth - 1);
+    int y = RANGE(0, (int)((imageHeight / 2) + adj * STRETCH_FACTOR),
+                  imageHeight - 1);
 
     HalfCircleDetector::points.push_back(std::make_pair(x, y));
 
@@ -110,6 +114,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
 
   // iterate over all points and check if it is close to a line
   for (int i = 0; i < HalfCircleDetector::points.size(); ++i) {
+
     bool detected = false;
 
     for (int j = 0; j < (int)lines.size(); ++j) {
@@ -119,7 +124,8 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
 
       float error;
 
-      //don't detect circles when there are straight lines, otherwise things get too inaccurate
+      // don't detect circles when there are straight lines, otherwise things
+      // get too inaccurate
       if (abs(denominator) < EPSILON || abs(numerator) < EPSILON) {
         detected = true;
         break;
@@ -153,11 +159,11 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     halfCircleY = (int)sumDeviationY / deviationCount;
 
     ROS_DEBUG("Half-circle detected: %d at x: %d y: %d", deviationCount,
-             halfCircleX, halfCircleY);
+              halfCircleX, halfCircleY);
   }
 
   geometry_msgs::Pose2D pose =
-      createPose(halfCircleX, halfCircleY, image.cols / 2, image.rows / 2);
+      createPose(halfCircleX, halfCircleY, (image.cols / 2), (image.rows / 2));
 
   return pose;
 }
@@ -180,8 +186,8 @@ geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
   if (posX == -1) {
     msg.x = msg.y = msg.theta = -1;
   } else {
-    msg.x = posX - robotX;
-    msg.y = posY - robotY;
+    msg.x = (posX - robotX) / (float)STRETCH_FACTOR;
+    msg.y = (posY - robotY) / (float)STRETCH_FACTOR;
     msg.theta = std::atan2(msg.y, msg.x);
   }
 

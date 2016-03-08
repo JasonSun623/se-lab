@@ -8,8 +8,7 @@
  *  relative to the robot.
  * @author Felix Schmoll
  * @author Leonhard Kuboschek
- * @bugs The function createPose is currently not setting the proper x and y
- *values.
+ * @author Jehanzeb Ayaz
  */
 
 #ifndef HALFCIRCLEDETECTOR_H
@@ -34,11 +33,11 @@
 /* libs includes */
 #include <cmath>
 
-//threshold from which on distance values are not considered objects anymore
+// threshold from which on distance values are not considered objects anymore
 #define LASER_RANGE 3.9
 
-//epsilon for comparing floating point numbers
-//currently used only for comparing pixels, has to be 1 at least
+// epsilon for comparing floating point numbers
+// currently used only for comparing pixels, has to be 1 at least
 #define EPSILON 1.01
 
 typedef std::pair<int, int> Point;
@@ -99,8 +98,6 @@ private:
    *  @param robotX x-coordinate of the robot
    *  @param robotY y-coordinate of the robot
    *  @returns The pose of the given point within the robot frame.
-   *  @bug Currently the returned x- and y-coordinates are in pixels and thus
-   * useless.
    */
   geometry_msgs::Pose2D createPose(int posX, int posY, int robotX, int robotY);
 };
