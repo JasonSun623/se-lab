@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
   // creates an instance of a robot class
   Robot *r;
   r = Robot::getInstance();
+  r->initialize();
 
   ros::init(argc, argv, "movement_publisher");
 

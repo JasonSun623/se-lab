@@ -28,11 +28,7 @@ private:
 
   /** @brief A default constructor for Robot object
    */
-  Robot() {
-    x = 0;
-    y = 0;
-    phi = 0;
-  }
+  Robot() {}
 
   Robot(Robot const &);          // Don't implement
   void operator=(Robot const &); // Don't implement
@@ -49,6 +45,11 @@ public:
     } else {
       return robot;
     }
+  }
+  void initialize() {
+    this->setX(0);
+    this->setY(0);
+    this->setPhi(0);
   }
 
   /** @brief Sets the x coordinate of the robot
