@@ -11,9 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   rostest
 )
 
-find_package(gtest)
-
-
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 ## System dependencies are found with CMake's conventions
