@@ -19,7 +19,7 @@ bool RandomWalkStrategy::getCircleVisible() { return circleVisible; }
 void RandomWalkStrategy::receiveCirclePosition(
     const geometry_msgs::Pose2D::ConstPtr &circlePose) {
   // compare to -1
-  if (abs(circlePose->x + 1) < EPSILON) {
+  if (circlePose->x == -1) {
     circleVisible = false;
     return;
   }
