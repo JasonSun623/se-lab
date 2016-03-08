@@ -1,12 +1,20 @@
+/** @file HalfCircleDetector.cpp
+  * @brief Implementation of the corresponding header.
+  *
+  * @author Felix Schmoll
+  */
 #include "HalfCircleDetector.h"
 
+/**
+  * @brief Limiting integers to be within a certain range.
+  */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
-//
+
 #define STRETCH_FACTOR 100
 
-/*
- * The actual magic happens in the called functions.
+/**
+ * @brief The actual magic happens in the called functions.
  * This is just the glue combining everything.
  */
 void HalfCircleDetector::receiveLaserScan(
@@ -18,7 +26,7 @@ void HalfCircleDetector::receiveLaserScan(
   setHalfCirclePose(pose);
 }
 
-/* Interpolates the data up to the requested resolution using linear
+/** @brief Interpolates the data up to the requested resolution using linear
  * interpolation.
  */
 float HalfCircleDetector::interpolate(int index, int resolution,
@@ -43,8 +51,8 @@ float HalfCircleDetector::interpolate(int index, int resolution,
   return value;
 }
 
-/*
- * Converts the laserScan-data from polar into cartesian coordinates.
+/**
+ * @brief Converts the laserScan-data from polar into cartesian coordinates.
  * Then cleans the data from various problems and finally translates the points
  * into pixels on an actual image (in form of an OpenCV-matrix).
  */
@@ -91,8 +99,9 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
   return image;
 }
 
-/*
- * Uses OpenCV to detect all lines in the image. Then calculates the lines
+/**
+ * @brief Uses OpenCV to detect all lines in the image. Then calculates the
+ * lines
  * equations and checks for all drawn points if they are in proximity of a line.
  * If not we consider it a deviation. If we have more than a certain amount of
  * deviations we assume that we found a half-circle. The position is assumed to
@@ -168,16 +177,22 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   return pose;
 }
 
+/**
+  * @brief Get half-circle pose.
+  */
 geometry_msgs::Pose2D HalfCircleDetector::getHalfCirclePose() {
   return HalfCircleDetector::halfCirclePose;
 }
 
+/**
+  * @brief Set half-circle pose.
+  */
 void HalfCircleDetector::setHalfCirclePose(geometry_msgs::Pose2D &pose) {
   HalfCircleDetector::halfCirclePose = pose;
 }
 
-/*
- * Just uses basic trigonometry.
+/**
+ * @brief Just uses basic trigonometry.
  */
 geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
                                                      int robotX, int robotY) {

@@ -33,17 +33,28 @@
 /* libs includes */
 #include <cmath>
 
-// threshold from which on distance values are not considered objects anymore
+
+/**
+  * @brief Threshold from which on distance values are not considered objects
+ * anymore
+  */
 #define LASER_RANGE 3.9
 
-// epsilon for comparing floating point numbers
-// currently used only for comparing pixels, has to be 1 at least
+/**
+  * @brief Epsilon for comparing floating point numbers.
+  * Currently used only for comparing pixels, has to be 1 at least
+  */
 #define EPSILON 1.01
 
+/**
+  * @brief Shorthand for representing points.
+  */
 typedef std::pair<int, int> Point;
 
+/**
+  * @brief Compound class for detecting half-circles.
+  */
 class HalfCircleDetector {
-
 public:
   /** @brief Processes a sensor_msgs::LaserScan and calls necessary other
    * functions
