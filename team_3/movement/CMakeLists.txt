@@ -11,8 +11,6 @@ find_package(catkin REQUIRED COMPONENTS geometry_msgs
   sensor_msgs
 )
 
-find_package(gtest)
-
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
