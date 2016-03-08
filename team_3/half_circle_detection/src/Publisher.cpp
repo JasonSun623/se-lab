@@ -3,6 +3,10 @@
 #include <geometry_msgs/Pose2D.h>
 #include "HalfCircleDetector.h"
 
+/** Main executable for half-circle detection.
+ *
+ *  Subscribes to ```base_scan``` for laser data.
+ *  Publishes to ```half_circle_detection``` for publishing circle positions. */
 int main(int argc, char **argv) {
   ros::init(argc, argv, "half_circle_publisher");
 
