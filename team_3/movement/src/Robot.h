@@ -46,7 +46,6 @@ public:
       return robot;
     }
   }
-<<<<<<< HEAD
 
   /** @brief Initializes all the properties of the class
    */
@@ -55,12 +54,6 @@ public:
     x = 0;
     y = 0;
     phi = 0;
-=======
-  void initialize() {
-    this->setX(0);
-    this->setY(0);
-    this->setPhi(0);
->>>>>>> feature-basic-movement
   }
 
   /** @brief Sets the x coordinate of the robot

@@ -29,14 +29,9 @@
   */
 #define LINEAR_VEL 1.0
 
-<<<<<<< HEAD
-// The angle of circle detector that is straight ahead [deg]
-
-=======
 /**
  * @brief The angle of circle detector that is straight ahead [deg]
  */
->>>>>>> 6fd5109cc9b10715b1ebee1fc193f65b87cb1850
 #define SCAN_CENTER 90
 
 /**
@@ -71,12 +66,6 @@
  */
 #define MIN_DISTANCE 0.5
 
-<<<<<<< HEAD
-/** Implements the random walk strategy.
-  * If a half-circle is detected it moves towards it, otherwise it just
- * turns at
-  * the same spot.
-=======
 /**
  * @brief Number of laser samples
  */
@@ -87,11 +76,10 @@
  */
 #define EPSILON 0.05
 
-    /**
-      * @brief Strategy for Random Walk
-    >>>>>>> 6fd5109cc9b10715b1ebee1fc193f65b87cb1850
-      */
-    class RandomWalkStrategy {
+/**
+  * @brief Strategy for Random Walk
+  */
+class RandomWalkStrategy {
 public:
   /**
     * @brief Receives a message with a halfcircle-pose or a dummy message and

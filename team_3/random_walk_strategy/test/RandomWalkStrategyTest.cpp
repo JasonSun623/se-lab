@@ -23,8 +23,8 @@ TEST(RandomWalkStrategyTestSuite, noCircleTestCase) {
 TEST(RandomWalkStrategyTestSuite, controllerOutputTestCase) {
 
   geometry_msgs::Pose2D pose;
-  pose.x = pose.y = -1.0;
-  pose.theta = 100 * (M_PI / 180);
+  pose.x = pose.y = 1.0;
+  pose.theta = 120 * (M_PI / 180);
 
   const geometry_msgs::Pose2D::ConstPtr posePtr(
       new geometry_msgs::Pose2D(pose));
@@ -35,15 +35,18 @@ TEST(RandomWalkStrategyTestSuite, controllerOutputTestCase) {
   geometry_msgs::Twist out = ptr->getControlOutput();
 
   ASSERT_GT(out.linear.x, 0);
-  ASSERT_GT(out.angular.z, 0);
-
-  pose.theta = 80 * (M_PI / 180);
-  ptr->receiveCirclePosition(posePtr);
-
-  geometry_msgs::Twist out = ptr->getControlOutput();
-
-  ASSERT_LT(out.linear.x, 0);
   ASSERT_LT(out.angular.z, 0);
+
+  pose.theta = 70 * (M_PI / 180);
+  const geometry_msgs::Pose2D::ConstPtr posePtr2(
+      new geometry_msgs::Pose2D(pose));
+
+  ptr->receiveCirclePosition(posePtr2);
+
+  out = ptr->getControlOutput();
+
+  ASSERT_GT(out.linear.x, 0);
+  ASSERT_GT(out.angular.z, 0);
 }
 
 int main(int argc, char **argv) {
