@@ -1,29 +1,25 @@
 <?xml version="1.0"?>
 <package>
-  <name>random_walk_strategy</name>
-  <version>0.0.0</version>
-  <description>The random_walk_strategy package</description>
+  <name>wall_following_strategy</name>
+  <version>0.0.1</version>
+  <description>The wall_following_strategy package</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="leonhard@todo.todo">leonhard</maintainer>
-
+  <maintainer email="m.gladkova@jacobs-university.de">Maria Gladkova</maintainer>
+  <maintainer email="f.schmoll@jacobs-university.de">Felix Schmoll</maintainer>
 
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-<<<<<<< Updated upstream
   <license>TODO</license>
-=======
-      <license>TODO</license>
->>>>>>> Stashed changes
 
 
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/random_walk_strategy</url> -->
+  <!-- <url type="website">http://wiki.ros.org/wall_following_strategy</url> -->
 
 
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
@@ -44,12 +40,13 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
+  <run_depend>geometry_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
-  <run_depend>geometry_msgs</run_depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
