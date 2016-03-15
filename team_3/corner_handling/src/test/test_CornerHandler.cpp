@@ -1,4 +1,4 @@
-/** @file test_corner_handling.cpp
+/** @file test_CornerHandler.cpp
   * @brief Should test the functionality of overall corner handling.
   * Currently tests for detection of corners and if the minimum distance to the
   *walls decreases in the next step taken.
@@ -6,10 +6,16 @@
   * @author Felix Schmoll (LiftnLearn)
   */
 
-/** Includes */
+/* Includes */
 
-/** Include header for class to be tested */
-#include "../include/corner_handling.h"
+#include <rosbag/bag.h>
+
+/* Include header for class to be tested */
+#include "../../include/CornerHandler.h"
+
+/* gtest include */
+#include <gtest/gtest.h>
+
 
 /** @brief Tests if the node is successfully detecting corners and not giving
  * false positives.
@@ -18,9 +24,20 @@ TEST(CornerHandlingTestSuite, cornerDetectionTestCase) {
   CornerHandler handler;
   sensor_msgs::LaserScan laserScan;
 
-  // TODO: fill in actual values in the laserScan (use multiple versions)
+  rosbag::Bag bag;
+  bag.open("laserScan.bag", rosbag::bagmode::Read);
 
-  ASSERT(laserScan.detectCorner(laserScan));
+  std::vector<std::string> topics;
+  topics.push_back(std::string("cmd_vel"));
+
+  rosbag::View view(bag, rosbag::TopicQuery(topics);
+  sensor_msgs::LaserScan::ConstPtr ptr = view[0].instantiate<sensor_msgs::LaserScan>(); 
+
+  if( ptr != NULL) {
+    ASSERT_TRUE(handler.detectCorner((*ptr)));
+  }
+
+  bag.close();
 }
 
 /** @brief Should somehow test if the distance to the walls is getting bigger/at
