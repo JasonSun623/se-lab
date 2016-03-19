@@ -9,7 +9,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   rostest
+  rosbag
 )
+
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -180,10 +183,11 @@ target_link_libraries(corner_handling_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-catkin_add_gtest(${PROJECT_NAME}-test src/test/test_CornerHandler.cpp)
-if(TARGET ${PROJECT_NAME}-test)
-   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-endif()
+catkin_add_gtest(${PROJECT_NAME}-test src/test/test_CornerHandler.cpp src/CornerHandler.cpp)
+target_link_libraries(${PROJECT_NAME}-test ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${rosbag_LIBRARIES})
+# if(TARGET ${PROJECT_NAME}-test)
+#    target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

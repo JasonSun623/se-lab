@@ -9,6 +9,7 @@
 /* Includes */
 
 #include <rosbag/bag.h>
+#include <rosbag/view.h>
 
 /* Include header for class to be tested */
 #include "../../include/CornerHandler.h"
@@ -28,13 +29,17 @@ TEST(CornerHandlingTestSuite, cornerDetectionTestCase) {
   bag.open("laserScan.bag", rosbag::bagmode::Read);
 
   std::vector<std::string> topics;
-  topics.push_back(std::string("cmd_vel"));
+  topics.push_back(std::string("base_scan"));
 
-  rosbag::View view(bag, rosbag::TopicQuery(topics);
-  sensor_msgs::LaserScan::ConstPtr ptr = view[0].instantiate<sensor_msgs::LaserScan>(); 
+  rosbag::View view(bag, rosbag::TopicQuery(topics));
 
-  if( ptr != NULL) {
-    ASSERT_TRUE(handler.detectCorner((*ptr)));
+  for(rosbag::MessageInstance m : view) {
+
+    sensor_msgs::LaserScan::ConstPtr ptr = m.instantiate<sensor_msgs::LaserScan>(); 
+    if( ptr != NULL) {
+     ASSERT_TRUE(handler.detectCorner(ptr));
+    }
+
   }
 
   bag.close();

@@ -24,7 +24,7 @@ class CornerHandler {
 public:
   /** @brief Detects critical situations (the robot is too close to an obstacle.
     * @param laserScan LaserScan-message containing obstacle-distances */
-  bool detectCorner(sensor_msgs::LaserScan &laserScan);
+  bool detectCorner(const sensor_msgs::LaserScan::ConstPtr& laserScan);
 
  /** @brief Handles critical corner situations. Should slowly move the robot
    * out again without actually touching anything.

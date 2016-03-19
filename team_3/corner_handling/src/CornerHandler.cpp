@@ -3,5 +3,14 @@
   */
 
 /** Includes */
-#include "../include/CornerHandler.cpp"
+#include "../include/CornerHandler.h"
+
+
+
+bool CornerHandler::detectCorner(const sensor_msgs::LaserScan::ConstPtr& laserScan){
+
+  return false;
+
+}
+
 
