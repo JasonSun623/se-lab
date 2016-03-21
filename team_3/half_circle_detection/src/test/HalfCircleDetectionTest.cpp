@@ -22,7 +22,7 @@ TEST(HalfCircleDetectionTestSuite, circleDetectionTestCase) {
   HalfCircleDetector *h = new HalfCircleDetector();
 
   std::string path = ros::package::getPath("half_circle_detection");
-  path += "/src/test/laserScan.bag";
+  path += "/test/laserScan.bag";
 
   rosbag::Bag bag;
   bag.open(path, rosbag::bagmode::Read);

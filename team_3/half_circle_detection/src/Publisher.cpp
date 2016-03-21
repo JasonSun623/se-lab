@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Pose2D.h>
-#include "HalfCircleDetector.h"
+#include "../include/HalfCircleDetector.h"
 
 /** Main executable for half-circle detection.
  *

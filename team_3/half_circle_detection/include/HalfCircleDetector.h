@@ -33,7 +33,6 @@
 /* libs includes */
 #include <cmath>
 
-
 /**
   * @brief Threshold from which on distance values are not considered objects
  * anymore
@@ -104,6 +103,8 @@ private:
   float interpolate(int index, int resolution, std::vector<float> data);
 
   /** @brief Converts coordinates from image-frame to robot-frame
+   *  @detail Basically converts coordinates from cartesian in the image frame
+   * to polar in the world frame.
    *  @param posX x-coordinate of the object
    *  @param posY y-coordinate of the object
    *  @param robotX x-coordinate of the robot
