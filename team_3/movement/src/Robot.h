@@ -1,8 +1,3 @@
-#include <cstdlib>
-#include <iostream>
-using namespace std;
-#ifndef ROBOT_H
-#define ROBOT_H
 /** @file Robot.h
  *  @brief Introduces a robot in the simulation and gives it
  *  parameters
@@ -17,6 +12,12 @@ using namespace std;
  *
  * @author Mariia Gladkova
  */
+
+#include <cstdlib>
+#include <iostream>
+using namespace std;
+#ifndef ROBOT_H
+#define ROBOT_H
 
 class Robot {
 private:
