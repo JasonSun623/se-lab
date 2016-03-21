@@ -10,6 +10,7 @@
 #include <geometry_msgs/Polygon.h>
 
 #include <cmath>
+#define RANGES 240
 
 class WallFollowingStrategy {
 private:
@@ -19,20 +20,22 @@ private:
 
   sensor_msgs::LaserScan lastScan;
   geometry_msgs::Polygon lastLineArray;
+  std::pair<float, float> nearestLine;
 
   bool crashMode;
   bool cornerStuck;
 
 public:
   void getCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePos);
-  void getLaserScan(const geometry_msgs::LaserScan::ConstPtr &laserScan);
+  void getLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
   void getCornerRecovery(const geometry_msgs::Twist::ConstPtr &cornerOut);
   bool getCircleVisible();
   bool getCrashMode();
   bool getCornerHandle();
   void getLines(const geometry_msgs::Polygon::ConstPtr &lines);
+  void getNearestLineBruteForce();
 
-  float findMinimDistance(int num_readings);
+  float findMinimDistance();
 
   const geometry_msgs::Twist controlMovement();
 };
