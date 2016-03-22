@@ -195,6 +195,6 @@ target_link_libraries(half_circle_detection_node
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-catkin_add_gtest(tests_half_circle_detection test/HalfCircleDetectionTest.cpp src/HalfCircleDetector.cpp)
+catkin_add_gtest(tests_half_circle_detection src/test/HalfCircleDetectionTest.cpp src/HalfCircleDetector.cpp)
 
 target_link_libraries(tests_half_circle_detection ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})
