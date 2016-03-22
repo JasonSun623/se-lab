@@ -75,9 +75,9 @@ TEST(HalfCircleDetectionTestSuite, falsePositiveTestCase) {
 
       geometry_msgs::Pose2D pose = h->getHalfCirclePose();
 
-      ASSERT_NEAR(pose.x, 0, 0.01);
-      ASSERT_NEAR(pose.y, 0, 0.01);
-      ASSERT_NEAR(pose.theta, 0, 0.01);
+      ASSERT_NEAR(pose.x, -1, 0.01);
+      ASSERT_NEAR(pose.y, -1, 0.01);
+      ASSERT_NEAR(pose.theta, -1, 0.01);
     }
   }
 
