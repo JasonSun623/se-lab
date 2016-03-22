@@ -10,13 +10,13 @@
 
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
+#include <ros/package.h>
 
 /* Include header for class to be tested */
 #include "../../include/CornerHandler.h"
 
 /* gtest include */
 #include <gtest/gtest.h>
-
 
 /** @brief Tests if the node is successfully detecting corners and not giving
  * false positives.
@@ -26,20 +26,22 @@ TEST(CornerHandlingTestSuite, cornerDetectionTestCase) {
   sensor_msgs::LaserScan laserScan;
 
   rosbag::Bag bag;
-  bag.open("laserScan.bag", rosbag::bagmode::Read);
+  std::string path = ros::package::getPath("corner_handling");
+  path += "/src/test/laserScan.bag";
+  bag.open(path, rosbag::bagmode::Read);
 
   std::vector<std::string> topics;
   topics.push_back(std::string("base_scan"));
 
   rosbag::View view(bag, rosbag::TopicQuery(topics));
 
-  for(rosbag::MessageInstance m : view) {
+  for (rosbag::MessageInstance m : view) {
 
-    sensor_msgs::LaserScan::ConstPtr ptr = m.instantiate<sensor_msgs::LaserScan>(); 
-    if( ptr != NULL) {
-     ASSERT_TRUE(handler.detectCorner(ptr));
+    sensor_msgs::LaserScan::ConstPtr ptr =
+        m.instantiate<sensor_msgs::LaserScan>();
+    if (ptr != NULL) {
+      ASSERT_TRUE(handler.detectCorner(ptr));
     }
-
   }
 
   bag.close();
