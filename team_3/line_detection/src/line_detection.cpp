@@ -1,41 +1,42 @@
-//#include "opencv2/highgui/highgui.hpp"
-//#include "opencv2/imgproc/imgproc.hpp"
-//#include "lineDetection.h"
+/**@file line_detection.cpp
+  *@detail Implementation of line detection
+  *
+  *@author Sulav Timilsina
+  */
 
-
+/* OpenCV includes */
 #include <opencv2/imgproc.hpp>
-#include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
+
 #include <iostream>
 #include <cmath>
-
 #include <ros/ros.h>
 
 /* ROS message type includes */
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Pose2D.h>
 
-/* OpenCV includes */
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
+/**
+  * @detail Limiting integers to be within a certain range.
+  * used while creating image from laserscan data like in HalfCircleDetection node.
+  */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
-
 #define LASER_RANGE 3.9
-
-#define EPSILON 1.01
-
 #define RANGE_ 10.0
-
-//typedef std::pair<int, int> Point;
-
 #define STRETCH_FACTOR 100
 
+/*returns this value when slope is infinite*/
 #define INFY 999999
+ /*a gradient range for finding nearby lines*/
+#define EPS 0.1
+
 
 using namespace cv;
 using namespace std;
 
+/** @detail Interpolates the data up to the requested resolution using linear
+ * interpolation.
+ */
 float interpolate(int index, int resolution,
                                       std::vector<float> data) {
   int size = data.size();
@@ -58,7 +59,11 @@ float interpolate(int index, int resolution,
   return value;
 }
 
-
+/**
+ * @detail Converts the laserScan-data from polar into cartesian coordinates.
+ * Then cleans the data from various problems and finally translates the points
+ * into pixels on an actual image (in form of an OpenCV-matrix).
+ */
 cv::Mat createOpenCVImageFromLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
 
@@ -101,6 +106,9 @@ cv::Mat createOpenCVImageFromLaserScan(
   return image;
 }
 
+/**
+ * @detail Template function that prints a vector
+ */
 template <typename T>
 void printvec ( vector<T> vec)
 {
@@ -112,7 +120,10 @@ void printvec ( vector<T> vec)
     cout << endl;
 }
 
-
+/**
+ * @detail sorts lines on the ascending basis of gradient using
+ * insertion sort
+ */
 void sort_lines (vector<Vec4f>& data, vector<float>& slope)
 {
     int i, j;
@@ -134,6 +145,9 @@ void sort_lines (vector<Vec4f>& data, vector<float>& slope)
     }
 }
 
+/**
+ * @detail returns average of the Vec4f vector
+ */
 Vec4f Average(vector<Vec4f> data)
 {
     Vec4f res;
@@ -148,7 +162,11 @@ Vec4f Average(vector<Vec4f> data)
     return res;
 }
 
-
+/**
+ * @detail Removes all the duplicate lines if multiple lines are present in the input vector
+ * If the endpoints of lines are within certain RANGE_ only a single line is calculated by taking
+ * the average.
+ */
 vector<Vec4f> removeDuplicateLines(vector<Vec4f>&data)
 {
     vector<Vec4f> copyData[data.size()];
@@ -196,6 +214,9 @@ vector<Vec4f> removeDuplicateLines(vector<Vec4f>&data)
     return result;
  }
 
+/**
+ *@detail returns a vector of gradient that maps to the input vector of Vec4f data
+ */
 vector<float> get_slope(vector<Vec4f> data)
 {
     vector<float>slope;
@@ -209,6 +230,9 @@ vector<float> get_slope(vector<Vec4f> data)
     return slope;
 }
 
+/**
+ *@detail Returns average of the input vector of points
+*/
 Point Average(vector<Point>points)
 {
     float x,y=0;
@@ -222,6 +246,11 @@ Point Average(vector<Point>points)
     return Point(x,y);
 }
 
+/**
+ *@detail Takes a vector of Vec4f as input and extracts points.
+ * Then, all the points in a certain RANGE_ is grouped and averaged.
+ * Set of points is returned.
+ */
 vector<Point>getRefinedPoints(vector<Vec4f>data)
 {
     vector<Point>points;
@@ -277,33 +306,121 @@ vector<Point>getRefinedPoints(vector<Vec4f>data)
     return result;
 }
 
-
-vector<Point> Points(const sensor_msgs::LaserScan::ConstPtr &laserScan)
+/**
+ *@detail takes refined points and replaces the points in the line if they are
+ * within a certain RANGE_
+ */
+void replacePoints(vector<Vec4f>&lines, vector<Point>&points)
 {
-// const char* filename = "lena.jpg";
+    for(int j=0;j<3;j+=2)
+    {
+        for(int i=0;i<lines.size();i++)
+        {
+            for(int k=0;k<points.size();k++)
+            {
+                if (abs(lines[i][j]-points[k].x)<=RANGE_ && abs(lines[i][j+1]-points[k].y)<=RANGE_)
+                {
+                    lines[i][j]=points[k].x;
+                    lines[i][j+1]=points[k].y;
+                    break;
+                }
+            }
+        }
+    }
+}
 
-// Mat image = imread(filename, 0);
 
- Mat image=createOpenCVImageFromLaserScan(laserScan);
- if(image.empty())
- {
-     cout << "invalid image "<< endl;
- }
+/**
+ *@detail processes vector of lines and joint lines are merged.
+ * Everytime two lines are merged, the process again restarts from beginning.
+ * In the iteration when none of the lines are merged, we are done.
+ */
+void processLines(vector<Vec4f>&lines)
+{
+    vector<Point>points;
+    vector<float>slope=get_slope(lines);
+    int merger=0;
+    vector<Vec4f> newSet;
+    int x=0;
+    while (merger==0)
+    {
+        merger=1;
+        for(unsigned int i=0;i<lines.size()-1;i++)
+        {
+            if(i==lines.size()-1)
+            {
+                newSet.push_back(lines[i]);
+                break;
+            }
+            int j=i+1;
+            while(abs(slope[i]-slope[j])<=EPS && j<lines.size())
+            {
+                if (Point(lines[i][2],lines[i][3])==Point(lines[j][0],lines[j][1]))
+                {
+                    newSet.push_back(Vec4f(lines[i][0],lines[i][1],lines[j][2],lines[j][3]));
+                    merger=0;
+                    j+=2;
+                    break;
+                }
+                else if ((Point(lines[i][0],lines[i][1])==Point(lines[j][2],lines[j][3])))
+                {
+                    newSet.push_back(Vec4f(lines[j][0],lines[j][1],lines[i][2],lines[i][3]));
+                    merger=0;
+                    j+=2;
+                    break;
+                }
+                else
+                    j++;
+            }
+            if(merger==0)
+            {
+                for(unsigned int k=j;k<lines.size();k++)
+                    newSet.push_back(lines[k]);
+                    break;
+            }
+            newSet.push_back(lines[i]);
+        }
+        lines=newSet;
+        newSet.clear();
+        slope=get_slope(lines);
+        sort_lines(lines,slope);
+    }
+}
 
-    Mat dst, cdst;
+/**
+ *@detail The main function that uses above helper functions.
+ * It receives laserScan data, converts it to image and processes the
+ * image. It returns set of processed lines.
+ */
+vector<Vec4f> Points(const sensor_msgs::LaserScan::ConstPtr &laserScan)
+{
+
+    Mat image=createOpenCVImageFromLaserScan(laserScan);
+    if(image.empty())
+    {
+        cout << "invalid image "<< endl;
+    }
+
+    Mat dst, cdst, c2dst;
     Canny(image, dst, 50, 200, 3);
     cvtColor(dst, cdst, CV_GRAY2BGR);
 
     vector<Vec4f> lines;
-    HoughLinesP( dst, lines, 1, CV_PI/180, 50, 10, 10 );
+    HoughLinesP( dst, lines, 1, CV_PI/180, 30, 30, 10 );
 
     lines=removeDuplicateLines(lines);
 
+    vector<Point> points = getRefinedPoints(lines);
+
+    replacePoints(lines,points);
+
     vector<float>slope=get_slope(lines);
 
-    vector<Point> points =getRefinedPoints(lines);
+    sort_lines(lines,slope);
 
-    return points;
+    processLines(lines);
+
+    return lines;
 
 }
 
