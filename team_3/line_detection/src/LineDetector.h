@@ -7,6 +7,7 @@
 #include <vector>
 #include <algorithm>
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/Image.h>
 #include <memory>
 
 /**
@@ -42,6 +43,9 @@ public:
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &);
   int getNumLines() { return res.size(); }
   sensor_msgs::LaserScan::ConstPtr getLaserScan() const { return lastScan; }
+  cv::Mat getImage() { return src; }
+
+  void clearData() { res.clear(); }
 
   std::vector<cv::Vec4i> getLines() { return res; }
 
@@ -49,6 +53,7 @@ private:
   std::vector<cv::Vec4i> res;
   std::vector<std::pair<int, int>> points;
   sensor_msgs::LaserScan::ConstPtr lastScan;
+  cv::Mat src;
 };
 
 #endif

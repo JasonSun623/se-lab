@@ -10,6 +10,7 @@
 void LineDetector::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   lastScan = laserScan;
+  LineDetector::src = LineDetector::createOpenCVImageFromLaserScan(laserScan);
 }
 
 float LineDetector::calcSlope(cv::Vec4i one) {
@@ -41,8 +42,8 @@ void LineDetector::printLinesImage(cv::Mat dst, std::vector<cv::Vec4i> lines) {
   for (size_t i = 0; i < lines.size(); i++) {
     line(dst, cv::Point(lines[i][0], lines[i][1]),
          cv::Point(lines[i][2], lines[i][3]), cv::Scalar(0, 0, 255), 3, 8);
-    std::cout << lines[i][0] << " , " << lines[i][1] << " , " << lines[i][2]
-              << " , " << lines[i][3] << std::endl;
+    // std::cout << lines[i][0] << " , " << lines[i][1] << " , " << lines[i][2]
+    //<< " , " << lines[i][3] << std::endl;
   }
 }
 
@@ -115,6 +116,10 @@ cv::Mat LineDetector::createOpenCVImageFromLaserScan(
     image.at<cv::Vec3b>(cv::Point(x, y)) = cv::Vec3b(200, 200, 200);
   }
 
+  cv::imwrite(
+      "/home/mgladkova/copy_ws/src/team-3/team_3/line_detection/src/Image.jpg",
+      image);
+
   return image;
 }
 
@@ -128,12 +133,12 @@ void LineDetector::removeLines(std::vector<cv::Vec4i> lines1) {
   int count = 0;
   for (size_t i = 0; i < lines1.size(); i++) {
     float slope = calcSlope(lines1[i]);
-    std::cout << slope << std::endl;
+    // std::cout << slope << std::endl;
 
     if (temp.empty()) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
-      std::cout << "1" << std::endl;
+      // std::cout << "1" << std::endl;
     } else if (slope > 0 && fabs(temp[0].second - slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[0] - lines1[i][0]) <
                    getDifference(temp[temp.size() - 1].first[0],
@@ -143,7 +148,7 @@ void LineDetector::removeLines(std::vector<cv::Vec4i> lines1) {
                                  temp[temp.size() - 1].first[3])) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
-      std::cout << "3 ?? " << fabs(temp[0].second - slope) << std::endl;
+      // std::cout << "3 ?? " << fabs(temp[0].second - slope) << std::endl;
     } else if (slope < 0 && fabs(temp[temp.size() - 1].second + slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[0] - lines1[i][0]) <
                    getDifference(temp[temp.size() - 1].first[0],
@@ -153,21 +158,21 @@ void LineDetector::removeLines(std::vector<cv::Vec4i> lines1) {
                                  temp[temp.size() - 1].first[3])) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
-      std::cout << "4 ?? " << fabs(temp[0].second + slope) << std::endl;
+      // std::cout << "4 ?? " << fabs(temp[0].second + slope) << std::endl;
     } else if (abs(temp[temp.size() - 1].first[2] - lines1[i][0]) < 2 &&
                abs(temp[temp.size() - 1].first[3] - lines1[i][1]) < 2) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
-      std::cout << "5 ?? " << fabs(temp[0].second + slope) << std::endl;
+      // std::cout << "5 ?? " << fabs(temp[0].second + slope) << std::endl;
     } else {
       res.push_back(getAverSlope(temp));
       temp.clear();
-      std::cout << "6" << std::endl;
+      // std::cout << "6" << std::endl;
 
       for (int j = 0; j < res.size(); j++) {
         if (slope > 0 && fabs(calcSlope(res[j]) - slope) < 2 ||
             slope < 0 && fabs(calcSlope(res[j]) + slope) < 2) {
-          std::cout << "HH" << std::endl;
+          // std::cout << "HH" << std::endl;
           pushed = false;
           break;
         }
@@ -175,7 +180,7 @@ void LineDetector::removeLines(std::vector<cv::Vec4i> lines1) {
 
       if (pushed) {
         std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
-        std::cout << "YES" << std::endl;
+        // std::cout << "YES" << std::endl;
         temp.push_back(p);
         pushed = true;
       }
@@ -187,11 +192,11 @@ void LineDetector::removeLines(std::vector<cv::Vec4i> lines1) {
     if (!temp.empty() && i == lines1.size() - 1) {
       res.push_back(getAverSlope(temp));
       temp.clear();
-      std::cout << "7" << std::endl;
+      // std::cout << "7" << std::endl;
     }
 
-    std::cout << "LINES " << lines1[i][0] << " , " << lines1[i][1] << " , "
-              << lines1[i][2] << " , " << lines1[i][3] << std::endl;
+    // std::cout << "LINES " << lines1[i][0] << " , " << lines1[i][1] << " , "
+    //<< lines1[i][2] << " , " << lines1[i][3] << std::endl;
     // std::cout << variationStart << std::endl;
   }
 }

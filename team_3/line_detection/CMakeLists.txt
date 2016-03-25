@@ -9,6 +9,8 @@ find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	sensor_msgs
 	rostest
+	image_transport
+	cv_bridge
 	roslib)
 
 find_package(OpenCV REQUIRED)
