@@ -4,4 +4,5 @@
 	<node pkg="movement" type="movement_publisher" name="movement_publisher" output="screen"/>
 	<node pkg="random_walk_strategy" type="random_walk_strategy_node" name="random_walk_strategy" output="screen"/>
 	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" output="screen"/>
+	<node pkg="line_detection" type="line_detection_node" name="line_publisher" output="screen"/>
 </launch>

@@ -6,6 +6,14 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <algorithm>
+#include <sensor_msgs/LaserScan.h>
+#include <memory>
+
+/**
+  * @brief Threshold from which on distance values are not considered objects
+ * anymore
+  */
+#define LASER_RANGE 3.9
 
 class LineDetector {
 public:
@@ -30,12 +38,17 @@ public:
   void removeLines(std::vector<cv::Vec4i>);
   cv::Mat
   createOpenCVImageFromLaserScan(const sensor_msgs::LaserScan::ConstPtr &);
+  float interpolate(int, int, std::vector<float>);
+  void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &);
   int getNumLines() { return res.size(); }
+  sensor_msgs::LaserScan::ConstPtr getLaserScan() const { return lastScan; }
 
   std::vector<cv::Vec4i> getLines() { return res; }
 
 private:
   std::vector<cv::Vec4i> res;
+  std::vector<std::pair<int, int>> points;
+  sensor_msgs::LaserScan::ConstPtr lastScan;
 };
 
 #endif

@@ -1,5 +1,17 @@
 #include "LineDetector.h"
 
+/**
+  * @brief Limiting integers to be within a certain range.
+  */
+#define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
+
+#define STRETCH_FACTOR 100
+
+void LineDetector::receiveLaserScan(
+    const sensor_msgs::LaserScan::ConstPtr &laserScan) {
+  lastScan = laserScan;
+}
+
 float LineDetector::calcSlope(cv::Vec4i one) {
   return ((one[3] - one[1]) * 1.0 / (one[2] - one[0]));
 }
@@ -34,6 +46,31 @@ void LineDetector::printLinesImage(cv::Mat dst, std::vector<cv::Vec4i> lines) {
   }
 }
 
+/** @brief Interpolates the data up to the requested resolution using linear
+ * interpolation.
+ */
+float LineDetector::interpolate(int index, int resolution,
+                                std::vector<float> data) {
+  int size = data.size();
+  float step = 1.0 / ((float)resolution);
+
+  // finding closest actual data in the dataset
+  int leftIndex = RANGE(0, (int)(step * index), size - 1);
+  int rightIndex = RANGE(0, leftIndex + 1, size - 1);
+
+  // everthing more distant than the laserRange can mean just the end of the
+  // sensor and distorts the actual measurements
+  if (data[leftIndex] > LASER_RANGE || data[rightIndex] > LASER_RANGE) {
+    return -1.0;
+  }
+
+  // interpolation
+  float offset = step * index - leftIndex;
+  float value = (1 - offset) * data[leftIndex] + offset * data[rightIndex];
+
+  return value;
+}
+
 /**
  * @brief Converts the laserScan-data from polar into cartesian coordinates.
  * Then cleans the data from various problems and finally translates the points
@@ -41,7 +78,7 @@ void LineDetector::printLinesImage(cv::Mat dst, std::vector<cv::Vec4i> lines) {
  */
 cv::Mat LineDetector::createOpenCVImageFromLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-  HalfCircleDetector::points.clear();
+  LineDetector::points.clear();
 
   int numOfValues = (laserScan->angle_max - laserScan->angle_min) /
                     laserScan->angle_increment;
@@ -53,8 +90,7 @@ cv::Mat LineDetector::createOpenCVImageFromLaserScan(
 
   int resolution = 8;
   for (int i = 0; i < numOfValues * resolution; ++i) {
-    float hyp =
-        HalfCircleDetector::interpolate(i, resolution, laserScan->ranges);
+    float hyp = LineDetector::interpolate(i, resolution, laserScan->ranges);
 
     // skip invalid values
     if (hyp < 0) {
@@ -74,7 +110,7 @@ cv::Mat LineDetector::createOpenCVImageFromLaserScan(
     int y = RANGE(0, (int)((imageHeight / 2) + adj * STRETCH_FACTOR),
                   imageHeight - 1);
 
-    HalfCircleDetector::points.push_back(std::make_pair(x, y));
+    LineDetector::points.push_back(std::make_pair(x, y));
 
     image.at<cv::Vec3b>(cv::Point(x, y)) = cv::Vec3b(200, 200, 200);
   }

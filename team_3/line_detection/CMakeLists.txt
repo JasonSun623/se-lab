@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
+
 project(line_detection)
 
 ## Find catkin macros and libraries
@@ -11,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 	roslib)
 
 find_package(OpenCV REQUIRED)
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
