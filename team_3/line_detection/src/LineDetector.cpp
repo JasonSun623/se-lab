@@ -143,9 +143,9 @@ void LineDetector::removeLines(std::vector<cv::Vec4i> lines1) {
                abs(temp[temp.size() - 1].first[0] - lines1[i][0]) <
                    getDifference(temp[temp.size() - 1].first[0],
                                  temp[temp.size() - 1].first[2]) &&
-               abs(temp[temp.size() - 1].first[1] - lines1[i][1]) <
-                   getDifference(temp[temp.size() - 1].first[1],
-                                 temp[temp.size() - 1].first[3])) {
+               compareY(temp[temp.size() - 1].first[1], lines1[i][1]) <
+                   compareY(temp[temp.size() - 1].first[1],
+                            temp[temp.size() - 1].first[3])) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
       // std::cout << "3 ?? " << fabs(temp[0].second - slope) << std::endl;
@@ -153,17 +153,22 @@ void LineDetector::removeLines(std::vector<cv::Vec4i> lines1) {
                abs(temp[temp.size() - 1].first[0] - lines1[i][0]) <
                    getDifference(temp[temp.size() - 1].first[0],
                                  temp[temp.size() - 1].first[2]) &&
-               abs(temp[temp.size() - 1].first[1] - lines1[i][1]) <
-                   getDifference(temp[temp.size() - 1].first[1],
-                                 temp[temp.size() - 1].first[3])) {
+               compareY(temp[temp.size() - 1].first[1], lines1[i][1]) <
+                   compareY(temp[temp.size() - 1].first[1],
+                            temp[temp.size() - 1].first[3])) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
       // std::cout << "4 ?? " << fabs(temp[0].second + slope) << std::endl;
-    } else if (abs(temp[temp.size() - 1].first[2] - lines1[i][0]) < 2 &&
-               abs(temp[temp.size() - 1].first[3] - lines1[i][1]) < 2) {
+    } else if (slope < 0 && fabs(temp[temp.size() - 1].second + slope) < 0.3 &&
+               abs(temp[temp.size() - 1].first[2] - lines1[i][0]) < 2) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
       // std::cout << "5 ?? " << fabs(temp[0].second + slope) << std::endl;
+    } else if (slope > 0 &&
+               compareY(temp[temp.size() - 1].first[3], lines1[i][1]) < 2 &&
+               fabs(temp[temp.size() - 1].second - slope) < 0.3) {
+      std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
+      temp.push_back(p);
     } else {
       res.push_back(getAverSlope(temp));
       temp.clear();

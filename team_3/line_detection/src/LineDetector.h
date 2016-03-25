@@ -32,6 +32,14 @@ public:
     return (one.second < two.second);
   }
 
+  int compareY(int y1, int y2) {
+    if (y1 > y2) {
+      return (y1 - y2);
+    } else {
+      return (y2 - y1);
+    }
+  }
+
   float calcSlope(cv::Vec4i);
   cv::Vec4i getAverSlope(std::vector<std::pair<cv::Vec4i, float>>);
   int getDifference(int, int);

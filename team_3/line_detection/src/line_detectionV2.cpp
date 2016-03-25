@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
   cv::Mat bw, color_dst;
   std::vector<cv::Vec4i> lines1;
 
+  ros::spinOnce();
   ros::Rate loop_rate(10);
   while (ros::ok()) {
     // Please specify your absolute directory!
@@ -27,7 +28,7 @@ int main(int argc, char **argv) {
     cv::Canny(src, bw, 50, 200, 3);
     cvtColor(bw, color_dst, CV_GRAY2BGR);
 
-    cv::HoughLinesP(bw, lines1, 1, CV_PI / 180, 40, 30, 10);
+    cv::HoughLinesP(bw, lines1, 1, CV_PI / 180, 20, 10, 10);
     detector->removeLines(lines1);
     detector->printLinesImage(color_dst, detector->getLines());
     // Please specify your absolute directory!
@@ -35,6 +36,7 @@ int main(int argc, char **argv) {
                 "Processed.jpg",
                 color_dst);
     cv::waitKey(25);
+    std::cout << detector->getNumLines() << " lines detected " << std::endl;
     lines1.clear();
     detector->clearData();
     ros::spinOnce();
@@ -45,7 +47,6 @@ int main(int argc, char **argv) {
 
     // // std::cout << lines1.size() << std::endl;
     // std::cout << "lines1 size " << lines1.size() << std::endl;
-    // std::cout << detector->getNumLines() << " lines detected " << std::endl;
 
     // cv::imshow("src", src);
     // cv::imshow("dst1", color_dst1);
