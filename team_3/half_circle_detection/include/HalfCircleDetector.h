@@ -61,22 +61,6 @@ public:
    */
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
-  /** @brief Takes a LaserScan and returns an OpenCV-image
-   *  @param laserScan Laser scan message that detection is run on.
-   *  @return Generated OpenCV image
-   */
-  cv::Mat createOpenCVImageFromLaserScan(
-      const sensor_msgs::LaserScan::ConstPtr &laserScan);
-
-  /** @brief Takes an OpenCV image and returns the position of the half-circle
-   * if it
-   * finds one and otherwise (-1, -1)
-   * @param image An image generated from plotting laser scan points on
-   * xy-plane.
-   * @return A pose describing half circle position and angle relative to the
-   * robot. */
-  geometry_msgs::Pose2D detectHalfCircle(cv::Mat &image);
-
   /** @brief Returns last processed half-circle pose
    *  @return Last computed half-circle position */
   geometry_msgs::Pose2D getHalfCirclePose();
@@ -102,15 +86,30 @@ private:
    * @return Interpolated function value */
   float interpolate(int index, int resolution, std::vector<float> data);
 
-  /** @brief Converts coordinates from image-frame to robot-frame
-   *  @detail Basically converts coordinates from cartesian in the image frame
-   * to polar in the world frame.
-   *  @param posX x-coordinate of the object
-   *  @param posY y-coordinate of the object
-   *  @param robotX x-coordinate of the robot
-   *  @param robotY y-coordinate of the robot
-   *  @returns The pose of the given point within the robot frame.
+  /** @brief Takes a LaserScan and returns an OpenCV-image
+   *  @param laserScan Laser scan message that detection is run on.
+   *  @return Generated OpenCV image
    */
+  cv::Mat createOpenCVImageFromLaserScan(
+      const sensor_msgs::LaserScan::ConstPtr &laserScan);
+
+  /** @brief Takes an OpenCV image and returns the position of the half-circle
+   * if it finds one and otherwise (-1, -1)
+   * @param image An image generated from plotting laser scan points on
+   * xy-plane.
+   * @return A pose describing half circle position and angle relative to the
+   * robot. */
+  geometry_msgs::Pose2D detectHalfCircle(cv::Mat &image);
+
+  /** @brief Converts coordinates from image-frame to robot-frame
+     *  @detail Basically converts coordinates from cartesian in the image frame
+     * to polar in the world frame.
+     *  @param posX x-coordinate of the object
+     *  @param posY y-coordinate of the object
+     *  @param robotX x-coordinate of the robot
+     *  @param robotY y-coordinate of the robot
+     *  @returns The pose of the given point within the robot frame.
+     */
   geometry_msgs::Pose2D createPose(int posX, int posY, int robotX, int robotY);
 };
 

@@ -65,7 +65,7 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
   int imageHeight = 8 * STRETCH_FACTOR;
   int imageWidth = 16 * STRETCH_FACTOR;
 
-  cv::Mat image(imageHeight, imageWidth, CV_8UC3, cv::Scalar::all(0));
+  cv::Mat image(imageHeight, imageWidth, CV_8U, cv::Scalar::all(0));
 
   int resolution = 8;
   for (int i = 0; i < numOfValues * resolution; ++i) {
@@ -92,7 +92,7 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 
     HalfCircleDetector::points.push_back(std::make_pair(x, y));
 
-    image.at<cv::Vec3b>(cv::Point(x, y)) = cv::Vec3b(200, 200, 200);
+    image.at<unsigned char>(cv::Point(x, y)) = 255;
   }
 
   return image;
@@ -107,7 +107,6 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
  * be at the average of all deviation points.
  */
 geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
-  cv::cvtColor(image, image, CV_BGR2GRAY);
 
   // use probabilistic Hough-transform to find lines
   std::vector<cv::Vec4i> lines;
