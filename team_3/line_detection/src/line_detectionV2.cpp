@@ -1,9 +1,3 @@
-/**
- * Code for thinning a binary image using Zhang-Suen algorithm.
- *
- * Author:  Nash (nash [at] opencv-code [dot] com)
- * Website: http://opencv-code.com
- */
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <algorithm>
@@ -53,19 +47,6 @@ int main() {
   Canny(src, bw, 50, 200, 3);
   cvtColor(bw, color_dst1, CV_GRAY2BGR);
   cvtColor(bw, color_dst2, CV_GRAY2BGR);
-  // cv::cvtColor(src, bw, CV_BGR2GRAY);
-  // cv::threshold(bw, bw, 10, 255, CV_THRESH_BINARY);
-
-  // thinning(bw, bw);
-
-  // cv::GaussianBlur( bw, bw, cv::Size( 9, 9 ), 0, 0 );
-  // for ( int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2 ){
-
-  //     //cv::blur( src, bw, cv::Size( i, i ), cv::Point(0,0) );
-  //     //cv::medianBlur ( src, bw, i );
-  //}
-
-  // std::vector<cv::Vec2f> lines;
   std::vector<cv::Vec4i> lines1;
   std::vector<std::pair<cv::Vec4i, float>> temp;
   std::vector<cv::Vec4i> res;
@@ -85,17 +66,6 @@ int main() {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
       std::cout << "1" << std::endl;
-      // } else if (slope < 0 && abs(temp[temp.size() - 1].second - slope) < 0.2
-      // && abs(temp[temp.size() - 1].first[1] - lines1[i][1]) < 3){
-      //     std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i],slope);
-      //     temp.push_back(p);
-      //     std::cout << "2" << std::endl;
-      // } else if (slope < 0 && (abs(temp[temp.size() - 1].second - slope) >
-      // 0.2 || abs(temp[temp.size() - 1].first[1] - lines1[i][1]) > 3)){
-      //     res.push_back(getAverSlope(temp));
-      //     temp.clear();
-      //     std::cout << "3" << std::endl;
-
     } else if (slope > 0 && fabs(temp[0].second - slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[0] - lines1[i][0]) <
                    getDifference(temp[temp.size() - 1].first[0],
@@ -118,12 +88,6 @@ int main() {
       std::cout << "4 ?? " << fabs(temp[0].second + slope) << std::endl;
     } else if (abs(temp[temp.size() - 1].first[2] - lines1[i][0]) < 2 &&
                abs(temp[temp.size() - 1].first[3] - lines1[i][1]) < 2) {
-      // if (abs(temp[temp.size() - 1].second - slope) > 0.3 ||
-      // abs(temp[temp.size() - 1].first[0] - lines1[i][0]) >
-      // getDifference(temp[temp.size() - 1].first[0], temp[temp.size() -
-      // 1].first[2]) || abs(temp[temp.size() - 1].first[1] - lines1[i][1]) <
-      // getDifference(temp[temp.size() - 1].first[1], temp[temp.size() -
-      // 1].first[3])){
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
       std::cout << "5 ?? " << fabs(temp[0].second + slope) << std::endl;
