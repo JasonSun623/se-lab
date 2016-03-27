@@ -33,8 +33,6 @@
 /* libs includes */
 #include <cmath>
 
-typedef std::pair<float, float> Point;
-
 /**
   * @brief Threshold from which on distance values are not considered objects
  * anymore
@@ -68,7 +66,7 @@ public:
 
 private:
   /** Contains all the points drawn onto the last OpenCV-image */
-  std::vector<Point> points;
+  std::vector<cv::Point2f> points;
 
   /** Last computed half-circle pose */
   geometry_msgs::Pose2D halfCirclePose;
@@ -105,9 +103,31 @@ private:
      *  @param posY y-coordinate of the object
      *  @param robotX x-coordinate of the robot
      *  @param robotY y-coordinate of the robot
-     *  @returns The pose of the given point within the robot frame.
+     *  @return The pose of the given point within the robot frame.
      */
   geometry_msgs::Pose2D createPose(int posX, int posY, int robotX, int robotY);
-};
 
+  /** @brief Computes how much of the circle given is actually present in the
+   * picture.
+    *        Mostly taken from http://stackoverflow.com/a/26234137.
+    * @return Percentage of circle covered [0,1]*/
+  float verifyCircle(cv::Mat dt, cv::Point2f center, float radius,
+                     std::vector<cv::Point2f> &inlierSet);
+
+  /** @brief Constructs a circle out of three given points on the circle.
+    * Mostly taken from http://stackoverflow.com/a/26234137.
+    * @return void. Changes arguments passed via reference. */
+  void getCircle(cv::Point2f &p1, cv::Point2f &p2, cv::Point2f &p3,
+                 cv::Point2f &center, float &radius);
+
+  /** @brief Helper function that computes the direct distance between two
+     points.
+      @return Distance between given points. */
+  float distance(cv::Point2f &a, cv::Point2f &b);
+
+  /** @brief Computes possible candidates for being on the circle.
+      @return void. Returns indexes via reference. */
+  void getSamplePoints(int &first, int &second, int &third, int &rightIndex,
+                       int &leftIndex, std::vector<cv::Point2f> &v);
+};
 #endif

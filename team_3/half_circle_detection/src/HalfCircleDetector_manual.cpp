@@ -3,7 +3,7 @@
   *
   * @author Felix Schmoll
   */
-#include "../include/HalfCircleDetector.h"
+//#include "../include/HalfCircleDetector.h"
 
 /**
   * @detail Limiting integers to be within a certain range.
