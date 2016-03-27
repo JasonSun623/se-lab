@@ -24,6 +24,14 @@
   */
 class CornerHandler {
 public:
+  void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
+
+  void setTwist(geometry_msgs::Twist &twist);
+  geometry_msgs::Twist getTwist();
+
+private:
+  geometry_msgs::Twist twist;
+
   /** @brief Detects critical situations (the robot is too close to an obstacle.
     * @param laserScan LaserScan-message containing obstacle-distances */
   bool detectCorner(const sensor_msgs::LaserScan::ConstPtr &laserScan);
@@ -34,9 +42,8 @@ public:
     * @return Returns a Twist-message that has all fields set to 0 if no corner
    * is detected and otherwise returns the next suggested move.
     */
-  geometry_msgs::Twist handleCorner(sensor_msgs::LaserScan &laserScan);
-
-private:
+  geometry_msgs::Twist
+  handleCorner(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 };
 
 #endif

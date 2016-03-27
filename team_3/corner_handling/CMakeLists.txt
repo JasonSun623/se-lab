@@ -133,7 +133,7 @@ include_directories(
 # add_dependencies(corner_handling ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(corner_handling_node src/corner_handling_node.cpp)
+add_executable(corner_handling_node src/corner_handling_node.cpp src/CornerHandler.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -141,7 +141,7 @@ add_dependencies(corner_handling_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(corner_handling_node
-#   ${catkin_LIBRARIES}
+   ${catkin_LIBRARIES}
 )
 
 #############
