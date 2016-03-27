@@ -33,6 +33,8 @@
 /* libs includes */
 #include <cmath>
 
+typedef std::pair<float, float> Point;
+
 /**
   * @brief Threshold from which on distance values are not considered objects
  * anymore
@@ -44,11 +46,6 @@
   * Currently used only for comparing pixels, has to be 1 at least
   */
 #define EPSILON 1.01
-
-/**
-  * @brief Shorthand for representing points.
-  */
-typedef std::pair<int, int> Point;
 
 /**
   * @brief Compound class for detecting half-circles.
