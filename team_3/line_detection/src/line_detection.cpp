@@ -501,7 +501,26 @@ vector<Vec4f> Points(const sensor_msgs::LaserScan::ConstPtr &laserScan)
 
 }
 
-int main(int argc, char** argv)
+vector<Vec4f> PointsFromImage(Mat image)
 {
+    if(image.empty())
+    {
+        cout << "invalid image "<< endl;
+    }
+
+    Mat dst, cdst;
+    Canny(image, dst, 50, 200, 3);
+    cvtColor(dst, cdst, CV_GRAY2BGR);
+
+    vector<Vec4f> lines;
+    HoughLinesP( dst, lines, 1, CV_PI/180, 30, 30, 10 );
+
+    vector<float>slope=get_slope(lines);
+
+    sort_lines(lines,slope);
+
+    processLines(lines);
+
+    return lines;
 
 }
