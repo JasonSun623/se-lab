@@ -149,7 +149,7 @@ void LineDetector::removeLines(std::vector<cv::Vec4i> lines1) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
       // std::cout << "3 ?? " << fabs(temp[0].second - slope) << std::endl;
-    } else if (slope < 0 && fabs(temp[temp.size() - 1].second + slope) < 0.3 &&
+    } else if (slope < 0 && fabs(temp[temp.size() - 1].second - slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[0] - lines1[i][0]) <
                    getDifference(temp[temp.size() - 1].first[0],
                                  temp[temp.size() - 1].first[2]) &&
@@ -159,7 +159,7 @@ void LineDetector::removeLines(std::vector<cv::Vec4i> lines1) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
       // std::cout << "4 ?? " << fabs(temp[0].second + slope) << std::endl;
-    } else if (slope < 0 && fabs(temp[temp.size() - 1].second + slope) < 0.3 &&
+    } else if (slope < 0 && fabs(temp[temp.size() - 1].second - slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[2] - lines1[i][0]) < 2) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
