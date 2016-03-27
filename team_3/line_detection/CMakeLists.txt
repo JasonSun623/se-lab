@@ -133,7 +133,8 @@ catkin_package(
 # add_dependencies(line_detection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
- add_executable(line_detection_node src/LineDetector.cpp src/line_detectionV2.cpp)
+ #add_executable(line_detection_node src/LineDetector.cpp src/#line_detectionV2.cpp)
+add_executable(line_detection_node src/line_detection.cpp src/main.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -189,6 +190,7 @@ catkin_package(
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
-
+catkin_add_gtest(test_line_detection test/line_detection_test.cpp)
+target_link_libraries(test_line_detection ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

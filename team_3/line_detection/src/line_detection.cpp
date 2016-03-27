@@ -329,9 +329,83 @@ void replacePoints(vector<Vec4f>&lines, vector<Point>&points)
     }
 }
 
+/**
+ *@detail returns a Vec4f with a minimum and maximum x value and their corresponding y
+ */
+Vec4f get_Val(Vec4f a, Vec4f b)
+{
+    float v[]={a[0],a[1],a[2],a[3],b[0],b[1],b[2],b[3]};
+
+    float min[]={a[0],a[1]};
+
+    float max[]={a[0],a[1]};
+
+    for(int i=2;i<8;i+=2)
+    {
+        if (v[i]<min[0])
+        {
+            min[0]=v[i];
+            min[1]=v[i+1];
+        }
+        if (v[i]>max[0])
+        {
+            max[0]=v[i];
+            max[1]=v[i+1];
+        }
+    }
+
+    return Vec4f(min[0],min[1],max[0],max[1]);
+}
 
 /**
- *@detail processes vector of lines and joint lines are merged.
+ *@detail Calculates and returns all the points within a line
+ */
+vector<Point> getAllPoints(Vec4f line, float slope)
+{
+    vector<Point>points;
+
+    if (line[0]>line[2])
+    {
+        swap(line[0],line[2]);
+        swap(line[1],line[3]);
+    }
+
+    Point p;
+
+    for(float i=line[0];i<=line[2];i++)
+    {
+        points.push_back(Point(i,(i-line[0])*slope));
+    }
+
+    return points;
+}
+
+/**
+ *@detail returns true of the lines are connected or overlapping. It checks every point
+ * of both the lines to find overlapping. The precondition is that the two lines are within
+ * a certion slope EPSILON
+ */
+bool findOverlap(Vec4f lineOne, Vec4f lineTwo, float slopeOne, float slopeTwo)
+{
+    vector<Point>pointsOne=getAllPoints(lineOne, slopeOne);
+    vector<Point>pointsTwo=getAllPoints(lineTwo, slopeTwo);
+
+
+    for(int i=0;i<pointsOne.size();i++)
+    {
+        for(int j=0;j<pointsTwo.size();j++)
+        {
+            if (abs(pointsOne[i].x-pointsTwo[j].x)<=RANGE_ && abs(pointsOne[i].y-pointsTwo[j].y)<=RANGE_)
+                return true;
+        }
+    }
+    return false;
+}
+
+
+/**
+ *@detail processes vector of lines and joint and overlapping lines are merged.
+ * Two lines with slope withon EPSILON with a gap within RANGE_ are merged too.
  * Everytime two lines are merged, the process again restarts from beginning.
  * In the iteration when none of the lines are merged, we are done.
  */
@@ -339,13 +413,14 @@ void processLines(vector<Vec4f>&lines)
 {
     vector<Point>points;
     vector<float>slope=get_slope(lines);
+    sort_lines(lines,slope);
     int merger=0;
     vector<Vec4f> newSet;
     int x=0;
     while (merger==0)
     {
         merger=1;
-        for(unsigned int i=0;i<lines.size()-1;i++)
+        for(unsigned int i=0;i<lines.size();i++)
         {
             if(i==lines.size()-1)
             {
@@ -365,6 +440,14 @@ void processLines(vector<Vec4f>&lines)
                 else if ((Point(lines[i][0],lines[i][1])==Point(lines[j][2],lines[j][3])))
                 {
                     newSet.push_back(Vec4f(lines[j][0],lines[j][1],lines[i][2],lines[i][3]));
+                    merger=0;
+                    j+=2;
+                    break;
+                }
+                else if(findOverlap(lines[i],lines[j], slope[i], slope[j])==true)
+                {
+                    Vec4f val=get_Val(lines[i],lines[j]);
+                    newSet.push_back(val);
                     merger=0;
                     j+=2;
                     break;
@@ -408,12 +491,6 @@ vector<Vec4f> Points(const sensor_msgs::LaserScan::ConstPtr &laserScan)
     vector<Vec4f> lines;
     HoughLinesP( dst, lines, 1, CV_PI/180, 30, 30, 10 );
 
-    lines=removeDuplicateLines(lines);
-
-    vector<Point> points = getRefinedPoints(lines);
-
-    replacePoints(lines,points);
-
     vector<float>slope=get_slope(lines);
 
     sort_lines(lines,slope);
@@ -424,7 +501,26 @@ vector<Vec4f> Points(const sensor_msgs::LaserScan::ConstPtr &laserScan)
 
 }
 
-int main(int argc, char** argv)
+vector<Vec4f> PointsFromImage(Mat image)
 {
+    if(image.empty())
+    {
+        cout << "invalid image "<< endl;
+    }
+
+    Mat dst, cdst;
+    Canny(image, dst, 50, 200, 3);
+    cvtColor(dst, cdst, CV_GRAY2BGR);
+
+    vector<Vec4f> lines;
+    HoughLinesP( dst, lines, 1, CV_PI/180, 30, 30, 10 );
+
+    vector<float>slope=get_slope(lines);
+
+    sort_lines(lines,slope);
+
+    processLines(lines);
+
+    return lines;
 
 }
