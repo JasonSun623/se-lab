@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-#define RANGES 240
+#define RANGES 250
 
 #define LASER_RANGE 3.9
 
@@ -68,6 +68,7 @@ private:
   bool crashMode;
   bool cornerStuck;
   bool followWall;
+  bool wallEdge;
 
   std::vector<cv::Vec4i> res;
   std::vector<std::pair<float, float>> initialLineChoice;
@@ -126,6 +127,8 @@ public:
   void clearData() { res.clear(); }
 
   void setImage(cv::Mat src) { this->src = src; }
+
+  void setWallEdge(bool set) { wallEdge = set; }
 
   std::vector<cv::Vec4i> getLines() { return res; }
 

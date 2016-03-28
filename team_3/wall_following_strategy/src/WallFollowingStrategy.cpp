@@ -91,8 +91,9 @@ cv::Vec4i WallFollowingStrategy::getAverSlope(
   average[2] = vec[0].first[2];
   average[3] = vec[0].first[3];
 
-  std::cout << average[0] << " , " << average[1] << " , " << average[2] << ", "
-            << average[3] << std::endl;
+  // std::cout << average[0] << " , " << average[1] << " , " << average[2] << ",
+  // "
+  //           << average[3] << std::endl;
 
   return average;
 }
@@ -333,7 +334,9 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   if (line.first > 0.3 && !followWall) {
     msg.linear.x = 0.3;
     return msg;
-  } else if (line.first <= 0.3) {
+  }
+
+  if (line.first < 0.3) {
     std::vector<cv::Vec4i> vec = getLines();
     for (auto i = 0; i < vec.size(); i++) {
       if (minim < abs(vec[i][0] - src.rows / 2)) {
@@ -344,15 +347,27 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     float den = vec[k][2] - vec[k][0];
     float num = vec[k][3] - vec[k][1];
     float m = 0;
-    if (den == 0) {
+    if (den < 0.1) {
       m = M_PI / 2;
-    } else if (num == 0) {
+    } else if (num < 0.1) {
       m = 0;
     }
     std::cout << m << std::endl;
     msg.angular.z = (this->getCurrentAngle() + m) / 10;
     this->setCurrentAngle(this->getCurrentAngle() + m);
-    // followWall = true;
+    followWall = true;
+    return msg;
+  }
+
+  if (followWall) {
+    std::pair<float, float> right = this->findMinimDistance(245, RANGES - 1);
+    if (right.first > 1) {
+      this->setWallEdge(true);
+      std::cout << "Right: " << right.first << std::endl;
+      followWall = false;
+    } else {
+      msg.linear.x = 0.3;
+    }
   }
 
   // std::pair<float,float> right =
