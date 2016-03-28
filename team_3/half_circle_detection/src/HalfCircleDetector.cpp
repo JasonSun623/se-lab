@@ -101,8 +101,8 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
                                        float radius,
                                        std::vector<cv::Point2f> &inlierSet) {
-  unsigned int counter = 0;
-  unsigned int inlier = 0;
+  int counter = 0;
+  int inlier = 0;
   float minInlierDist = 1.0f;
   float maxInlierDistMax = 100.0f;
   float maxInlierDist = 2.0f; // radius/25.0f;
@@ -111,23 +111,33 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
   if (maxInlierDist > maxInlierDistMax)
     maxInlierDist = maxInlierDistMax;
 
+  int discontinuity = 0;
+  int inlierMax = 0;
+
   // choose samples along the circle and count inlier percentage
   for (float t = 0; t < 2 * 3.14159265359f; t += 0.05f) {
     counter++;
     float cX = radius * cos(t) + center.x;
     float cY = radius * sin(t) + center.y;
 
+    if(discontinuity > 2) {inlier = 0;}
+
     if (cX < dt.cols)
       if (cX >= 0)
-        if (cY < dt.rows)
-          if (cY >= 0)
+        if (cY < dt.rows) {
+          if (cY >= 0) {
             if (dt.at<float>(cY, cX) < maxInlierDist) {
               inlier++;
               inlierSet.push_back(cv::Point2f(cX, cY));
+              discontinuity = 0;
+              inlierMax = std::max(inlier, inlierMax);
             }
+            else { ++discontinuity; }
+          }
+         }
   }
 
-  return (float)inlier / float(counter);
+  return (float)inlierMax / float(counter);
 }
 
 void HalfCircleDetector::getCircle(cv::Point2f &p1, cv::Point2f &p2,
@@ -168,7 +178,7 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
   ++rightIndex;
   float errorMargin = 0.03 * STRETCH_FACTOR;
   float halfCircleRadius =
-      0.19 * STRETCH_FACTOR; // about 30 cm height for circle
+      0.15 * STRETCH_FACTOR; // about 30 cm height for circle
 
   while (rightIndex < v.size()) {
     // semi-circle dimensions: 30cm x 16cm

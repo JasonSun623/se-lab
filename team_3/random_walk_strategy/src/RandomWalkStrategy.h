@@ -121,6 +121,7 @@ private:
   bool turning = false;
   int correctingSign = 1;
   geometry_msgs::Twist twist;
+  bool justDriveForward = false;
 
   /**
     * @brief Different states within the strategy.

@@ -45,7 +45,7 @@ const geometry_msgs::Twist RandomWalkStrategy::produceControlOutput(const sensor
 
     float min = *std::min_element(laserScan->ranges.begin(), laserScan->ranges.end());
 
-  if (circleVisible) {
+  if (!justDriveForward && circleVisible) {
     float variation = SCAN_CENTER - circleAngle;
 
     if (abs(variation) > VARIATION_THRESHOLD) {
@@ -53,8 +53,9 @@ const geometry_msgs::Twist RandomWalkStrategy::produceControlOutput(const sensor
     }
 
     // stop correting if alignment sufficient or sufficiently close
-    if (abs(variation) < VARIATION_THRESHOLD - HYSTERESIS || min < 0.4) {
+    if (abs(variation) < VARIATION_THRESHOLD - HYSTERESIS) {
       correcting = false;
+      if(min < 1.0) {justDriveForward = true;}
     }
 
     ROS_DEBUG("V: %f\tC: %s", variation, correcting ? "true" : "false");
@@ -69,7 +70,10 @@ const geometry_msgs::Twist RandomWalkStrategy::produceControlOutput(const sensor
     }
   } else {
 
-    if (min > MIN_DISTANCE) {
+    if(justDriveForward) {
+      msg.linear.x = LINEAR_VEL;
+      msg.angular.z = 0;
+    }else if (min > MIN_DISTANCE) {
       msg.linear.x = LINEAR_VEL / 2;
       msg.angular.z = 0;
       turning = false;
@@ -78,11 +82,11 @@ const geometry_msgs::Twist RandomWalkStrategy::produceControlOutput(const sensor
       if(!turning) {
         turning = true;
         srand(time(0));
-        int randomVal = rand()%2;
+        int randomVal = rand()%4;
         if(randomVal == 0) {
-          correctingSign = 1;
+          correctingSign = -1;
         } else {
-          correctingSign = -1; 
+          correctingSign = 1; 
         }
       }
       msg.linear.x = 0;
