@@ -338,7 +338,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
 
     followWall = true;
     return msg;
-  } else if (right.first > 0.7) {
+  } else if (right.first > 0.5) {
     std::cout << "Right1: " << right.first << std::endl;
     cornerEdge = true;
     msg.linear.x = 0.15;
