@@ -23,6 +23,8 @@
 
 /* libc includes */
 #include <cmath>
+#include <ctime>
+#include <cstdlib>
 
 /**
   * @brief Speed
@@ -101,7 +103,9 @@ public:
     * Decides on where to move next and by how much.
     * @return Next move to be done.
     */
-  const geometry_msgs::Twist getControlOutput();
+const geometry_msgs::Twist produceControlOutput(const sensor_msgs::LaserScan::ConstPtr& laserScan);
+
+const geometry_msgs::Twist getControlOutput();
 
   /*
    * @brief Getter returning if half-circle is visible.
@@ -114,17 +118,9 @@ private:
   float circleDistance;
 
   bool correcting;
-
-  /**
-    * @brief Last received LaserScan.
-    */
-  sensor_msgs::LaserScan lastScan;
-
-  /**
-    * @brief Find the smallest laser scan reading
-    * @return Minimum distance to an object.
-    */
-  float findMinim(int num_readings);
+  bool turning = false;
+  int correctingSign = 1;
+  geometry_msgs::Twist twist;
 
   /**
     * @brief Different states within the strategy.

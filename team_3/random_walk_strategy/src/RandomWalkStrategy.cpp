@@ -19,7 +19,7 @@ bool RandomWalkStrategy::getCircleVisible() { return circleVisible; }
 void RandomWalkStrategy::receiveCirclePosition(
     const geometry_msgs::Pose2D::ConstPtr &circlePose) {
   // compare to -1
-  if (circlePose->x == -1) {
+  if (fabs(circlePose->x + 1) < 0.02) {
     circleVisible = false;
     return;
   }
@@ -31,40 +31,31 @@ void RandomWalkStrategy::receiveCirclePosition(
 
 void RandomWalkStrategy::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-  lastScan = *laserScan;
+   twist = produceControlOutput(laserScan);
 }
 
-/**
-  * @brief Just loops over all distances and finds the minimum.
-  */
-float RandomWalkStrategy::findMinim(int num_readings) {
-  lastScan.ranges.resize(num_readings);
-  float minim = lastScan.ranges[0];
-
-  for (int i = 0; i < num_readings; i++) {
-    minim = std::min(minim, lastScan.ranges[i]);
-  }
-
-  return minim;
-}
 
 /**
  * @brief If circle is visible it drives straight towards it. If not it moves
  * either forward or turns if it gets too close to a wall.
  * @return Next move to be done.
  */
-const geometry_msgs::Twist RandomWalkStrategy::getControlOutput() {
+const geometry_msgs::Twist RandomWalkStrategy::produceControlOutput(const sensor_msgs::LaserScan::ConstPtr& laserScan) {
   geometry_msgs::Twist msg;
+
+    float min = *std::min_element(laserScan->ranges.begin(), laserScan->ranges.end());
 
   if (circleVisible) {
     float variation = SCAN_CENTER - circleAngle;
 
-    if (abs(variation) > VARIATION_THRESHOLD)
+    if (abs(variation) > VARIATION_THRESHOLD) {
       correcting = true;
+    }
 
-    // stop correting if alignment sufficient
-    if (abs(variation) < VARIATION_THRESHOLD - HYSTERESIS)
+    // stop correting if alignment sufficient or sufficiently close
+    if (abs(variation) < VARIATION_THRESHOLD - HYSTERESIS || min < 0.4) {
       correcting = false;
+    }
 
     ROS_DEBUG("V: %f\tC: %s", variation, correcting ? "true" : "false");
 
@@ -73,18 +64,37 @@ const geometry_msgs::Twist RandomWalkStrategy::getControlOutput() {
       msg.angular.z = std::min(MAX_TURN, TURN_CORRECTION * variation);
       msg.linear.x = LINEAR_VEL / std::min(4.0, abs(variation) / 10.0);
     } else {
+      msg.angular.z = 0;
       msg.linear.x = LINEAR_VEL;
     }
   } else {
-    float min = findMinim(RANGES);
 
     if (min > MIN_DISTANCE) {
       msg.linear.x = LINEAR_VEL / 2;
+      msg.angular.z = 0;
+      turning = false;
     } else {
+
+      if(!turning) {
+        turning = true;
+        srand(time(0));
+        int randomVal = rand()%2;
+        if(randomVal == 0) {
+          correctingSign = 1;
+        } else {
+          correctingSign = -1; 
+        }
+      }
       msg.linear.x = 0;
-      msg.angular.z = SCAN_VELOCITY;
+      msg.angular.z = correctingSign * SCAN_VELOCITY;
     }
   }
 
   return msg;
+}
+
+const geometry_msgs::Twist RandomWalkStrategy::getControlOutput(){
+
+  return twist;
+
 }
