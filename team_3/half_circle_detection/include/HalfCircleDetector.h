@@ -33,7 +33,6 @@
 /* libs includes */
 #include <cmath>
 
-
 /**
   * @brief Threshold from which on distance values are not considered objects
  * anymore
@@ -47,11 +46,6 @@
 #define EPSILON 1.01
 
 /**
-  * @brief Shorthand for representing points.
-  */
-typedef std::pair<int, int> Point;
-
-/**
   * @brief Compound class for detecting half-circles.
   */
 class HalfCircleDetector {
@@ -61,22 +55,6 @@ public:
    *  @param laserScan Laser scan message that detection is run on.
    */
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
-
-  /** @brief Takes a LaserScan and returns an OpenCV-image
-   *  @param laserScan Laser scan message that detection is run on.
-   *  @return Generated OpenCV image
-   */
-  cv::Mat createOpenCVImageFromLaserScan(
-      const sensor_msgs::LaserScan::ConstPtr &laserScan);
-
-  /** @brief Takes an OpenCV image and returns the position of the half-circle
-   * if it
-   * finds one and otherwise (-1, -1)
-   * @param image An image generated from plotting laser scan points on
-   * xy-plane.
-   * @return A pose describing half circle position and angle relative to the
-   * robot. */
-  geometry_msgs::Pose2D detectHalfCircle(cv::Mat &image);
 
   /** @brief Returns last processed half-circle pose
    *  @return Last computed half-circle position */
@@ -88,7 +66,7 @@ public:
 
 private:
   /** Contains all the points drawn onto the last OpenCV-image */
-  std::vector<Point> points;
+  std::vector<cv::Point2f> points;
 
   /** Last computed half-circle pose */
   geometry_msgs::Pose2D halfCirclePose;
@@ -103,14 +81,53 @@ private:
    * @return Interpolated function value */
   float interpolate(int index, int resolution, std::vector<float> data);
 
-  /** @brief Converts coordinates from image-frame to robot-frame
-   *  @param posX x-coordinate of the object
-   *  @param posY y-coordinate of the object
-   *  @param robotX x-coordinate of the robot
-   *  @param robotY y-coordinate of the robot
-   *  @returns The pose of the given point within the robot frame.
+  /** @brief Takes a LaserScan and returns an OpenCV-image
+   *  @param laserScan Laser scan message that detection is run on.
+   *  @return Generated OpenCV image
    */
-  geometry_msgs::Pose2D createPose(int posX, int posY, int robotX, int robotY);
-};
+  cv::Mat createOpenCVImageFromLaserScan(
+      const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
+  /** @brief Takes an OpenCV image and returns the position of the half-circle
+   * if it finds one and otherwise (-1, -1)
+   * @param image An image generated from plotting laser scan points on
+   * xy-plane.
+   * @return A pose describing half circle position and angle relative to the
+   * robot. */
+  geometry_msgs::Pose2D detectHalfCircle(cv::Mat &image);
+
+  /** @brief Converts coordinates from image-frame to robot-frame
+     *  @detail Basically converts coordinates from cartesian in the image frame
+     * to polar in the world frame.
+     *  @param posX x-coordinate of the object
+     *  @param posY y-coordinate of the object
+     *  @param robotX x-coordinate of the robot
+     *  @param robotY y-coordinate of the robot
+     *  @return The pose of the given point within the robot frame.
+     */
+  geometry_msgs::Pose2D createPose(int posX, int posY, int robotX, int robotY);
+
+  /** @brief Computes how much of the circle given is actually present in the
+   * picture.
+    *        Mostly taken from http://stackoverflow.com/a/26234137.
+    * @return Percentage of circle covered [0,1]*/
+  float verifyCircle(cv::Mat dt, cv::Point2f center, float radius,
+                     std::vector<cv::Point2f> &inlierSet);
+
+  /** @brief Constructs a circle out of three given points on the circle.
+    * Mostly taken from http://stackoverflow.com/a/26234137.
+    * @return void. Changes arguments passed via reference. */
+  void getCircle(cv::Point2f &p1, cv::Point2f &p2, cv::Point2f &p3,
+                 cv::Point2f &center, float &radius);
+
+  /** @brief Helper function that computes the direct distance between two
+     points.
+      @return Distance between given points. */
+  float distance(cv::Point2f &a, cv::Point2f &b);
+
+  /** @brief Computes possible candidates for being on the circle.
+      @return void. Returns indexes via reference. */
+  void getSamplePoints(int &first, int &second, int &third, int &rightIndex,
+                       int &leftIndex, std::vector<cv::Point2f> &v);
+};
 #endif
