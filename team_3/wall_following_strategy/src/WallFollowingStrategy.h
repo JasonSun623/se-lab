@@ -38,7 +38,7 @@
 /**
  * @brief Angular velocity value that is used to turn
  */
-#define TURN_CORRECTION 0.05
+#define TURN_CORRECTION 0.01
 
 /**
   * @brief Upper speed for turning rate
@@ -68,7 +68,8 @@ private:
   bool crashMode;
   bool cornerStuck;
   bool followWall;
-  bool wallEdge;
+  bool correcting;
+  bool cornerEdge;
 
   std::vector<cv::Vec4i> res;
   std::vector<std::pair<float, float>> initialLineChoice;
@@ -128,7 +129,8 @@ public:
 
   void setImage(cv::Mat src) { this->src = src; }
 
-  void setWallEdge(bool set) { wallEdge = set; }
+  void setCorrecting(bool set) { correcting = set; }
+  bool getCorrecting() { return correcting; }
 
   std::vector<cv::Vec4i> getLines() { return res; }
 

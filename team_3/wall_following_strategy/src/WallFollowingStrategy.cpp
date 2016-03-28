@@ -289,7 +289,7 @@ std::pair<float, float> WallFollowingStrategy::findMinimDistance(int left,
     p.first = std::min(p.first, scan.ranges[i]);
     if (p.first == scan.ranges[i]) {
       p.second = i;
-      std::cout << "Min " << scan.ranges[i] << std::endl;
+      // std::cout << "Min " << scan.ranges[i] << std::endl;
     }
   }
 
@@ -304,28 +304,8 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   std::pair<float, float> line =
       WallFollowingStrategy::findMinimDistance(0, RANGES - 1);
 
-  // if (lineChosen && line.first > 0.2) {
-  //   float variation = 90 - minimLine.second;
+  std::pair<float, float> right = this->findMinimDistance(180, RANGES - 1);
 
-  //   if (abs(variation) > VARIATION_THRESHOLD)
-  //     correcting = true;
-
-  //   // stop correting if alignment sufficient
-  //   if (abs(variation) < VARIATION_THRESHOLD - HYSTERESIS)
-  //     correcting = false;
-
-  //   ROS_DEBUG("V: %f\tC: %s", variation, correcting ? "true" : "false");
-
-  //   if (correcting) {
-  //     // turn
-  //     msg.angular.z = std::min(MAX_TURN, TURN_CORRECTION * variation);
-  //     msg.linear.x = LINEAR_VEL / std::min(4.0, abs(variation) / 10.0);
-  //   } else {
-  //     msg.linear.x = LINEAR_VEL;
-  //   }
-  // } else if (line.first < 0.2){
-
-  // } else {
   if (!src.data) {
     msg.linear.x = 0;
     return msg;
@@ -336,7 +316,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     return msg;
   }
 
-  if (line.first < 0.3) {
+  if (line.first < 0.3 && right.first < 0.7) {
     std::vector<cv::Vec4i> vec = getLines();
     for (auto i = 0; i < vec.size(); i++) {
       if (minim < abs(vec[i][0] - src.rows / 2)) {
@@ -355,40 +335,29 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     std::cout << m << std::endl;
     msg.angular.z = (this->getCurrentAngle() + m) / 10;
     this->setCurrentAngle(this->getCurrentAngle() + m);
+
     followWall = true;
+    return msg;
+  } else if (right.first > 0.7) {
+    std::cout << "Right1: " << right.first << std::endl;
+    cornerEdge = true;
+    msg.linear.x = 0.15;
+    msg.angular.z = -M_PI / 10;
     return msg;
   }
 
-  if (followWall) {
-    std::pair<float, float> right = this->findMinimDistance(245, RANGES - 1);
-    if (right.first > 1) {
-      this->setWallEdge(true);
-      std::cout << "Right: " << right.first << std::endl;
-      followWall = false;
-    } else {
-      msg.linear.x = 0.3;
-    }
+  if (right.first > 0.5) {
+    this->setCorrecting(true);
+    std::cout << "Right: " << right.first << std::endl;
+    followWall = false;
+  } else {
+    msg.linear.x = 0.3;
   }
-
-  // std::pair<float,float> right =
-  // WallFollowingStrategy::findMinimDistance(RANGES/2, RANGES - 1);
-
-  // if (right.first < 0.2 && line.first > 0.2){
-  //   std::cout << "He" << std::endl;
-  //   msg.linear.x = 0.3;
-  //   return msg;
-  // }
-
-  //
-
-  //   std::cout << num << " " << den << std::endl;
-  //   if (m != M_PI/2 && m != 0){
-  //       msg.angular.z = fabs(90 - std::atan(m));
-  //   } else {
-  //     msg.angular.z = 90 - m;
-  //   }
-  // }
-  // msg.linear.x = 0.5;
+  if (correcting) {
+    float variation = 90 - right.second;
+    msg.angular.z = std::min(MAX_TURN, TURN_CORRECTION * variation);
+    this->setCorrecting(false);
+  }
 
   return msg;
 }
