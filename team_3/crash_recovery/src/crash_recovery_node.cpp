@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
       "base_scan", 1, &CrashRecoverer::receiveLaserScan, recover);
 
   ros::Publisher pub =
-      n.advertise<geometry_msgs::Pose2D>("crash_recovery", 1);
+      n.advertise<geometry_msgs::Twist>("crash_recovery", 1);
 
   ros::Rate rate(10);
 
