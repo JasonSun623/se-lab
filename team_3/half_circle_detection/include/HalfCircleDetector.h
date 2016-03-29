@@ -47,7 +47,8 @@
 #define EPSILON 1.01
 
 /**
-  * @brief Factor by which the distances are scaled up to the image. (100 px for 1m)
+  * @brief Factor by which the distances are scaled up to the image. (100 px for
+ * 1m)
   */
 #define STRETCH_FACTOR 100
 
@@ -55,7 +56,6 @@
   * @brief Limiting integers to be within a certain range.
   */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
-
 
 /**
   * @brief Compound class for detecting half-circles.
@@ -94,16 +94,17 @@ private:
    * @param resolution Resolution of the generated points
    * @param data Vector of all data points
    * @param size Size of the data vector
-   * @return Interpolated function value */
+   * @return Interpolated function value, or -1 if not successful */
   float interpolate(int index, int resolution, std::vector<float> data);
 
- /** @brief Takes a LaserScan and returns an OpenCV-image
-   * Converts the laserScan-data from polar into cartesian coordinates.
-   * Then cleans the data from various problems and finally translates the points
-   * into pixels on an actual image (in form of an OpenCV-matrix).
-   * @param laserScan Laser scan message that detection is run on.
-   * @return Generated OpenCV image
-   */
+  /** @brief Takes a LaserScan and returns an OpenCV-image
+    * Converts the laserScan-data from polar into cartesian coordinates.
+    * Then cleans the data from various problems and finally translates the
+   * points
+    * into pixels on an actual image (in form of an OpenCV-matrix).
+    * @param laserScan Laser scan message that detection is run on.
+    * @return Generated OpenCV image
+    */
   cv::Mat createOpenCVImageFromLaserScan(
       const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
@@ -132,11 +133,15 @@ private:
   /** @brief Computes how much of the circle given is actually present in the
     * picture.
     * Mostly taken from http://stackoverflow.com/a/26234137.
-    * Takes a matrix of distances and certifies how much of the given circle if represented.
-    * @param dt Matrix of distances to the nearest pixel. Can be created using distance transform.
+    * Takes a matrix of distances and certifies how much of the given circle if
+   * represented.
+    * @param dt Matrix of distances to the nearest pixel. Can be created using
+   * distance transform.
     * @param center Center of the circle to be verified.
     * @param radius Radius of the circle to be verified.
-    * @param inlierSet Reference to container for points detected to be within the circle. Can be for further used for verifying that an actual circle is present. 
+    * @param inlierSet Reference to container for points detected to be within
+   * the circle. Can be for further used for verifying that an actual circle is
+   * present.
     * @return Percentage of circle covered [0,1]*/
   float verifyCircle(cv::Mat dt, cv::Point2f center, float radius,
                      std::vector<cv::Point2f> &inlierSet);

@@ -5,7 +5,6 @@
   */
 #include "../include/HalfCircleDetector.h"
 
-
 void HalfCircleDetector::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
@@ -17,11 +16,12 @@ void HalfCircleDetector::receiveLaserScan(
 
 float HalfCircleDetector::interpolate(int index, int resolution,
                                       std::vector<float> data) {
-  int size = data.size();
-  float step = 1.0 / ((float)resolution);
+  // Using int here to be able to compare below
+  int size = static_cast<int>(data.size());
+  float step = 1.0 / (static_cast<float>(resolution));
 
   // finding closest actual data in the dataset
-  int leftIndex = RANGE(0, (int)(step * index), size - 1);
+  int leftIndex = RANGE(0, static_cast<int>((step * index)), size - 1);
   int rightIndex = RANGE(0, leftIndex + 1, size - 1);
 
   // everthing more distant than the laserRange can mean just the end of the
@@ -261,8 +261,8 @@ geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
   if (posX == -1) {
     msg.x = msg.y = msg.theta = -1;
   } else {
-    msg.x = (posX - robotX) / (float)STRETCH_FACTOR;
-    msg.y = (posY - robotY) / (float)STRETCH_FACTOR;
+    msg.x = (posX - robotX) / static_cast<float>(STRETCH_FACTOR);
+    msg.y = (posY - robotY) / static_cast<float>(STRETCH_FACTOR);
     msg.theta = std::atan2(msg.y, msg.x);
   }
 
