@@ -7,6 +7,8 @@
 
 #include "../include/CornerHandler.h"
 
+/** @brief Main function for node.
+  */
 int main(int argc, char **argv) {
 
   ros::init(argc, argv, "corner_handling");

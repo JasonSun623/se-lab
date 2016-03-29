@@ -1,4 +1,5 @@
 /** @file CornerHandler.cpp
+  * @brief Implementation of CornerHandler.h
   * @author Felix Schmoll (LiftnLearn)
   */
 
@@ -20,18 +21,12 @@ bool CornerHandler::detectCorner(
   int numOfValues = (laserScan->angle_min + laserScan->angle_max) /
                     laserScan->angle_increment;
 
-  // what is range_min/range_max?
   float min_distance =
       *std::min_element(laserScan->ranges.begin(), laserScan->ranges.end());
 
   return (min_distance < CRITICAL_DISTANCE);
 }
 
-/** @detail This module is basically just supposed to handle situations when the
- * robot is put into a corner as a starting position. The most basic case here
- * implemented would then be not to bump into the sidewall when turning  away
- * from the same wall.
-  */
 geometry_msgs::Twist
 CornerHandler::handleCorner(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
 
