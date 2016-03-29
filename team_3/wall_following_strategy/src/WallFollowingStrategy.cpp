@@ -6,11 +6,6 @@ bool WallFollowingStrategy::getCrashMode() { return crashMode; }
 
 bool WallFollowingStrategy::getCornerHandle() { return cornerStuck; }
 
-void WallFollowingStrategy::getLines(
-    const geometry_msgs::Polygon::ConstPtr &lines) {
-  lastLineArray = *lines;
-}
-
 void WallFollowingStrategy::getCornerRecovery(
     const geometry_msgs::Twist::ConstPtr &cornerOut) {
   if (cornerOut->linear.x == 0 && cornerOut->linear.y == 0 &&
@@ -32,9 +27,6 @@ void WallFollowingStrategy::getCornerRecovery(
   cornerHandler.angular.y = cornerOut->angular.y;
 }
 
-/**
-  * @brief Checks if pose represents actual circle and sets values accordingly.
-  */
 void WallFollowingStrategy::receiveCirclePosition(
     const geometry_msgs::Pose2D::ConstPtr &circlePose) {
   // compare to -1
@@ -48,10 +40,6 @@ void WallFollowingStrategy::receiveCirclePosition(
   circleDistance = sqrt(pow(circlePose->x, 2) + pow(circlePose->y, 2));
 }
 
-/**
-  * @brief Limiting integers to be within a certain range.
-  */
-
 void WallFollowingStrategy::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   lastScan = *laserScan;
@@ -63,8 +51,8 @@ float WallFollowingStrategy::calcSlope(cv::Vec4i one) {
   return ((one[3] - one[1]) * 1.0 / (one[2] - one[0]));
 }
 
-cv::Vec4i WallFollowingStrategy::getAverSlope(
-    std::vector<std::pair<cv::Vec4i, float>> vec) {
+cv::Vec4i WallFollowingStrategy::getAverLine(
+    std::vector< std::pair< cv::Vec4i, float > > vec) {
   cv::Vec4i average;
   average[0] = vec[0].first[0];
   average[1] = vec[0].first[1];
@@ -80,7 +68,7 @@ cv::Vec4i WallFollowingStrategy::getAverSlope(
 int WallFollowingStrategy::getDifference(int a, int b) { return abs(a - b); }
 
 void WallFollowingStrategy::printLinesImage(cv::Mat dst,
-                                            std::vector<cv::Vec4i> lines) {
+                                            std::vector< cv::Vec4i > lines) {
   for (size_t i = 0; i < lines.size(); i++) {
     line(dst, cv::Point(lines[i][0], lines[i][1]),
          cv::Point(lines[i][2], lines[i][3]), cv::Scalar(0, 0, 255), 3, 8);
@@ -89,11 +77,8 @@ void WallFollowingStrategy::printLinesImage(cv::Mat dst,
   }
 }
 
-/** @brief Interpolates the data up to the requested resolution using linear
- * interpolation.
- */
 float WallFollowingStrategy::interpolate(int index, int resolution,
-                                         std::vector<float> data) {
+                                         std::vector< float > data) {
   int size = data.size();
   float step = 1.0 / ((float)resolution);
 
@@ -114,11 +99,6 @@ float WallFollowingStrategy::interpolate(int index, int resolution,
   return value;
 }
 
-/**
- * @brief Converts the laserScan-data from polar into cartesian coordinates.
- * Then cleans the data from various problems and finally translates the points
- * into pixels on an actual image (in form of an OpenCV-matrix).
- */
 cv::Mat WallFollowingStrategy::createOpenCVImageFromLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   WallFollowingStrategy::points.clear();
@@ -156,7 +136,7 @@ cv::Mat WallFollowingStrategy::createOpenCVImageFromLaserScan(
 
     WallFollowingStrategy::points.push_back(std::make_pair(x, y));
 
-    image.at<cv::Vec3b>(cv::Point(x, y)) = cv::Vec3b(200, 200, 200);
+    image.at< cv::Vec3b >(cv::Point(x, y)) = cv::Vec3b(200, 200, 200);
   }
 
   src = image;
@@ -171,8 +151,8 @@ cv::Mat WallFollowingStrategy::createOpenCVImageFromLaserScan(
   return image;
 }
 
-void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines1) {
-  std::vector<std::pair<cv::Vec4i, float>> temp;
+void WallFollowingStrategy::removeLines(std::vector< cv::Vec4i > lines1) {
+  std::vector< std::pair< cv::Vec4i, float > > temp;
 
   std::sort(lines1.begin(), lines1.end(), compareStart);
 
@@ -182,7 +162,7 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines1) {
   for (size_t i = 0; i < lines1.size(); i++) {
     float slope = calcSlope(lines1[i]);
     if (temp.empty()) {
-      std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
+      std::pair< cv::Vec4i, float > p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
     } else if (slope > 0 && fabs(temp[0].second - slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[0] - lines1[i][0]) <
@@ -191,7 +171,7 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines1) {
                compareY(temp[temp.size() - 1].first[1], lines1[i][1]) <
                    compareY(temp[temp.size() - 1].first[1],
                             temp[temp.size() - 1].first[3])) {
-      std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
+      std::pair< cv::Vec4i, float > p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
     } else if (slope < 0 && fabs(temp[temp.size() - 1].second - slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[0] - lines1[i][0]) <
@@ -200,19 +180,19 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines1) {
                compareY(temp[temp.size() - 1].first[1], lines1[i][1]) <
                    compareY(temp[temp.size() - 1].first[1],
                             temp[temp.size() - 1].first[3])) {
-      std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
+      std::pair< cv::Vec4i, float > p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
     } else if (slope < 0 && fabs(temp[temp.size() - 1].second - slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[2] - lines1[i][0]) < 2) {
-      std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
+      std::pair< cv::Vec4i, float > p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
     } else if (slope > 0 &&
                compareY(temp[temp.size() - 1].first[3], lines1[i][1]) < 2 &&
                fabs(temp[temp.size() - 1].second - slope) < 0.3) {
-      std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
+      std::pair< cv::Vec4i, float > p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
     } else {
-      res.push_back(getAverSlope(temp));
+      res.push_back(getAverLine(temp));
       temp.clear();
 
       for (int j = 0; j < res.size(); j++) {
@@ -224,30 +204,24 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines1) {
       }
 
       if (pushed) {
-        std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
+        std::pair< cv::Vec4i, float > p = std::make_pair(lines1[i], slope);
         temp.push_back(p);
         pushed = true;
       }
     }
 
     if (!temp.empty() && i == lines1.size() - 1) {
-      res.push_back(getAverSlope(temp));
+      res.push_back(getAverLine(temp));
       temp.clear();
     }
   }
 }
 
-geometry_msgs::Twist WallFollowingStrategy::turnLeft() {
-  geometry_msgs::Twist msg;
-  msg.angular.z = M_PI;
-  return msg;
-}
-
-std::pair<float, float> WallFollowingStrategy::findMinimDistance(int left,
-                                                                 int right) {
+std::pair< float, float > WallFollowingStrategy::findMinimDistance(int left,
+                                                                   int right) {
   sensor_msgs::LaserScan scan = WallFollowingStrategy::getLaserScan();
   scan.ranges.resize(RANGES);
-  std::pair<float, float> p = std::make_pair(scan.ranges[left], 0);
+  std::pair< float, float > p = std::make_pair(scan.ranges[left], 0);
 
   for (int i = left; i < right; i++) {
     p.first = std::min(p.first, scan.ranges[i]);
@@ -265,25 +239,14 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   int minim = INT_MAX;
   float theta = 0;
   int k = 0;
-  std::pair<float, float> line =
+  std::pair< float, float > line =
       WallFollowingStrategy::findMinimDistance(0, RANGES - 1);
-  std::vector<cv::Vec4i> vec = getLines();
+  std::vector< cv::Vec4i > vec = getLines();
 
-  std::pair<float, float> right = this->findMinimDistance(180, RANGES - 1);
+  std::pair< float, float > right = this->findMinimDistance(180, RANGES - 1);
 
   if (!src.data) {
     msg.linear.x = 0;
-    return msg;
-  }
-
-  if (cornerStuck) {
-    ROS_INFO("Stuck!");
-    msg.linear.x = cornerHandler.linear.x;
-    msg.linear.y = cornerHandler.linear.y;
-
-    msg.angular.x = cornerHandler.angular.x;
-    msg.angular.y = cornerHandler.angular.y;
-
     return msg;
   }
 
@@ -291,9 +254,19 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     circleFoundMode = true;
     ROS_INFO("Found Circle!");
     float variationToCircle = 90 - circleAngle;
-    msg.angular.z = std::min(MAX_TURN, 0.03 * variationToCircle);
-    std::cout << std::min(MAX_TURN, 0.03 * variationToCircle) << std::endl;
+    msg.angular.z = std::min(MAX_TURN, 0.035 * variationToCircle);
     msg.linear.x = 0.3;
+    return msg;
+  }
+
+  if (cornerStuck && !circleFoundMode) {
+    ROS_INFO("Stuck!");
+    msg.linear.x = cornerHandler.linear.x;
+    msg.linear.y = cornerHandler.linear.y;
+
+    msg.angular.x = cornerHandler.angular.x;
+    msg.angular.y = cornerHandler.angular.y;
+
     return msg;
   }
 
@@ -317,7 +290,6 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     }
 
     msg.angular.z = (this->getCurrentAngle() + m) / 10;
-    std::cout << (this->getCurrentAngle() + m) / 10 << std::endl;
     this->setCurrentAngle(this->getCurrentAngle() + m);
 
     followWall = true;

@@ -1,20 +1,30 @@
+/** @file WallFollowingStrategy.h
+  * Implementation of wall-following strategy
+  * Receives a laser scan from
+  * @author
+  */
+
 #ifndef WALLFOLLOWING_H
 #define WALLFOLLOWING_H
 
+/** Includes */
+
+/** include ROS */
 #include <ros/ros.h>
 
-/* ROS message type includes */
+/** include messages */
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/Polygon.h>
-#include <ros/ros.h>
+
+/** include OpenCV */
 #include <opencv2/opencv.hpp>
+
+/** include C library */
 #include <assert.h>
 #include <vector>
 #include <algorithm>
-#include <cmath>
-
 #include <cmath>
 
 #define RANGES 250
@@ -55,9 +65,20 @@
  */
 #define MIN_DISTANCE 0.5
 
+/**
+  * @brief Limiting integers to be within a certain range.
+  */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
+/**
+  * @brief Factor to define an image dimensions
+  */
+
 #define STRETCH_FACTOR 100
+
+/**
+  * @brief Compound class for wall-following strategy implementation
+  */
 
 class WallFollowingStrategy {
 private:
@@ -66,53 +87,95 @@ private:
   float circleDistance;
   float robotAngle;
 
-  geometry_msgs::Polygon lastLineArray;
-  std::pair<float, float> nearestLine;
-
   bool crashMode;
   bool cornerStuck;
   bool followWall;
   bool circleFoundMode;
   bool correcting;
   bool cornerEdge;
-  int countCircleDetection;
 
-  std::vector<cv::Vec4i> res;
-  std::vector<std::pair<float, float>> initialLineChoice;
-  std::vector<std::pair<int, int>> points;
+  std::vector< cv::Vec4i > res;
+  std::vector< std::pair< float, float > > initialLineChoice;
+  std::vector< std::pair< int, int > > points;
   sensor_msgs::LaserScan lastScan;
   cv::Mat src;
   geometry_msgs::Twist cornerHandler;
 
 public:
-  void getCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePos);
+  /**
+  * @brief Gets position of a circle if detected as a Pose2D message
+  * @param circlePos Pose2D message about location of the circle(x,y coordinates
+  * and angle)
+  */
+  void receiveCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePos);
+
+  /**
+  * @brief Receives a laser scan message and creates an OpenCV image
+  * @param laserScan LaserScan Message with information about the distances
+  */
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
-  void receiveCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePose);
+
+  /**
+  * @brief Receives a message from corner_handling topic of robot behavior
+  * in case of detecting a corner or an obstacle
+  * @detail Slowly moves the robot out of the corner or in the opposite to
+  * the wall direction without touching touching other obstacles/walls.
+  */
   void getCornerRecovery(const geometry_msgs::Twist::ConstPtr &cornerOut);
+  /**
+  * @brief Returns whether a circle has been detected or not
+  */
   bool getCircleVisible();
+  /**
+  * @brief Returns whether a robot crashed into the obstacle or not
+  */
   bool getCrashMode();
+  /**
+  * @brief Returns whether a robot has stuck in a corner or not
+  */
   bool getCornerHandle();
-  void getLines(const geometry_msgs::Polygon::ConstPtr &lines);
-  void getNearestLineBruteForce();
+
+  /**
+  * @brief Comparison function for std::sort
+  * @detail Compares the x-coordinates of starting points of the line segments
+  * @param one, two Starting and ending position coordinates of line segments
+  * @return A value that is convertible to bool and shows the order of two
+  * coordinates
+  */
   static int compareStart(cv::Vec4i one, cv::Vec4i two) {
     return (one[0] < two[0]);
   }
 
-  static int compareEnd(std::pair<cv::Vec4i, float> one,
-                        std::pair<cv::Vec4i, float> two) {
+  /**
+  * @brief Comparison function for std::sort
+  * @detail Compares the x-coordinates of ending points of the line segments
+  * @param one, two Vectors with 4 parameters (Starting and ending position
+  * coordinates of line segments)
+  * @return A value that is convertible to bool and shows the order of two
+  * coordinates
+  */
+  static int compareEnd(std::pair< cv::Vec4i, float > one,
+                        std::pair< cv::Vec4i, float > two) {
     return (one.first[2] > two.first[2]);
   }
 
-  static int compareSlope(std::pair<cv::Vec4i, float> one,
-                          std::pair<cv::Vec4i, float> two) {
+  /**
+  * @brief Comparison function for std::sort
+  * @detail Compares the slopes of the line segments
+  * @param one, two pairs of a vector with 4 parameters and a slope
+  * @return A value that is convertible to bool and shows the order of two
+  * coordinates
+  */
+  static int compareSlope(std::pair< cv::Vec4i, float > one,
+                          std::pair< cv::Vec4i, float > two) {
     return (one.second < two.second);
   }
 
-  static int compareDist(std::pair<float, float> one,
-                         std::pair<float, float> two) {
-    return (one.first < two.first);
-  }
-
+  /**
+  * @brief Finds the absolute difference between two integers
+  * @param y1, y2 integers to find the difference between
+  * @return Difference between two numbers
+  */
   int compareY(int y1, int y2) {
     if (y1 > y2) {
       return (y1 - y2);
@@ -121,14 +184,50 @@ public:
     }
   }
 
-  float calcSlope(cv::Vec4i);
-  cv::Vec4i getAverSlope(std::vector<std::pair<cv::Vec4i, float>>);
-  int getDifference(int, int);
-  void printLinesImage(cv::Mat, std::vector<cv::Vec4i>);
-  void removeLines(std::vector<cv::Vec4i>);
+  /**
+  * @brief Calculates the slope of the line segment
+  * @param one line segment which slope is found
+  * @return Slope of the line segment
+  */
+  float calcSlope(cv::Vec4i one);
+
+  /**
+  * @brief Finds the average line segment
+  * @detail All the similar lines (please see the strategy in line detection
+  * package)
+  * are gathered in the vector, then the critical points are taken for the
+  * endpoints
+  * of average line segment that is generated
+  * @param vec a vector of pairs of line segment and slope
+  * @return Slope of the line segment
+  */
+  cv::Vec4i getAverLine(std::vector< std::pair< cv::Vec4i, float > > vec);
+
+  /**
+  * @brief Finds the difference(not absolute one) between two integers
+  * @param a, b integers to find the difference between
+  * @return Difference between two numbers
+  */
+  int getDifference(int a, int b);
+
+  /**
+  * @brief Print lines from a vector to the image (cv::Mat)
+  * @param dst, lines  destination image, lines to be mapped to the image
+  */
+  void printLinesImage(cv::Mat dst, std::vector< cv::Vec4i > lines);
+
+  /**
+  * @brief Remove unnecessary lines from a vector of line segments (cv::Mat)
+  * @detail The line segments are compared according to their slopes and
+  * endpoints
+  * @param lines1 a vector of line segments taken for processing after applying
+  * HoughLinesP function from OpenCV
+  */
+  void removeLines(std::vector< cv::Vec4i > lines1);
+
   cv::Mat
   createOpenCVImageFromLaserScan(const sensor_msgs::LaserScan::ConstPtr &);
-  float interpolate(int, int, std::vector<float>);
+  float interpolate(int, int, std::vector< float >);
   int getNumLines() { return res.size(); }
   sensor_msgs::LaserScan getLaserScan() const { return lastScan; }
   cv::Mat getImage() { return src; }
@@ -140,9 +239,9 @@ public:
   void setCorrecting(bool set) { correcting = set; }
   bool getCorrecting() { return correcting; }
 
-  std::vector<cv::Vec4i> getLines() { return res; }
+  std::vector< cv::Vec4i > getLines() { return res; }
 
-  std::pair<float, float> findMinimDistance(int, int);
+  std::pair< float, float > findMinimDistance(int, int);
 
   const geometry_msgs::Twist controlMovement();
   float getCurrentAngle() { return robotAngle; }
