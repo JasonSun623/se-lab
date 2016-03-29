@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   image_transport
-  cv_bridge
   roslib
 )
 
@@ -121,6 +120,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_LIBRARIES}
 )
 
 ## Declare a C++ library
@@ -143,6 +143,7 @@ add_executable(wall_following_strategy_node src/WallFollowingStrategy.cpp src/Wa
 ## Specify libraries to link a library or executable target against
 target_link_libraries(wall_following_strategy_node
   ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
 )
 
 #############
