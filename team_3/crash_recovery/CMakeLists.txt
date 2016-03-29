@@ -131,7 +131,7 @@ include_directories(
 # add_dependencies(crash_recovery ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(crash_recovery_node src/CrashRecoveryNode.cpp src/CrashRecoverer.cpp)
+add_executable(crash_recovery_node src/crash_recovery_node.cpp src/CrashRecoverer.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -190,6 +190,6 @@ target_link_libraries(crash_recovery_node
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-catkin_add_gtest(tests_crash_recovery test/CrashRecoveryTest.cpp src/CrashRecoverer.cpp)
+catkin_add_gtest(tests_crash_recovery src/test/CrashRecoveryTest.cpp src/CrashRecoverer.cpp)
 
 target_link_libraries(tests_crash_recovery ${catkin_LIBRARIES} ${GTEST_LIBRARIES})

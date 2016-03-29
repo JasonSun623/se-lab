@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Pose2D.h>
-#include "CrashRecoverer.h"
+#include "../include/CrashRecoverer.h"
 
 /** Main executable for crash resolution advice node.
  *

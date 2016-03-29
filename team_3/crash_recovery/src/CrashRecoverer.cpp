@@ -4,7 +4,7 @@
   * @author Leonhard Kuboschek
   */
 
-#include "CrashRecoverer.h"
+#include "../include/CrashRecoverer.h"
 
 /**
   * @brief If any point in the laser scan is below this distance, we've crashed
