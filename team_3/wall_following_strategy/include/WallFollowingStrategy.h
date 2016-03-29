@@ -104,6 +104,7 @@ private:
   sensor_msgs::LaserScan lastScan;
   cv::Mat src;
   geometry_msgs::Twist cornerHandler;
+  geometry_msgs::Twist crashHandler;
 
 public:
   /**
@@ -126,6 +127,15 @@ public:
   * the wall direction without touching touching other obstacles/walls.
   */
   void getCornerRecovery(const geometry_msgs::Twist::ConstPtr &cornerOut);
+
+  /**
+  * @brief Receives a message from crash_recovery topic of robot behavior
+  * in case of crashing into the obstacle
+  * @detail Slowly moves the robot opposite to
+  * the wall direction without touching other obstacles/walls.
+  */
+  void getCrashRecovery(const geometry_msgs::Twist::ConstPtr &crashOut);
+
   /**
   * @brief Returns whether a circle has been detected or not
   */

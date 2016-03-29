@@ -22,6 +22,7 @@ void WallFollowingStrategy::getCornerRecovery(
 
     cornerHandler.angular.x = 0;
     cornerHandler.angular.y = 0;
+    cornerHandler.angular.z = 0;
     return;
   }
   // if the message from Corner Handler contains values different from 0
@@ -33,6 +34,22 @@ void WallFollowingStrategy::getCornerRecovery(
 
   cornerHandler.angular.x = cornerOut->angular.x;
   cornerHandler.angular.y = cornerOut->angular.y;
+  cornerHandler.angular.z = cornerOut->angular.z;
+}
+
+void WallFollowingStrategy::getCrashRecovery(
+    const geometry_msgs::Twist::ConstPtr &crashOut) {
+  if (crashOut->linear.x == 0 && crashOut->linear.y == 0 &&
+      crashOut->angular.x == 0 && crashOut->angular.y == 0) {
+    crashMode = false;
+    crashHandler.linear.x = 0;
+    crashHandler.angular.z = 0;
+    return;
+  }
+
+  crashMode = true;
+  crashHandler.linear.x = crashOut->linear.x;
+  crashHandler.angular.z = crashOut->angular.z;
 }
 
 void WallFollowingStrategy::receiveCirclePosition(
@@ -285,6 +302,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     return msg;
   }
 
+  // finding of circle is prioritized to other maneuvres
   if (circleVisible && circleDistance != 0) {
     circleFoundMode = true;
     ROS_INFO("Found Circle!");
@@ -302,6 +320,15 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
 
     msg.angular.x = cornerHandler.angular.x;
     msg.angular.y = cornerHandler.angular.y;
+    msg.angular.z = cornerHandler.angular.z;
+
+    return msg;
+  }
+
+  if (crashMode && !circleFoundMode) {
+    ROS_INFO("Crash!");
+    msg.linear.x = cornerHandler.linear.x;
+    msg.angular.z = cornerHandler.angular.z;
 
     return msg;
   }

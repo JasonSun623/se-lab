@@ -21,6 +21,9 @@ int main(int argc, char **argv) {
   ros::Subscriber cornerSub =
       n.subscribe("corner_handling", 1,
                   &WallFollowingStrategy::getCornerRecovery, strategy);
+  // gets crash recovery message
+  ros::Subscriber crashSub = n.subscribe(
+      "crash_recovery", 1, &WallFollowingStrategy::getCrashRecovery, strategy);
 
   ros::Publisher pub = n.advertise< geometry_msgs::Twist >("cmd_vel", 1);
 
