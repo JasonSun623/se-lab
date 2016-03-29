@@ -10,12 +10,15 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   rostest
   roslib
+  rosbag
 )
 
 find_package(OpenCV REQUIRED)
+
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -192,6 +195,6 @@ target_link_libraries(half_circle_detection_node
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-catkin_add_gtest(tests_half_circle_detection test/HalfCircleDetectionTest.cpp src/HalfCircleDetector.cpp)
+catkin_add_gtest(tests_half_circle_detection src/test/HalfCircleDetectionTest.cpp src/HalfCircleDetector.cpp)
 
 target_link_libraries(tests_half_circle_detection ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})

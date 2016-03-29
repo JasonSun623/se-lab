@@ -3,9 +3,9 @@
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/LaserScan.h>
 #include <tf/transform_listener.h>
-#include "laser_publisher.h"
-#include "movement_controller.h"
-#include "Robot.h"
+#include "../include/laser_publisher.h"
+#include "../include/movement_controller.h"
+#include "../include/Robot.h"
 
 #define LINEAR_VELOCITY 0.2
 
