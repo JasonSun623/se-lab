@@ -4,6 +4,8 @@
   * @author Leonhard Kuboschek
   */
 
+#include <algorithm>
+
 #include "../include/CrashRecoverer.h"
 
 /**
@@ -35,24 +37,9 @@ float angVelocities [RECOVERY_STEPS] = {
 
 void CrashRecoverer::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-  lastScan = *laserScan;
-}
-
-float CrashRecoverer::findMinim(int num_readings) {
-  lastScan.ranges.resize(num_readings);
-  float minim = lastScan.ranges[0];
-
-  for (int i = 0; i < num_readings; i++) {
-    minim = std::min(minim, lastScan.ranges[i]);
-  }
-
-  return minim;
-}
-
-const geometry_msgs::Twist CrashRecoverer::getResolution() {
   geometry_msgs::Twist msg;
 
-  float min = findMinim(RANGES);
+  float min = *std::min_element(laserScan->ranges.begin(), laserScan->ranges.end());
 
   if (min < CRASH_DISTANCE) {
     // Crash condition, change state
@@ -72,5 +59,9 @@ const geometry_msgs::Twist CrashRecoverer::getResolution() {
     }
   }
 
-  return msg;
+  currentOut = msg;
+}
+
+const geometry_msgs::Twist CrashRecoverer::getResolution() {
+  return currentOut;
 }
