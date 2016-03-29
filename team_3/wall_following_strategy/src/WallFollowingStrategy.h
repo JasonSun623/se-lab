@@ -55,6 +55,10 @@
  */
 #define MIN_DISTANCE 0.5
 
+#define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
+
+#define STRETCH_FACTOR 100
+
 class WallFollowingStrategy {
 private:
   bool circleVisible;
@@ -78,6 +82,7 @@ private:
   std::vector<std::pair<int, int>> points;
   sensor_msgs::LaserScan lastScan;
   cv::Mat src;
+  geometry_msgs::Twist cornerHandler;
 
 public:
   void getCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePos);

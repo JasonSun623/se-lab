@@ -9,13 +9,16 @@ int main(int argc, char **argv) {
       "base_scan", 1, &WallFollowingStrategy::receiveLaserScan, strategy);
   ros::Subscriber circleSub =
       n.subscribe("half_circle_detection", 1,
-                  &WallFollowingStrategy::getCirclePosition, strategy);
+                  &WallFollowingStrategy::receiveCirclePosition, strategy);
+  ros::Subscriber cornerSub =
+      n.subscribe("corner_handling", 1,
+                  &WallFollowingStrategy::getCornerRecovery, strategy);
 
   ros::Publisher pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
   ros::Rate rate(10);
 
-  cv::Mat bw, color_dst;
+  cv::Mat bw, color_dst, s;
   std::vector<cv::Vec4i> lines1;
   ros::spinOnce();
 
@@ -23,8 +26,13 @@ int main(int argc, char **argv) {
 
   while (ros::ok()) {
     geometry_msgs::Twist msg;
-    cv::Mat s = cv::imread("/home/mgladkova/copy_ws/src/team-3/team_3/"
-                           "wall_following_strategy/src/Image.jpg");
+    if (!strategy->getImage().data) {
+      s = cv::imread("/home/mgladkova/copy_ws/src/team-3/team_3/"
+                     "wall_following_strategy/src/Image.jpg");
+    } else {
+      s = strategy->getImage();
+    }
+
     cv::Canny(s, bw, 50, 200, 3);
     cvtColor(bw, color_dst, CV_GRAY2BGR);
 
@@ -33,14 +41,7 @@ int main(int argc, char **argv) {
 
     msg = strategy->controlMovement();
 
-    strategy->printLinesImage(color_dst, strategy->getLines());
-
     pub.publish(msg);
-
-    cv::imwrite("/home/mgladkova/copy_ws/src/team-3/team_3/"
-                "wall_following_strategy/src/Processed.jpg",
-                color_dst);
-    cv::waitKey(25);
 
     lines1.clear();
     strategy->clearData();

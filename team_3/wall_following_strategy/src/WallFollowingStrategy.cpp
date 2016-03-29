@@ -6,23 +6,6 @@ bool WallFollowingStrategy::getCrashMode() { return crashMode; }
 
 bool WallFollowingStrategy::getCornerHandle() { return cornerStuck; }
 
-// void WallFollowingStrategy::getLaserScan(
-//     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-//   lastScan = *laserScan;
-// }
-
-void WallFollowingStrategy::getCirclePosition(
-    const geometry_msgs::Pose2D::ConstPtr &circlePose) {
-  if (circlePose->x == -1) {
-    circleVisible = false;
-    return;
-  }
-
-  circleVisible = true;
-  circleAngle = circlePose->theta * (180 / M_PI);
-  circleDistance = sqrt(pow(circlePose->x, 2) + pow(circlePose->y, 2));
-}
-
 void WallFollowingStrategy::getLines(
     const geometry_msgs::Polygon::ConstPtr &lines) {
   lastLineArray = *lines;
@@ -30,12 +13,23 @@ void WallFollowingStrategy::getLines(
 
 void WallFollowingStrategy::getCornerRecovery(
     const geometry_msgs::Twist::ConstPtr &cornerOut) {
-  if (cornerOut->linear.x == -1) {
+  if (cornerOut->linear.x == 0 && cornerOut->linear.y == 0 &&
+      cornerOut->angular.x == 0 && cornerOut->angular.y == 0) {
     cornerStuck = false;
+    cornerHandler.linear.x = 0;
+    cornerHandler.linear.y = 0;
+
+    cornerHandler.angular.x = 0;
+    cornerHandler.angular.y = 0;
     return;
   }
 
   cornerStuck = true;
+  cornerHandler.linear.x = cornerOut->linear.x;
+  cornerHandler.linear.y = cornerOut->linear.y;
+
+  cornerHandler.angular.x = cornerOut->angular.x;
+  cornerHandler.angular.y = cornerOut->angular.y;
 }
 
 /**
@@ -57,9 +51,6 @@ void WallFollowingStrategy::receiveCirclePosition(
 /**
   * @brief Limiting integers to be within a certain range.
   */
-#define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
-
-#define STRETCH_FACTOR 100
 
 void WallFollowingStrategy::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
@@ -74,8 +65,6 @@ float WallFollowingStrategy::calcSlope(cv::Vec4i one) {
 
 cv::Vec4i WallFollowingStrategy::getAverSlope(
     std::vector<std::pair<cv::Vec4i, float>> vec) {
-  // std::sort(vec.begin(), vec.end(), compareSlope);
-  // int idx = vec.size()/2;
   cv::Vec4i average;
   average[0] = vec[0].first[0];
   average[1] = vec[0].first[1];
@@ -84,10 +73,6 @@ cv::Vec4i WallFollowingStrategy::getAverSlope(
 
   average[2] = vec[0].first[2];
   average[3] = vec[0].first[3];
-
-  // std::cout << average[0] << " , " << average[1] << " , " << average[2] << ",
-  // "
-  //           << average[3] << std::endl;
 
   return average;
 }
@@ -99,8 +84,8 @@ void WallFollowingStrategy::printLinesImage(cv::Mat dst,
   for (size_t i = 0; i < lines.size(); i++) {
     line(dst, cv::Point(lines[i][0], lines[i][1]),
          cv::Point(lines[i][2], lines[i][3]), cv::Scalar(0, 0, 255), 3, 8);
-    // std::cout << lines[i][0] << " , " << lines[i][1] << " , " << lines[i][2]
-    //<< " , " << lines[i][3] << std::endl;
+    ROS_DEBUG("%d\t %d\t %d\t %d\n", lines[i][0], lines[i][1], lines[i][2],
+              lines[i][3]);
   }
 }
 
@@ -174,12 +159,14 @@ cv::Mat WallFollowingStrategy::createOpenCVImageFromLaserScan(
     image.at<cv::Vec3b>(cv::Point(x, y)) = cv::Vec3b(200, 200, 200);
   }
 
+  src = image;
+
   cv::imwrite("/home/mgladkova/copy_ws/src/team-3/team_3/"
               "wall_following_strategy/src/Image.jpg",
               image);
   cv::waitKey(20);
 
-  this->setImage(image);
+  assert(this->getImage().data);
 
   return image;
 }
@@ -194,12 +181,9 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines1) {
   int count = 0;
   for (size_t i = 0; i < lines1.size(); i++) {
     float slope = calcSlope(lines1[i]);
-    // std::cout << slope << std::endl;
-
     if (temp.empty()) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
-      // std::cout << "1" << std::endl;
     } else if (slope > 0 && fabs(temp[0].second - slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[0] - lines1[i][0]) <
                    getDifference(temp[temp.size() - 1].first[0],
@@ -209,7 +193,6 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines1) {
                             temp[temp.size() - 1].first[3])) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
-      // std::cout << "3 ?? " << fabs(temp[0].second - slope) << std::endl;
     } else if (slope < 0 && fabs(temp[temp.size() - 1].second - slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[0] - lines1[i][0]) <
                    getDifference(temp[temp.size() - 1].first[0],
@@ -219,12 +202,10 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines1) {
                             temp[temp.size() - 1].first[3])) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
-      // std::cout << "4 ?? " << fabs(temp[0].second + slope) << std::endl;
     } else if (slope < 0 && fabs(temp[temp.size() - 1].second - slope) < 0.3 &&
                abs(temp[temp.size() - 1].first[2] - lines1[i][0]) < 2) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
       temp.push_back(p);
-      // std::cout << "5 ?? " << fabs(temp[0].second + slope) << std::endl;
     } else if (slope > 0 &&
                compareY(temp[temp.size() - 1].first[3], lines1[i][1]) < 2 &&
                fabs(temp[temp.size() - 1].second - slope) < 0.3) {
@@ -233,12 +214,10 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines1) {
     } else {
       res.push_back(getAverSlope(temp));
       temp.clear();
-      // std::cout << "6" << std::endl;
 
       for (int j = 0; j < res.size(); j++) {
         if (slope > 0 && fabs(calcSlope(res[j]) - slope) < 2 ||
             slope < 0 && fabs(calcSlope(res[j]) + slope) < 2) {
-          // std::cout << "HH" << std::endl;
           pushed = false;
           break;
         }
@@ -246,24 +225,15 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines1) {
 
       if (pushed) {
         std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i], slope);
-        // std::cout << "YES" << std::endl;
         temp.push_back(p);
         pushed = true;
       }
-
-      // std::pair<cv::Vec4i, float> p = std::make_pair(lines1[i],slope);
-      // temp.push_back(p);
     }
 
     if (!temp.empty() && i == lines1.size() - 1) {
       res.push_back(getAverSlope(temp));
       temp.clear();
-      // std::cout << "7" << std::endl;
     }
-
-    // std::cout << "LINES " << lines1[i][0] << " , " << lines1[i][1] << " , "
-    //<< lines1[i][2] << " , " << lines1[i][3] << std::endl;
-    // std::cout << variationStart << std::endl;
   }
 }
 
@@ -283,7 +253,7 @@ std::pair<float, float> WallFollowingStrategy::findMinimDistance(int left,
     p.first = std::min(p.first, scan.ranges[i]);
     if (p.first == scan.ranges[i]) {
       p.second = i;
-      // std::cout << "Min " << scan.ranges[i] << std::endl;
+      ROS_DEBUG("Min %f\n", scan.ranges[i]);
     }
   }
 
@@ -306,9 +276,22 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     return msg;
   }
 
+  if (cornerStuck) {
+    ROS_INFO("Stuck!");
+    msg.linear.x = cornerHandler.linear.x;
+    msg.linear.y = cornerHandler.linear.y;
+
+    msg.angular.x = cornerHandler.angular.x;
+    msg.angular.y = cornerHandler.angular.y;
+
+    if (circleDistance > 0.5) {
+      return msg;
+    }
+  }
+
   if (circleVisible && circleDistance != 0 && circleDistance < 3) {
     circleFoundMode = true;
-    std::cout << "Found!" << std::endl;
+    ROS_INFO("Found Circle!");
     if (circleDistance > 0.05) {
       float variationToCircle = 90 - circleAngle;
       msg.angular.z = std::min(MAX_TURN, 0.05 * variationToCircle);
@@ -338,14 +321,12 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     } else if (num < 0.1) {
       m = 0;
     }
-    // std::cout << m << std::endl;
     msg.angular.z = (this->getCurrentAngle() + m) / 10;
     this->setCurrentAngle(this->getCurrentAngle() + m);
 
     followWall = true;
     return msg;
   } else if (right.first > 0.5 && !circleFoundMode) {
-    std::cout << "Right1: " << right.first << std::endl;
     cornerEdge = true;
     msg.linear.x = 0.16;
     if (!circleVisible)
@@ -358,7 +339,6 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
 
   if (right.first > 0.5 && !circleFoundMode) {
     this->setCorrecting(true);
-    // std::cout << "Right: " << right.first << std::endl;
     followWall = false;
   } else {
     msg.linear.x = 0.3;
