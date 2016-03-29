@@ -1,5 +1,7 @@
 #include "WallFollowingStrategy.h"
 
+#include <ros/package.h>
+
 int main(int argc, char **argv) {
   ros::init(argc, argv, "wall_following_strategy");
   ros::NodeHandle n;
@@ -27,8 +29,9 @@ int main(int argc, char **argv) {
   while (ros::ok()) {
     geometry_msgs::Twist msg;
     if (!strategy->getImage().data) {
-      s = cv::imread("/home/mgladkova/copy_ws/src/team-3/team_3/"
-                     "wall_following_strategy/src/Image.jpg");
+      std::string path = ros::package::getPath("wall_following_strategy");
+      path += "/src/Image.jpg";
+      s = cv::imread(path);
     } else {
       s = strategy->getImage();
     }
