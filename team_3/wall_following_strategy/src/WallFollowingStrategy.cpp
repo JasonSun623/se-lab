@@ -1,4 +1,4 @@
-#include "WallFollowingStrategy.h"
+#include "../include/WallFollowingStrategy.h"
 
 bool WallFollowingStrategy::getCircleVisible() { return circleVisible; }
 
@@ -284,20 +284,16 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     msg.angular.x = cornerHandler.angular.x;
     msg.angular.y = cornerHandler.angular.y;
 
-    if (circleDistance > 0.5) {
-      return msg;
-    }
+    return msg;
   }
 
-  if (circleVisible && circleDistance != 0 && circleDistance < 3) {
+  if (circleVisible && circleDistance != 0) {
     circleFoundMode = true;
     ROS_INFO("Found Circle!");
-    if (circleDistance > 0.05) {
-      float variationToCircle = 90 - circleAngle;
-      msg.angular.z = std::min(MAX_TURN, 0.05 * variationToCircle);
-      std::cout << std::min(MAX_TURN, 0.05 * variationToCircle) << std::endl;
-      msg.linear.x = 0.3;
-    }
+    float variationToCircle = 90 - circleAngle;
+    msg.angular.z = std::min(MAX_TURN, 0.03 * variationToCircle);
+    std::cout << std::min(MAX_TURN, 0.03 * variationToCircle) << std::endl;
+    msg.linear.x = 0.3;
     return msg;
   }
 
@@ -316,12 +312,12 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     float den = vec[k][2] - vec[k][0];
     float num = vec[k][3] - vec[k][1];
     float m = 0;
-    if (den < 0.1) {
+    if (den < 0.1 || num < 0.1) {
       m = M_PI / 2;
-    } else if (num < 0.1) {
-      m = 0;
     }
+
     msg.angular.z = (this->getCurrentAngle() + m) / 10;
+    std::cout << (this->getCurrentAngle() + m) / 10 << std::endl;
     this->setCurrentAngle(this->getCurrentAngle() + m);
 
     followWall = true;
@@ -343,6 +339,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   } else {
     msg.linear.x = 0.3;
   }
+
   if (correcting) {
     float variation = 90 - right.second;
     msg.angular.z = std::min(MAX_TURN, TURN_CORRECTION * variation);
