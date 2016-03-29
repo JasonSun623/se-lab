@@ -1,4 +1,9 @@
-#include "WallFollowingStrategy.h"
+/** @file WallFollowingStrategy.cpp
+  * Implementation of WallFollowingStrategy.h
+  * @author Mariia Gladkova
+  * @author Felix Schmoll
+  */
+#include "../include/WallFollowingStrategy.h"
 
 #include <ros/package.h>
 
@@ -7,20 +12,26 @@ int main(int argc, char **argv) {
   ros::NodeHandle n;
   WallFollowingStrategy *strategy = new WallFollowingStrategy();
 
+  // gets laser scan
   ros::Subscriber laserSub = n.subscribe(
       "base_scan", 1, &WallFollowingStrategy::receiveLaserScan, strategy);
+  // gets circle position
   ros::Subscriber circleSub =
       n.subscribe("half_circle_detection", 1,
                   &WallFollowingStrategy::receiveCirclePosition, strategy);
+  // gets corner handler message
   ros::Subscriber cornerSub =
       n.subscribe("corner_handling", 1,
                   &WallFollowingStrategy::getCornerRecovery, strategy);
+  // gets crash recovery message
+  ros::Subscriber crashSub = n.subscribe(
+      "crash_recovery", 1, &WallFollowingStrategy::getCrashRecovery, strategy);
 
   ros::Publisher pub = n.advertise< geometry_msgs::Twist >("cmd_vel", 1);
 
   ros::Rate rate(10);
 
-  cv::Mat bw, color_dst, s;
+  cv::Mat bw, s;
   std::vector< cv::Vec4i > lines1;
   ros::spinOnce();
 
@@ -36,9 +47,9 @@ int main(int argc, char **argv) {
       s = strategy->getImage();
     }
 
+    // apply line detection algorithm from the OpenCV library
+    // and process the vector
     cv::Canny(s, bw, 50, 200, 3);
-    cvtColor(bw, color_dst, CV_GRAY2BGR);
-
     cv::HoughLinesP(bw, lines1, 1, CV_PI / 180, 20, 10, 10);
     strategy->removeLines(lines1);
 
@@ -46,6 +57,7 @@ int main(int argc, char **argv) {
 
     pub.publish(msg);
 
+    // clear the data for new laser scan message
     lines1.clear();
     strategy->clearData();
 
