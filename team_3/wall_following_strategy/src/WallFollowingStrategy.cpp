@@ -38,27 +38,21 @@ void WallFollowingStrategy::getCornerRecovery(
   cornerStuck = true;
 }
 
-// void WallFollowingStrategy::getNearestLineBruteForce() {
-//   lastScan.ranges.resize(RANGES);
-//   float error = 0.05;
-//   float minim = INT_MAX;
-//   float theta = 90;
+/**
+  * @brief Checks if pose represents actual circle and sets values accordingly.
+  */
+void WallFollowingStrategy::receiveCirclePosition(
+    const geometry_msgs::Pose2D::ConstPtr &circlePose) {
+  // compare to -1
+  if (fabs(circlePose->x + 1) < 0.02) {
+    circleVisible = false;
+    return;
+  }
 
-//   for (int i = 0; i < RANGES - 1; i++) {
-//     if (abs(lastScan.ranges[i] - lastScan.ranges[i + 1]) < error) {
-//       minim = std::min(minim, lastScan.ranges[i]);
-//       theta = i;
-//     }
-//   }
-
-//   nearestLine.first = minim;
-
-//   if (theta >= RANGES / 2) {
-//     nearestLine.second = theta - RANGES / 2;
-//   } else {
-//     nearestLine.second = theta;
-//   }
-// }
+  circleVisible = true;
+  circleAngle = circlePose->theta * (180 / M_PI);
+  circleDistance = sqrt(pow(circlePose->x, 2) + pow(circlePose->y, 2));
+}
 
 /**
   * @brief Limiting integers to be within a certain range.
@@ -303,6 +297,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   int k = 0;
   std::pair<float, float> line =
       WallFollowingStrategy::findMinimDistance(0, RANGES - 1);
+  std::vector<cv::Vec4i> vec = getLines();
 
   std::pair<float, float> right = this->findMinimDistance(180, RANGES - 1);
 
@@ -311,13 +306,24 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     return msg;
   }
 
-  if (line.first > 0.3 && !followWall) {
+  if (circleVisible && circleDistance != 0 && circleDistance < 3) {
+    circleFoundMode = true;
+    std::cout << "Found!" << std::endl;
+    if (circleDistance > 0.05) {
+      float variationToCircle = 90 - circleAngle;
+      msg.angular.z = std::min(MAX_TURN, 0.05 * variationToCircle);
+      std::cout << std::min(MAX_TURN, 0.05 * variationToCircle) << std::endl;
+      msg.linear.x = 0.3;
+    }
+    return msg;
+  }
+
+  if (line.first > 0.3 && !followWall && !circleFoundMode) {
     msg.linear.x = 0.3;
     return msg;
   }
 
-  if (line.first < 0.3 && right.first < 0.7) {
-    std::vector<cv::Vec4i> vec = getLines();
+  if (line.first < 0.3 && right.first < 0.7 && !circleFoundMode) {
     for (auto i = 0; i < vec.size(); i++) {
       if (minim < abs(vec[i][0] - src.rows / 2)) {
         minim = abs(vec[i][0] - src.rows / 2);
@@ -332,23 +338,27 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     } else if (num < 0.1) {
       m = 0;
     }
-    std::cout << m << std::endl;
+    // std::cout << m << std::endl;
     msg.angular.z = (this->getCurrentAngle() + m) / 10;
     this->setCurrentAngle(this->getCurrentAngle() + m);
 
     followWall = true;
     return msg;
-  } else if (right.first > 0.5) {
+  } else if (right.first > 0.5 && !circleFoundMode) {
     std::cout << "Right1: " << right.first << std::endl;
     cornerEdge = true;
-    msg.linear.x = 0.15;
-    msg.angular.z = -M_PI / 10;
+    msg.linear.x = 0.16;
+    if (!circleVisible)
+      msg.angular.z = -M_PI / 10;
+    else {
+      msg.angular.z = -M_PI / 5;
+    }
     return msg;
   }
 
-  if (right.first > 0.5) {
+  if (right.first > 0.5 && !circleFoundMode) {
     this->setCorrecting(true);
-    std::cout << "Right: " << right.first << std::endl;
+    // std::cout << "Right: " << right.first << std::endl;
     followWall = false;
   } else {
     msg.linear.x = 0.3;

@@ -33,7 +33,14 @@ int main(int argc, char **argv) {
 
     msg = strategy->controlMovement();
 
+    strategy->printLinesImage(color_dst, strategy->getLines());
+
     pub.publish(msg);
+
+    cv::imwrite("/home/mgladkova/copy_ws/src/team-3/team_3/"
+                "wall_following_strategy/src/Processed.jpg",
+                color_dst);
+    cv::waitKey(25);
 
     lines1.clear();
     strategy->clearData();

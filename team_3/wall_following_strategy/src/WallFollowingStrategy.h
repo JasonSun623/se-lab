@@ -68,8 +68,10 @@ private:
   bool crashMode;
   bool cornerStuck;
   bool followWall;
+  bool circleFoundMode;
   bool correcting;
   bool cornerEdge;
+  int countCircleDetection;
 
   std::vector<cv::Vec4i> res;
   std::vector<std::pair<float, float>> initialLineChoice;
@@ -80,6 +82,7 @@ private:
 public:
   void getCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePos);
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
+  void receiveCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePose);
   void getCornerRecovery(const geometry_msgs::Twist::ConstPtr &cornerOut);
   bool getCircleVisible();
   bool getCrashMode();
