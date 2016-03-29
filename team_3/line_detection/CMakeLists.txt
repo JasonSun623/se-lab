@@ -134,7 +134,7 @@ catkin_package(
 
 ## Declare a C++ executable
  #add_executable(line_detection_node src/LineDetector.cpp src/#line_detectionV2.cpp)
-add_executable(line_detection_node src/line_detection.cpp src/main.cpp)
+add_executable(line_detection_node src/LineDetector.cpp src/line_detection_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
