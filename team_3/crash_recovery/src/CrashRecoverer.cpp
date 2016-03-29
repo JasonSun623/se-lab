@@ -11,7 +11,7 @@
 /**
   * @brief If any point in the laser scan is below this distance, we've crashed
   */
-#define CRASH_DISTANCE 20
+#define CRASH_DISTANCE 0.05
 
 /**
   * @brief The length of the recovery maneuver in 'steps'. One step is equal
