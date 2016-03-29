@@ -17,6 +17,7 @@
  *  * ```ROS (indigo)```
  *  * ```gtest (1.6.0)```
  *
+ *  (Note: for the installation from the given VM there are no additional installations necessary. )
  *
  * ## Contained packages
  *
