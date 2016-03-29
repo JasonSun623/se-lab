@@ -3,6 +3,7 @@
   *
   * @author Leonhard Kuboschek
   */
+
 #include "CrashRecoverer.h"
 
 /**
@@ -48,19 +49,19 @@ float CrashRecoverer::findMinim(int num_readings) {
   return minim;
 }
 
-const geometry_msgs::Twist CrashRecoverer::getControlOutput() {
+const geometry_msgs::Twist CrashRecoverer::getResolution() {
   geometry_msgs::Twist msg;
 
   float min = findMinim(RANGES);
 
-  if(min < CRASH_DISTANCE) {
+  if (min < CRASH_DISTANCE) {
     // Crash condition, change state
     currentState = CRASH;
     recoveryTimer = 0;
   }
 
-  if(currentState == CRASH) {
-    if(recoveryTimer == RECOVERY_STEPS - 1) {
+  if (currentState == CRASH) {
+    if (recoveryTimer == RECOVERY_STEPS - 1) {
       currentState = OK;
     } else {
       // Replay 'stored' procedure to robot
