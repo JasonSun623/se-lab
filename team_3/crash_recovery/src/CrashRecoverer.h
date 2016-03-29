@@ -1,5 +1,6 @@
 /** @file CrashRecoverer.h
- *  @brief Determines wether or not a crash has occured, and tries to resolve it.
+ *  @brief Determines wether or not a crash has occured, and tries to resolve
+ * it.
  *
  *  Provides an interface that gives resolution advice if a crash is detected.
  *
@@ -19,13 +20,12 @@
 
 /* ROS message type includes */
 #include <sensor_msgs/LaserScan.h>
-#include <geometry_msgs/Pose2D.h>
+#include <geometry_msgs/Twist.h>
 
 /**
  * @brief Number of laser samples
  */
 #define RANGES 250
-
 
 /**
   * @brief Compound class for resolving crashes
@@ -44,9 +44,7 @@ public:
     * Decides on where to move next and by how much.
     * @return Next move to be done.
     */
-  const geometry_msgs::Twist getControlOutput();
-
-
+  const geometry_msgs::Twist getResolution();
 
 private:
   /**
@@ -64,7 +62,7 @@ private:
 
   CrashRecoverer::State currentState;
 
-  int recoveryTimer = 0;
+  int recoveryTimer;
 };
 
 #endif
