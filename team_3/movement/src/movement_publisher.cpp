@@ -3,9 +3,9 @@
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/LaserScan.h>
 #include <tf/transform_listener.h>
-#include "laser_publisher.h"
-#include "movement_controller.h"
-#include "Robot.h"
+#include "../include/laser_publisher.h"
+#include "../include/movement_controller.h"
+#include "../include/Robot.h"
 
 #define LINEAR_VELOCITY 0.2
 
@@ -32,8 +32,8 @@ int main(int argc, char **argv) {
 
   // publishers to cmd_vel for movement and scan for laser samples to be
   // displayed
-  ros::Publisher pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 100);
-  ros::Publisher scan_pub = n.advertise<sensor_msgs::LaserScan>("scan", 50);
+  ros::Publisher pub = n.advertise< geometry_msgs::Twist >("cmd_vel", 100);
+  ros::Publisher scan_pub = n.advertise< sensor_msgs::LaserScan >("scan", 50);
 
   // subscriber to the base_scan topic for laser samples
   ros::Subscriber sub =

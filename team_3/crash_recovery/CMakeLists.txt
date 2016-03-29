@@ -1,20 +1,18 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(wall_following_strategy)
+project(crash_recovery)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+
 find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
   roscpp
   sensor_msgs
-  image_transport
+  rostest
   roslib
 )
 
 find_package(OpenCV REQUIRED)
-set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
-
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -72,7 +70,7 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   geometry_msgs#   sensor_msgs
+#   sensor_msgs
 # )
 
 ################################################
@@ -106,8 +104,8 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES wall_following_strategy
-#  CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs
+#  LIBRARIES crash_recovery
+  CATKIN_DEPENDS roscpp sensor_msgs
 #  DEPENDS system_lib
 )
 
@@ -120,30 +118,28 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(wall_following_strategy
-#   src/${PROJECT_NAME}/wall_following_strategy.cpp
+# add_library(crash_recovery
+#   src/${PROJECT_NAME}/crash_recovery.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(wall_following_strategy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(crash_recovery ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(wall_following_strategy_node src/WallFollowingStrategy.cpp src/WallFollowingPublisher.cpp)
+add_executable(crash_recovery_node src/CrashRecoveryNode.cpp src/CrashRecoverer.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(wall_following_strategy_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(crash_recovery_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(wall_following_strategy_node
+target_link_libraries(crash_recovery_node
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
 )
 
 #############
@@ -161,7 +157,7 @@ target_link_libraries(wall_following_strategy_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS wall_following_strategy wall_following_strategy_node
+# install(TARGETS crash_recovery crash_recovery_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -186,10 +182,14 @@ target_link_libraries(wall_following_strategy_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-#catkin_add_gtest(${PROJECT_NAME}-test test/test_corner_handling.cpp)
-#if(TARGET ${PROJECT_NAME}-test)
-#  target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-#endif()
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_crash_recovery.cpp)
+# if(TARGET ${PROJECT_NAME}-test)
+#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+catkin_add_gtest(tests_crash_recovery test/CrashRecoveryTest.cpp src/CrashRecoverer.cpp)
+
+target_link_libraries(tests_crash_recovery ${catkin_LIBRARIES} ${GTEST_LIBRARIES})

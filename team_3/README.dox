@@ -5,44 +5,55 @@
  * @author Leonhard Kuboschek (kuboschek)
  * @author Felix Schmoll (LiftnLearn)
  * @author Maria Gladkova (mgladkova)
- *Team members:
  *
- *  - Jehanzeb Ayaz (jahanzaibayaz)
- *  - Sulav Timilsina (stimilsina)
- *  - Maria Gladkova (mgladkova)
- *  - Leonhard Kuboschek (kuboschek)
- *  - Felix Schmoll (LiftnLearn)
+ * ## Team members
  *
- *Our project consists currently out of three packages:
+ *  * Maria Gladkova (mgladkova)
+ *  * Leonhard Kuboschek (kuboschek)
+ *  * Felix Schmoll (LiftnLearn)
  *
- * - ```half_circle_detection``` to convert laser data into half circle
- *positions
- * - ```random_walk_strategy``` to drive the robot based on circle position
- * - ```movement``` base package to define a robot class, track and publish its movement
+ * ## External dependencies
+ *  * ```OpenCV (2.4.8)```
+ *  * ```ROS (indigo)```
+ *  * ```gtest (1.6.0)```
  *
- * The general idea is that the ```laserScan```-data are received by the
- *```half_circle_detection```-package and it is processing whether it can find a
- *halfcircle. It then publishes its result on another topic. It has currently
- *only been tested in the simulator and without any error in the laser-data, but
- *with the current implementation the circle-detection seems to work almost
- *questionably accurate (seriously, it's magic).
  *
- * The ```random_walk_strategy```-package then subscribes to this topic as well
- *as the
- *laserScan-data one and decides which move to make next. If a circle has been
- *detected it drives straight towards it and otherwise it just drives into some
- *direction until it comes to close to a wall and turns.
+ * ## Contained packages
  *
- * The ```movement```-package contains separate from lab_simulator launch 
- * file that contain be run by following instructions in README file
- * ```movement``` is a standalone package that combines publishers of laser
- * scan data and movement messages to ensure basic movement that was sought
- * as a target functionality. Also Robot class is defined which can be enhanced
- * in future sprints with more features and coherence.
+ *  - ```half_circle_detection``` to convert laser data into circle positions
+ *  - ```movement``` base package to define a robot class, track and publish its movement
+ *  - ```wall_following_strategy``` to drive the robot through the maze along walls
+ *  - ```line_detection``` to detect lines in the laser scan data
+ *  - ```corner_handling``` to unstick the robot in tight corners
+ *  - ```crash_recovery``` to recover from unplanned impact with walls
  *
- * The individual contributions of the team members were so far quite heterogeneous. 
- * Further improvement on team collaboration and integration of pair programming 
- * needs to be considered in the future work. The test coverage is low at the moment. 
+ * ### Half circle detection
+ *  The general idea is that the ```laserScan```-data are received by the
+ * ```half_circle_detection```-package and it is processing whether it can find a
+ * half-circle. It then publishes its result on another topic. It has currently
+ * only been tested in the simulator.
+ *
+ * ### Wall Following Strategy
+ * The ```wall_following_strategy``` package contains the strategy node,
+ * which takes inputs from the line detector, the corner handling, and the
+ * crash recovery module, to follow walls until a circle is seen. Once a circle
+ * has been seen, the strategy drives the robot straight toward it.
+ *
+ * ### Line Detection
+ * The line detector generates a list of line segments  from laser scan data using the probabilistic Hough transform.
+ *
+ * ### Corner Handling
+ * The corner handling node analyzes the laser scan to determine if the robot is
+ * stuck in a space that it can't turn around in. It is currently not majorly used.
+ *
+ * ### Crash Recovery
+ * The crash recovery node performs a 'reverse-and-turn' maneuver if the robot
+ * impacts with its surrounding. 
+ * 
+ * ## Further comments
+ * The individual contributions of the team members were so far quite heterogeneous.
+ * Further improvement on team collaboration and integration of pair programming
+ * needs to be considered in the future work. The test coverage is low at the moment, although it has been increased since the last sprint. We need to significantly improve the half-circle detection and line detection for the usage with significant error like it will be in the real robot.
  *
  * We would also like to thank the TAs. Keep up the good work!
  *

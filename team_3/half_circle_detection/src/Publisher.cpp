@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Pose2D.h>
-#include "HalfCircleDetector.h"
+#include "../include/HalfCircleDetector.h"
 
 /** Main executable for half-circle detection.
  *
@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
       "base_scan", 1, &HalfCircleDetector::receiveLaserScan, detector);
 
   ros::Publisher pub =
-      n.advertise<geometry_msgs::Pose2D>("half_circle_detection", 1);
+      n.advertise< geometry_msgs::Pose2D >("half_circle_detection", 1);
 
   ros::Rate rate(10);
 

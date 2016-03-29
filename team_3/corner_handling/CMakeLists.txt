@@ -1,14 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(random_walk_strategy)
+project(corner_handling)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  geometry_msgs
   roscpp
   sensor_msgs
-  geometry_msgs
   rostest
+  rosbag
+  roslib
 )
 
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
@@ -70,7 +72,7 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   sensor_msgs
+#   geometry_msgs#   sensor_msgs
 # )
 
 ################################################
@@ -104,8 +106,8 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES random_walk_strategy
-#  CATKIN_DEPENDS roscpp sensor_msgs
+#  LIBRARIES corner_handling
+#  CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs
 #  DEPENDS system_lib
 )
 
@@ -118,29 +120,28 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${GTEST_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(random_walk_strategy
-#   src/${PROJECT_NAME}/random_walk_strategy.cpp
+# add_library(corner_handling
+#   src/${PROJECT_NAME}/corner_handling.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(random_walk_strategy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(corner_handling ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(random_walk_strategy_node src/pubsub.cpp src/RandomWalkStrategy.cpp)
+add_executable(corner_handling_node src/corner_handling_node.cpp src/CornerHandler.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(random_walk_strategy_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(corner_handling_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(random_walk_strategy_node
-  ${catkin_LIBRARIES}
+target_link_libraries(corner_handling_node
+   ${catkin_LIBRARIES}
 )
 
 #############
@@ -158,7 +159,7 @@ target_link_libraries(random_walk_strategy_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS random_walk_strategy random_walk_strategy_node
+# install(TARGETS corner_handling corner_handling_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -182,14 +183,11 @@ target_link_libraries(random_walk_strategy_node
 ## Testing ##
 #############
 
-catkin_add_gtest(tests_random_walk_strategy 
-  test/RandomWalkStrategyTest.cpp src/RandomWalkStrategy.cpp)
-
-target_link_libraries(tests_random_walk_strategy ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_random_walk_strategy.cpp)
+catkin_add_gtest(${PROJECT_NAME}-test src/test/test_CornerHandler.cpp src/CornerHandler.cpp)
+target_link_libraries(${PROJECT_NAME}-test ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${rosbag_LIBRARIES})
 # if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+#    target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
