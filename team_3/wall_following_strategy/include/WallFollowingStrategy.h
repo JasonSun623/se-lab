@@ -1,7 +1,10 @@
 /** @file WallFollowingStrategy.h
   * Implementation of wall-following strategy
-  * Receives a laser scan from
-  * @author
+  * The robot starts to move straight until it finds a wall
+  * Using right-hand rule robot follows the wall and try to avoid
+  * single walls, corners by not touching them
+  * @author Mariia Gladkova
+  * @author Felix Schmoll
   */
 
 #ifndef WALLFOLLOWING_H
@@ -11,6 +14,7 @@
 
 /** include ROS */
 #include <ros/ros.h>
+#include <ros/package.h>
 
 /** include messages */
 #include <sensor_msgs/LaserScan.h>
@@ -218,34 +222,82 @@ public:
 
   /**
   * @brief Remove unnecessary lines from a vector of line segments (cv::Mat)
-  * @detail The line segments are compared according to their slopes and
-  * endpoints
+  * @detail As laser scan has noise we detect for each wall a lot of unnecessary
+  * lines
+  * we eliminate the lines that represent the same wall by finding the slope
+  * along with computing the location of endpoints with respect to each other
   * @param lines1 a vector of line segments taken for processing after applying
   * HoughLinesP function from OpenCV
   */
   void removeLines(std::vector< cv::Vec4i > lines1);
-
+  /**
+  * @brief Converts the laserScan-data from polar into cartesian coordinates.
+  * Then cleans the data from various problems and finally translates the points
+  * into pixels on an actual image (in form of an OpenCV-matrix).
+  */
   cv::Mat
   createOpenCVImageFromLaserScan(const sensor_msgs::LaserScan::ConstPtr &);
+
+  /** @brief Interpolates the data up to the requested resolution using linear
+  * interpolation.
+  */
   float interpolate(int, int, std::vector< float >);
+
+  /** @brief Gets number of line segments after elimination
+  */
   int getNumLines() { return res.size(); }
+
+  /** @brief Gets last laser scan message
+  */
   sensor_msgs::LaserScan getLaserScan() const { return lastScan; }
-  cv::Mat getImage() { return src; }
 
-  void clearData() { res.clear(); }
-
+  /** @brief Sets the image which represents the last scan message received
+  *   @param src image to be set
+  */
   void setImage(cv::Mat src) { this->src = src; }
 
+  /** @brief Gets the image which represents the last scan message received
+  *   @return the image
+  */
+  cv::Mat getImage() { return src; }
+
+  /** @brief Clears the vector of line segments in order to process the new
+  * image
+  * from laser scan
+  */
+  void clearData() { res.clear(); }
+
+  /** @brief Sets the flag for correcting the maneuvre of the robot
+  */
   void setCorrecting(bool set) { correcting = set; }
+
+  /** @brief Gets the flag for maneuvre correction of the robot
+  */
   bool getCorrecting() { return correcting; }
 
+  /** @brief Gets the vector of line segments that were processed after line
+   * removal
+  */
   std::vector< cv::Vec4i > getLines() { return res; }
 
-  std::pair< float, float > findMinimDistance(int, int);
+  /** @brief Finds the minimum distance in the range of laser scan message
+  *   @param left, right left and right boundaries
+  *   @return Returns the slope and the distance to the line segment
+  */
+  std::pair< float, float > findMinimDistance(int left, int right);
 
+  /** @brief Implements the main logic of the wall-following strategy
+  *   @return Returns the twist message containing the next move to be sent
+  *   to cmd_vel topic
+  */
   const geometry_msgs::Twist controlMovement();
+
+  /** @brief Gets the angle of the robot in the global frame
+  */
   float getCurrentAngle() { return robotAngle; }
+
+  /** @brief Sets the angle of the robot in the global frame
+ */
   void setCurrentAngle(float angle) { robotAngle = angle; }
-  geometry_msgs::Twist turnLeft();
 };
 #endif
