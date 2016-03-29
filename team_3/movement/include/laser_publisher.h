@@ -1,10 +1,3 @@
-#include <cstdlib>
-#include <iostream>
-#include <sensor_msgs/LaserScan.h>
-using namespace std;
-#ifndef LASER_H
-#define LASER_H
-
 /** @file laser_publisher.h
  *  @brief Introduces a publisher of the laser scan
  *  Used in case of running movementSimulator instead of lab_simulator
@@ -13,6 +6,13 @@ using namespace std;
  *
  *  @author Mariia Gladkova
  */
+
+#include <cstdlib>
+#include <iostream>
+#include <sensor_msgs/LaserScan.h>
+using namespace std;
+#ifndef LASER_H
+#define LASER_H
 
 class LaserScanPublisher {
 private:

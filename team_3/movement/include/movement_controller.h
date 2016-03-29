@@ -1,13 +1,14 @@
-#include <cstdlib>
-#include <iostream>
-using namespace std;
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
 /** @file movement_controller.h
  *  @brief Introduces a controller for a robot based on LaserScan data
  *
  *  @author Mariia Gladkova
  */
+#include <cstdlib>
+#include <iostream>
+using namespace std;
+#ifndef CONTROLLER_H
+#define CONTROLLER_H
+
 class MovementController {
 private:
   sensor_msgs::LaserScan lastScan;

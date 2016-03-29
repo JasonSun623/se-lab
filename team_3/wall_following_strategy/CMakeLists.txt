@@ -8,8 +8,13 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   roscpp
   sensor_msgs
-  rostest
+  image_transport
+  cv_bridge
+  roslib
 )
+
+find_package(OpenCV REQUIRED)
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -129,16 +134,16 @@ include_directories(
 # add_dependencies(wall_following_strategy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(wall_following_strategy_node src/wall_following_strategy_node.cpp)
+add_executable(wall_following_strategy_node src/WallFollowingStrategy.cpp src/WallFollowingPublisher.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(wall_following_strategy_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(wall_following_strategy_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(wall_following_strategy_node
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
