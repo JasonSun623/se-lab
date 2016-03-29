@@ -30,8 +30,8 @@ void HalfCircleDetector::receiveLaserScan(
  */
 float HalfCircleDetector::interpolate(int index, int resolution,
                                       std::vector<float> data) {
-  int size = data.size();
-  float step = 1.0 / ((float)resolution);
+  int size = static_cast<int>(data.size());
+  auto step = 1.0 / (static_cast<float>(resolution));
 
   // finding closest actual data in the dataset
   int leftIndex = RANGE(0, (int)(step * index), size - 1);
@@ -87,9 +87,9 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     float adj = hyp * std::cos(alpha);
 
     // make sure that values are always within bounds
-    int x = RANGE(0, (int)((imageWidth / 2) + STRETCH_FACTOR * opp * sign),
+    int x = RANGE(0, static_cast<int>((imageWidth / 2) + STRETCH_FACTOR * opp * sign),
                   imageWidth - 1);
-    int y = RANGE(0, (int)((imageHeight / 2) + adj * STRETCH_FACTOR),
+    int y = RANGE(0, static_cast<int>((imageHeight / 2) + adj * STRETCH_FACTOR),
                   imageHeight - 1);
 
     points.push_back(std::make_pair(opp, adj));
@@ -122,8 +122,8 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   float errorMargin = 0.03;
   float halfCircleRadius = 0.12; // about 30 cm height for circle
 
-  int leftIndex = 0;
-  int rightIndex = 0;
+  unsigned int leftIndex = 0;
+  unsigned int rightIndex = 0;
 
   while (rightIndex < points.size()) {
     // semi-circle dimensions: 30cm x 16cm
@@ -241,8 +241,8 @@ geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
   if (posX == -1) {
     msg.x = msg.y = msg.theta = -1;
   } else {
-    msg.x = (posX - robotX) / (float)STRETCH_FACTOR;
-    msg.y = (posY - robotY) / (float)STRETCH_FACTOR;
+    msg.x = (posX - robotX) / static_cast<float>(STRETCH_FACTOR);
+    msg.y = (posY - robotY) / static_cast<float>(STRETCH_FACTOR);
     msg.theta = std::atan2(msg.y, msg.x);
   }
 
