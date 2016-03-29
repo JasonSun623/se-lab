@@ -60,10 +60,19 @@ private:
     */
   float findMinim(int num_readings);
 
+  /**
+    * @brief States of this class
+    */
   enum State { OK, CRASH };
 
+  /**
+    * @brief Current state of the class
+    */
   CrashRecoverer::State currentState;
 
+  /**
+    * @brief Timer used to run crash recovery maneuver
+    */
   int recoveryTimer = 0;
 };
 

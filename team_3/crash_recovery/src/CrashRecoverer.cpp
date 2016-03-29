@@ -5,17 +5,28 @@
   */
 #include "CrashRecoverer.h"
 
-#define CRASH_DISTANCE 20 // In mm
+/**
+  * @brief If any point in the laser scan is below this distance, we've crashed
+  */
+#define CRASH_DISTANCE 20
 
-#define RECOVERY_STEPS 20 // Number of steps to the recovery
+/**
+  * @brief The length of the recovery maneuver in 'steps'. One step is equal
+  * to one iteration of this package's node's loop.
+  */
+#define RECOVERY_STEPS 20
 
-// Fixed sequence of linear velocities
+/**
+  * Fixed sequence of linear velocities
+  */
 float linVelocities [RECOVERY_STEPS] = {
   -0.2, -0.3, -0.5, -0.7, -0.7,
   -0.7, -0.7, -0.5, -0.3, -0.2
 };
 
-// Fixed sequence of angular velocities
+/**
+  * Fixed sequence of angular velocities
+  */
 float angVelocities [RECOVERY_STEPS] = {
   0.0, 0.0, 0.0, 0.2, 0.4,
   0.4, 0.4, 0.4, 0.2, 0.0
@@ -52,8 +63,10 @@ const geometry_msgs::Twist CrashRecoverer::getControlOutput() {
     if(recoveryTimer == RECOVERY_STEPS - 1) {
       currentState = OK;
     } else {
+      // Replay 'stored' procedure to robot
       msg.linear.x = linVelocities[recoveryTimer];
       msg.angular.z = angVelocities[recoveryTimer];
+
       recoveryTimer++;
     }
   }
