@@ -5,17 +5,7 @@
   */
 #include "../include/HalfCircleDetector.h"
 
-/**
-  * @detail Limiting integers to be within a certain range.
-  */
-#define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
-#define STRETCH_FACTOR 100
-
-/**
- * @detail The actual magic happens in the called functions.
- * This is just the glue combining everything.
- */
 void HalfCircleDetector::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
@@ -25,9 +15,6 @@ void HalfCircleDetector::receiveLaserScan(
   setHalfCirclePose(pose);
 }
 
-/** @detail Interpolates the data up to the requested resolution using linear
- * interpolation.
- */
 float HalfCircleDetector::interpolate(int index, int resolution,
                                       std::vector<float> data) {
   int size = data.size();
@@ -50,11 +37,6 @@ float HalfCircleDetector::interpolate(int index, int resolution,
   return value;
 }
 
-/**
- * @detail Converts the laserScan-data from polar into cartesian coordinates.
- * Then cleans the data from various problems and finally translates the points
- * into pixels on an actual image (in form of an OpenCV-matrix).
- */
 cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   HalfCircleDetector::points.clear();
@@ -105,7 +87,7 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
   unsigned int inlier = 0;
   float minInlierDist = 1.0f;
   float maxInlierDistMax = 100.0f;
-  float maxInlierDist = 2.0f; // radius/25.0f;
+  float maxInlierDist = 2.0f;
   if (maxInlierDist < minInlierDist)
     maxInlierDist = minInlierDist;
   if (maxInlierDist > maxInlierDistMax)
@@ -168,10 +150,9 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
   ++rightIndex;
   float errorMargin = 0.03 * STRETCH_FACTOR;
   float halfCircleRadius =
-      0.19 * STRETCH_FACTOR; // about 30 cm height for circle
+      0.15 * STRETCH_FACTOR; // about 30 cm height for circle
 
   while (rightIndex < v.size()) {
-    // semi-circle dimensions: 30cm x 16cm
 
     float difference = fabs(distance(v[rightIndex], v[leftIndex]));
     if (difference > (halfCircleRadius * 2 + errorMargin)) {
@@ -192,14 +173,8 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
   return;
 }
 
-/**
-* @detail Computes possible circles and checks for inlier-percentage. Returns a
-* pose initialised to -1 if no circle is detected.
-* Partially taken from http://stackoverflow.com/a/26234137.
-*/
 geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
 
-  // cv::threshold(input, mask, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
   cv::threshold(image, image, 100, 255, CV_THRESH_BINARY);
 
   std::vector<cv::Point2f> edgePositions;
@@ -271,24 +246,14 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   return pose;
 }
 
-/**
-  * @detail Get half-circle pose.
-  */
 geometry_msgs::Pose2D HalfCircleDetector::getHalfCirclePose() {
   return HalfCircleDetector::halfCirclePose;
 }
 
-/**
-  * @detail Set half-circle pose.
-  */
 void HalfCircleDetector::setHalfCirclePose(geometry_msgs::Pose2D &pose) {
   HalfCircleDetector::halfCirclePose = pose;
 }
 
-/**
- * @detail Basically converts coordinates from cartesian in the image frame to
- * polar in the world frame.
- */
 geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
                                                      int robotX, int robotY) {
   geometry_msgs::Pose2D msg;
