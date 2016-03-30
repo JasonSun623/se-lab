@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	<node name="movementSimulator" pkg="stage_ros" type="stageros" args="$(find movement)/worlds/lab-competition03.world"/>
+	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" output="screen"/>
+	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen"/>
+	<node pkg="corner_handling" type="corner_handling_node" name="corner_handling" output="screen"/>
+	<node pkg="crash_recovery" type="crash_recovery_node" name="crash_recovery" output="screen"/>
+</launch>
