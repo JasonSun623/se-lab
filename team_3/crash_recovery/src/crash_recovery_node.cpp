@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Pose2D.h>
-#include "CrashRecoverer.h"
+#include "../include/CrashRecoverer.h"
 
 /** Main executable for crash resolution advice node.
  *
@@ -18,8 +18,7 @@ int main(int argc, char **argv) {
       n.subscribe("base_scan", 1, &CrashRecoverer::receiveLaserScan, recover);
 
   ros::Publisher pub =
-      n.advertise< geometry_msgs::Pose2D >("crash_recovery", 1);
-
+      n.advertise<geometry_msgs::Twist>("crash_recovery", 1);
   ros::Rate rate(10);
 
   while (ros::ok()) {

@@ -23,24 +23,19 @@
 #include <geometry_msgs/Twist.h>
 
 /**
- * @brief Number of laser samples
- */
-#define RANGES 250
-
-/**
-  * @brief Compound class for resolving crashes
+  * @brief Compound class for resolving crashes.
   */
 class CrashRecoverer {
 public:
   /**
-    * @brief Setter for LaserScans.
+    * @brief Setter for LaserScans. Calls logic to update output.
     * @param laserScan LaserScan with distances to walls.
     * @return No return value.
     */
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
   /**
-    * @brief Contains the actual logic of the strategy.
+    * @brief Returns latest resolution advice
     * Decides on where to move next and by how much.
     * @return Next move to be done.
     */
@@ -48,18 +43,25 @@ public:
 
 private:
   /**
-    * @brief Last received LaserScan.
+    * @brief Current output of the algorithm
     */
-  sensor_msgs::LaserScan lastScan;
+  geometry_msgs::Twist currentOut;
 
   /**
     * @brief Find the smallest laser scan reading
     * @return Minimum distance to an object.
     */
-  float findMinim(int num_readings);
+  float findMinim(const sensor_msgs::LaserScan::ConstPtr &scan,
+                  int num_readings);
 
+  /**
+    * @brief States of this class
+    */
   enum State { OK, CRASH };
 
+  /**
+    * @brief Current state of the class
+    */
   CrashRecoverer::State currentState;
 
   int recoveryTimer;

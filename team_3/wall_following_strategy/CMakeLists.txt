@@ -134,7 +134,7 @@ include_directories(
 # add_dependencies(wall_following_strategy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(wall_following_strategy_node src/WallFollowingStrategy.cpp src/WallFollowingPublisher.cpp)
+add_executable(wall_following_strategy_node src/WallFollowingStrategy.cpp src/wall_following_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
