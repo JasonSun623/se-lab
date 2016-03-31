@@ -17,7 +17,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Twist.h>
 
-#define CRITICAL_DISTANCE 0.3
+#define CRITICAL_DISTANCE 0.1 // in meters
 
 /**
   * @brief Compound class for handling critical corner situations.
