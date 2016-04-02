@@ -82,7 +82,8 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 
 float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
                                        float radius,
-                                       std::vector<cv::Point2f> &inlierSet) {
+                                       std::vector<cv::Point2f> &inlierSet,
+                                       float semiCircleStart) {
   unsigned int counter = 0;
   unsigned int inlier = 0;
   float minInlierDist = 1.0f;
@@ -94,7 +95,8 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
     maxInlierDist = maxInlierDistMax;
 
   // choose samples along the circle and count inlier percentage
-  for (float t = 0; t < 2 * 3.14159265359f; t += 0.05f) {
+//  for (float t = 0; t < 2 * 3.14159265359f; t += 0.05f) {
+for (float t = semiCircleStart; t < semiCircleStart + 3.14159265359f; t += 0.05f) {
     counter++;
     float cX = radius * cos(t) + center.x;
     float cY = radius * sin(t) + center.y;
@@ -173,6 +175,31 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
   return;
 }
 
+float computeAngleBetweenVectors(float v1_x, float v1_y, float v2_x, float v2_y) {
+  //normalize vectors
+  float norm_v1 = sqrt((v1_x*v1_x) + (v1_y*v1_y));
+  float norm_v2 = sqrt((v2_x*v2_x) + (v2_y*v2_y));
+
+  v1_x /= norm_v1;
+  v1_y /= norm_v1;
+
+  v2_x /= norm_v2;
+  v2_y /= norm_v2;
+
+  //compute dot-product
+  float dot_product = v1_x * v2_x + v1_y * v2_y;
+
+  //return result
+  if(dot_product >= 1.0) {
+    return 0.0;
+  } else if (dot_product <= -1.0) {
+    return 3.14; //use some PI constant (consistency!)
+  } else {
+    return acos(dot_product);
+  }
+
+}
+
 geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
 
   cv::threshold(image, image, 100, 255, CV_THRESH_BINARY);
@@ -189,15 +216,13 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   cv::Point2f bestCircleCenter;
   float bestCircleRadius;
   float bestCirclePercentage = 0;
-  float minRadius = 10; // TODO: ADJUST THIS PARAMETER; currently not used
+  float minRadius = 19; // TODO: ADJUST THIS PARAMETER; currently not used
 
-  float minCirclePercentage = 0.40f;
-  float maxCirclePercentage = 0.50f;
+  float minCirclePercentage = 0.45f;
+  float maxCirclePercentage = 1.0f;
 
   int maxNrOfIterations =
-      edgePositions.size(); // TODO: adjust this parameter or include some real
-                            // ransac criteria with inlier/outlier percentages
-                            // to decide when to stop
+      edgePositions.size(); 
 
   int rightIndex = 0;
   int leftIndex = 0;
@@ -220,8 +245,14 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     // robust) circle from alle inlier
     std::vector<cv::Point2f> inlierSet;
 
+    float m_x = (image.cols/2 - center.x);
+    float m_y = (image.rows/2 - center.y);
+
+    float alpha = atan2(-m_x, m_y);
+
+
     // verify or falsify the circle by inlier counting:
-    float cPerc = verifyCircle(dt, center, radius, inlierSet);
+    float cPerc = verifyCircle(dt, center, radius, inlierSet, alpha);
 
     // update best circle information if necessary
     if (cPerc >= bestCirclePercentage && cPerc < maxCirclePercentage)
@@ -242,6 +273,33 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     pose = createPose(bestCircleCenter.x, bestCircleCenter.y, image.cols / 2,
                       image.rows / 2);
   }
+
+    cv::circle(image, bestCircleCenter, bestCircleRadius, cv::Scalar(255,255,0), 1);
+
+    float m_x = (image.cols/2 - bestCircleCenter.x);
+    float m_y = (image.rows/2 - bestCircleCenter.y);
+
+    float alpha = atan2(-m_x, m_y);
+    //make color image, draw red circle at starting point
+
+    cv::Mat color(image);
+    cv::cvtColor(color, color, CV_GRAY2BGR);
+
+    cv::Point s(bestCircleCenter.x + cos(alpha)*bestCircleRadius, bestCircleCenter.y + sin(alpha)*bestCircleRadius);
+
+    cv::circle(color, s, 6, cv::Scalar(0,0,255),1);     
+
+    //draw tested points
+    for (float t = alpha; t < alpha + 3.14159265359f; t += 0.05f) {
+      float cX = bestCircleRadius * cos(t) + bestCircleCenter.x;
+      float cY = bestCircleRadius * sin(t) + bestCircleCenter.y;
+      cv::circle(color, cv::Point2f(cX, cY), 1, cv::Scalar(0,0,255),1);
+    }
+    line(color, bestCircleCenter, cv::Point(color.cols/2, color.rows/2),cv::Scalar(0,255,0)); 
+    
+   // std::cout << bestCirclePercentage << " " << alpha << " " << angle << std::endl;
+
+  cv::imwrite("/home/robotics/color.jpg", color);
 
   return pose;
 }
