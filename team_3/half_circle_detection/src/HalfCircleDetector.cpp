@@ -5,81 +5,6 @@
   */
 #include "../include/HalfCircleDetector.h"
 
-void HalfCircleDetector::receiveLaserScan(
-    const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-  cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
-
-  geometry_msgs::Pose2D pose = HalfCircleDetector::detectHalfCircle(image);
-
-  setHalfCirclePose(pose);
-}
-
-float HalfCircleDetector::interpolate(int index, int resolution,
-                                      std::vector<float> data) {
-  // Using int here to be able to compare below
-  int size = static_cast<int>(data.size());
-  float step = 1.0 / (static_cast<float>(resolution));
-
-  // finding closest actual data in the dataset
-  int leftIndex = RANGE(0, static_cast<int>((step * index)), size - 1);
-  int rightIndex = RANGE(0, leftIndex + 1, size - 1);
-
-  // everthing more distant than the laserRange can mean just the end of the
-  // sensor and distorts the actual measurements
-  if (data[leftIndex] > LASER_RANGE || data[rightIndex] > LASER_RANGE) {
-    return -1.0;
-  }
-
-  // interpolation
-  float offset = step * index - leftIndex;
-  float value = (1 - offset) * data[leftIndex] + offset * data[rightIndex];
-
-  return value;
-}
-
-cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
-    const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-  HalfCircleDetector::points.clear();
-
-  int numOfValues = (laserScan->angle_max - laserScan->angle_min) /
-                    laserScan->angle_increment;
-
-  int imageHeight = 8 * STRETCH_FACTOR;
-  int imageWidth = 16 * STRETCH_FACTOR;
-
-  cv::Mat image(imageHeight, imageWidth, CV_8U, cv::Scalar::all(0));
-
-  int resolution = 8;
-  for (int i = 0; i < numOfValues * resolution; ++i) {
-    float hyp =
-        HalfCircleDetector::interpolate(i, resolution, laserScan->ranges);
-
-    // skip invalid values
-    if (hyp < 0) {
-      continue;
-    }
-
-    float alpha =
-        laserScan->angle_min + (i / resolution) * laserScan->angle_increment;
-    int sign = alpha < 0 ? -1 : 1;
-
-    float opp = std::abs(hyp * std::sin(alpha));
-    float adj = hyp * std::cos(alpha);
-
-    // make sure that values are always within bounds
-    int x = RANGE(0, (int)((imageWidth / 2) + STRETCH_FACTOR * opp * sign),
-                  imageWidth - 1);
-    int y = RANGE(0, (int)((imageHeight / 2) + adj * STRETCH_FACTOR),
-                  imageHeight - 1);
-
-    HalfCircleDetector::points.push_back(cv::Point2f(x, y));
-
-    image.at<unsigned char>(cv::Point(x, y)) = 255;
-  }
-
-  return image;
-}
-
 float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
                                        float radius,
                                        std::vector<cv::Point2f> &inlierSet,
@@ -94,21 +19,18 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
   if (maxInlierDist > maxInlierDistMax)
     maxInlierDist = maxInlierDistMax;
 
-  // choose samples along the circle and count inlier percentage
-//  for (float t = 0; t < 2 * 3.14159265359f; t += 0.05f) {
-for (float t = semiCircleStart; t < semiCircleStart + 3.14159265359f; t += 0.05f) {
+  // choose samples along the semicircle and count inlier percentage starting from semiCircleStart
+  for (float t = semiCircleStart; t < semiCircleStart + 3.14159265359f; t += 0.05f) {
     counter++;
     float cX = radius * cos(t) + center.x;
     float cY = radius * sin(t) + center.y;
 
-    if (cX < dt.cols)
-      if (cX >= 0)
-        if (cY < dt.rows)
-          if (cY >= 0)
+    if (cX < dt.cols && cX >= 0 && cY < dt.rows && cY >= 0) {
             if (dt.at<float>(cY, cX) < maxInlierDist) {
               inlier++;
               inlierSet.push_back(cv::Point2f(cX, cY));
             }
+    }
   }
 
   return (float)inlier / float(counter);
@@ -155,57 +77,27 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
       0.15 * STRETCH_FACTOR; // about 30 cm height for circle
 
   while (rightIndex < v.size()) {
-
     float difference = fabs(distance(v[rightIndex], v[leftIndex]));
     if (difference > (halfCircleRadius * 2 + errorMargin)) {
       ++leftIndex;
     } else if (difference < (halfCircleRadius * 2 - errorMargin)) {
       ++rightIndex;
     } else {
-
       first = leftIndex;
       second = rightIndex;
       third = (leftIndex + rightIndex) / 2;
       return;
     }
   }
+
   first = leftIndex;
   second = rightIndex - 1;
   third = (leftIndex + rightIndex - 1) / 2;
   return;
 }
 
-float computeAngleBetweenVectors(float v1_x, float v1_y, float v2_x, float v2_y) {
-  //normalize vectors
-  float norm_v1 = sqrt((v1_x*v1_x) + (v1_y*v1_y));
-  float norm_v2 = sqrt((v2_x*v2_x) + (v2_y*v2_y));
-
-  v1_x /= norm_v1;
-  v1_y /= norm_v1;
-
-  v2_x /= norm_v2;
-  v2_y /= norm_v2;
-
-  //compute dot-product
-  float dot_product = v1_x * v2_x + v1_y * v2_y;
-
-  //return result
-  if(dot_product >= 1.0) {
-    return 0.0;
-  } else if (dot_product <= -1.0) {
-    return 3.14; //use some PI constant (consistency!)
-  } else {
-    return acos(dot_product);
-  }
-
-}
-
-geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
-
+geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image, std::vector<cv::Point2f>& edgePositions) {
   cv::threshold(image, image, 100, 255, CV_THRESH_BINARY);
-
-  std::vector<cv::Point2f> edgePositions;
-  edgePositions = points;
 
   // create distance transform to efficiently evaluate distance to nearest edge
   cv::Mat dt;
@@ -304,14 +196,6 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   return pose;
 }
 
-geometry_msgs::Pose2D HalfCircleDetector::getHalfCirclePose() {
-  return HalfCircleDetector::halfCirclePose;
-}
-
-void HalfCircleDetector::setHalfCirclePose(geometry_msgs::Pose2D &pose) {
-  HalfCircleDetector::halfCirclePose = pose;
-}
-
 geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
                                                      int robotX, int robotY) {
   geometry_msgs::Pose2D msg;
@@ -326,3 +210,4 @@ geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
 
   return msg;
 }
+
