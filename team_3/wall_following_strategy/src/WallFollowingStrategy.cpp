@@ -39,8 +39,7 @@ void WallFollowingStrategy::getCornerRecovery(
 
 void WallFollowingStrategy::getCrashRecovery(
     const geometry_msgs::Twist::ConstPtr &crashOut) {
-  if (crashOut->linear.x == 0 && crashOut->linear.y == 0 &&
-      crashOut->angular.x == 0 && crashOut->angular.y == 0) {
+  if (crashOut->linear.x == 0 && crashOut->angular.z == 0) {
     crashMode = false;
     crashHandler.linear.x = 0;
     crashHandler.angular.z = 0;
@@ -327,8 +326,8 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
 
   if (crashMode && !circleFoundMode) {
     ROS_INFO("Crash!");
-    msg.linear.x = cornerHandler.linear.x;
-    msg.angular.z = cornerHandler.angular.z;
+    msg.linear.x = crashHandler.linear.x;
+    msg.angular.z = crashHandler.angular.z;
 
     return msg;
   }
