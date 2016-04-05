@@ -135,7 +135,7 @@ include_directories(
 # add_dependencies(half_circle_detection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(half_circle_detection_node src/half_circle_detection_node.cpp src/HalfCircleDetector.cpp)
+add_executable(half_circle_detection_node src/half_circle_detection_node.cpp src/HalfCircleDetector.cpp src/LaserScanAggregator.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
