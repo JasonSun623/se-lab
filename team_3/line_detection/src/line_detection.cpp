@@ -1,5 +1,5 @@
 /**@file line_detection.cpp
-  *@detail Implementation of line detection
+  *@details Implementation of line detection
   *
   *@author Sulav Timilsina
   */
@@ -17,7 +17,7 @@
 #include <geometry_msgs/Pose2D.h>
 
 /**
-  * @detail Limiting integers to be within a certain range.
+  * @details Limiting integers to be within a certain range.
   * used while creating image from laserscan data like in HalfCircleDetection node.
   */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
@@ -34,7 +34,7 @@
 using namespace cv;
 using namespace std;
 
-/** @detail Interpolates the data up to the requested resolution using linear
+/** @details Interpolates the data up to the requested resolution using linear
  * interpolation.
  */
 float interpolate(int index, int resolution,
@@ -60,7 +60,7 @@ float interpolate(int index, int resolution,
 }
 
 /**
- * @detail Converts the laserScan-data from polar into cartesian coordinates.
+ * @details Converts the laserScan-data from polar into cartesian coordinates.
  * Then cleans the data from various problems and finally translates the points
  * into pixels on an actual image (in form of an OpenCV-matrix).
  */
@@ -107,7 +107,7 @@ cv::Mat createOpenCVImageFromLaserScan(
 }
 
 /**
- * @detail Template function that prints a vector
+ * @details Template function that prints a vector
  */
 template <typename T>
 void printvec ( vector<T> vec)
@@ -121,7 +121,7 @@ void printvec ( vector<T> vec)
 }
 
 /**
- * @detail sorts lines on the ascending basis of gradient using
+ * @details sorts lines on the ascending basis of gradient using
  * insertion sort
  */
 void sort_lines (vector<Vec4f>& data, vector<float>& slope)
@@ -146,7 +146,7 @@ void sort_lines (vector<Vec4f>& data, vector<float>& slope)
 }
 
 /**
- * @detail returns average of the Vec4f vector
+ * @details returns average of the Vec4f vector
  */
 Vec4f Average(vector<Vec4f> data)
 {
@@ -163,7 +163,7 @@ Vec4f Average(vector<Vec4f> data)
 }
 
 /**
- * @detail Removes all the duplicate lines if multiple lines are present in the input vector
+ * @details Removes all the duplicate lines if multiple lines are present in the input vector
  * If the endpoints of lines are within certain RANGE_ only a single line is calculated by taking
  * the average.
  */
@@ -215,7 +215,7 @@ vector<Vec4f> removeDuplicateLines(vector<Vec4f>&data)
  }
 
 /**
- *@detail returns a vector of gradient that maps to the input vector of Vec4f data
+ *@details returns a vector of gradient that maps to the input vector of Vec4f data
  */
 vector<float> get_slope(vector<Vec4f> data)
 {
@@ -231,7 +231,7 @@ vector<float> get_slope(vector<Vec4f> data)
 }
 
 /**
- *@detail Returns average of the input vector of points
+ *@details Returns average of the input vector of points
 */
 Point Average(vector<Point>points)
 {
@@ -247,7 +247,7 @@ Point Average(vector<Point>points)
 }
 
 /**
- *@detail Takes a vector of Vec4f as input and extracts points.
+ *@details Takes a vector of Vec4f as input and extracts points.
  * Then, all the points in a certain RANGE_ is grouped and averaged.
  * Set of points is returned.
  */
@@ -307,7 +307,7 @@ vector<Point>getRefinedPoints(vector<Vec4f>data)
 }
 
 /**
- *@detail takes refined points and replaces the points in the line if they are
+ *@details takes refined points and replaces the points in the line if they are
  * within a certain RANGE_
  */
 void replacePoints(vector<Vec4f>&lines, vector<Point>&points)
@@ -330,7 +330,7 @@ void replacePoints(vector<Vec4f>&lines, vector<Point>&points)
 }
 
 /**
- *@detail returns a Vec4f with a minimum and maximum x value and their corresponding y
+ *@details returns a Vec4f with a minimum and maximum x value and their corresponding y
  */
 Vec4f get_Val(Vec4f a, Vec4f b)
 {
@@ -358,7 +358,7 @@ Vec4f get_Val(Vec4f a, Vec4f b)
 }
 
 /**
- *@detail Calculates and returns all the points within a line
+ *@details Calculates and returns all the points within a line
  */
 vector<Point> getAllPoints(Vec4f line, float slope)
 {
@@ -381,7 +381,7 @@ vector<Point> getAllPoints(Vec4f line, float slope)
 }
 
 /**
- *@detail returns true of the lines are connected or overlapping. It checks every point
+ *@details returns true of the lines are connected or overlapping. It checks every point
  * of both the lines to find overlapping. The precondition is that the two lines are within
  * a certion slope EPSILON
  */
@@ -404,7 +404,7 @@ bool findOverlap(Vec4f lineOne, Vec4f lineTwo, float slopeOne, float slopeTwo)
 
 
 /**
- *@detail processes vector of lines and joint and overlapping lines are merged.
+ *@details processes vector of lines and joint and overlapping lines are merged.
  * Two lines with slope withon EPSILON with a gap within RANGE_ are merged too.
  * Everytime two lines are merged, the process again restarts from beginning.
  * In the iteration when none of the lines are merged, we are done.
@@ -471,7 +471,7 @@ void processLines(vector<Vec4f>&lines)
 }
 
 /**
- *@detail The main function that uses above helper functions.
+ *@details The main function that uses above helper functions.
  * It receives laserScan data, converts it to image and processes the
  * image. It returns set of processed lines.
  */

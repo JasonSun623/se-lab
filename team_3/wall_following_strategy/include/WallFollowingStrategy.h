@@ -123,7 +123,7 @@ public:
   /**
   * @brief Receives a message from corner_handling topic of robot behavior
   * in case of detecting a corner or an obstacle
-  * @detail Slowly moves the robot out of the corner or in the opposite to
+  * @details Slowly moves the robot out of the corner or in the opposite to
   * the wall direction without touching touching other obstacles/walls.
   */
   void getCornerRecovery(const geometry_msgs::Twist::ConstPtr &cornerOut);
@@ -131,7 +131,7 @@ public:
   /**
   * @brief Receives a message from crash_recovery topic of robot behavior
   * in case of crashing into the obstacle
-  * @detail Slowly moves the robot opposite to
+  * @details Slowly moves the robot opposite to
   * the wall direction without touching other obstacles/walls.
   */
   void getCrashRecovery(const geometry_msgs::Twist::ConstPtr &crashOut);
@@ -151,7 +151,7 @@ public:
 
   /**
   * @brief Comparison function for std::sort
-  * @detail Compares the x-coordinates of starting points of the line segments
+  * @details Compares the x-coordinates of starting points of the line segments
   * @param one, two Starting and ending position coordinates of line segments
   * @return A value that is convertible to bool and shows the order of two
   * coordinates
@@ -162,7 +162,7 @@ public:
 
   /**
   * @brief Comparison function for std::sort
-  * @detail Compares the x-coordinates of ending points of the line segments
+  * @details Compares the x-coordinates of ending points of the line segments
   * @param one, two Vectors with 4 parameters (Starting and ending position
   * coordinates of line segments)
   * @return A value that is convertible to bool and shows the order of two
@@ -175,7 +175,7 @@ public:
 
   /**
   * @brief Comparison function for std::sort
-  * @detail Compares the slopes of the line segments
+  * @details Compares the slopes of the line segments
   * @param one, two pairs of a vector with 4 parameters and a slope
   * @return A value that is convertible to bool and shows the order of two
   * coordinates
@@ -207,7 +207,7 @@ public:
 
   /**
   * @brief Finds the average line segment
-  * @detail All the similar lines (please see the strategy in line detection
+  * @details All the similar lines (please see the strategy in line detection
   * package)
   * are gathered in the vector, then the critical points are taken for the
   * endpoints
@@ -232,7 +232,7 @@ public:
 
   /**
   * @brief Remove unnecessary lines from a vector of line segments (cv::Mat)
-  * @detail As laser scan has noise we detect for each wall a lot of unnecessary
+  * @details As laser scan has noise we detect for each wall a lot of unnecessary
   * lines
   * we eliminate the lines that represent the same wall by finding the slope
   * along with computing the location of endpoints with respect to each other
