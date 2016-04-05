@@ -60,7 +60,7 @@ cv::Mat LaserScanAggregator::createOpenCVImage(std::vector<cv::Point2f>& imagePo
     int y = RANGE(0, (int)((imageHeight / 2) + STRETCH_FACTOR * points[i].y),
                   imageHeight - 1);
 
-    image.at<unsigned char>(cv::Point(x, y)) = 255;
+    image.at<unsigned char>(cv::Point(x, y)) += 20;//255;
     imagePoints.push_back(cv::Point(x,y));
   }
 

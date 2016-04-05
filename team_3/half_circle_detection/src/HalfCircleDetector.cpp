@@ -97,7 +97,8 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
 }
 
 geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image, std::vector<cv::Point2f>& edgePositions) {
-  cv::threshold(image, image, 100, 255, CV_THRESH_BINARY);
+
+  //cv::threshold(image, image, 40, 255, CV_THRESH_BINARY);
 
   // create distance transform to efficiently evaluate distance to nearest edge
   cv::Mat dt;
@@ -172,7 +173,6 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image, std::
     float m_y = (image.rows/2 - bestCircleCenter.y);
 
     float alpha = atan2(-m_x, m_y);
-    //make color image, draw red circle at starting point
 
     cv::Mat color(image);
     cv::cvtColor(color, color, CV_GRAY2BGR);
@@ -189,7 +189,8 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image, std::
     }
     line(color, bestCircleCenter, cv::Point(color.cols/2, color.rows/2),cv::Scalar(0,255,0)); 
     
-   // std::cout << bestCirclePercentage << " " << alpha << " " << angle << std::endl;
+    std::cout << bestCirclePercentage << std::endl;
+
 
   cv::imwrite("/home/robotics/color.jpg", color);
 
