@@ -7,60 +7,43 @@
 
 void HalfCircleDetector::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-  cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
+  geometry_msgs::Pose2D pose;
+  pose.x = -1;
+  pose.y = -1;
+  pose.theta = -1;
 
-  geometry_msgs::Pose2D pose = HalfCircleDetector::detectHalfCircle(image);
-
-  setHalfCirclePose(pose);
-}
-
-float HalfCircleDetector::interpolate(int index, int resolution,
-                                      std::vector<float> data) {
-  // Using int here to be able to compare below
-  int size = static_cast<int>(data.size());
-  float step = 1.0 / (static_cast<float>(resolution));
-
-  // finding closest actual data in the dataset
-  int leftIndex = RANGE(0, static_cast<int>((step * index)), size - 1);
-  int rightIndex = RANGE(0, leftIndex + 1, size - 1);
-
-  // everthing more distant than the laserRange can mean just the end of the
-  // sensor and distorts the actual measurements
-  if (data[leftIndex] > LASER_RANGE || data[rightIndex] > LASER_RANGE) {
-    return -1.0;
+  //ignore measurements if wall too close
+  if(*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) > MIN_WALL_DISTANCE) {
+    cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
+    pose = HalfCircleDetector::detectHalfCircle(image);
   }
-
-  // interpolation
-  float offset = step * index - leftIndex;
-  float value = (1 - offset) * data[leftIndex] + offset * data[rightIndex];
-
-  return value;
+  
+  setHalfCirclePose(pose);
 }
 
 cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   HalfCircleDetector::points.clear();
 
-  int numOfValues = (laserScan->angle_max - laserScan->angle_min) /
-                    laserScan->angle_increment;
+  int numOfValues = laserScan->ranges.size();
 
   int imageHeight = 8 * STRETCH_FACTOR;
   int imageWidth = 16 * STRETCH_FACTOR;
 
   cv::Mat image(imageHeight, imageWidth, CV_8U, cv::Scalar::all(0));
 
-  int resolution = 8;
-  for (int i = 0; i < numOfValues * resolution; ++i) {
-    float hyp =
-        HalfCircleDetector::interpolate(i, resolution, laserScan->ranges);
+  int resolution = 1;
+  for (int i = 0; i < numOfValues; ++i) {
+    float hyp = laserScan->ranges[i];
 
-    // skip invalid values
-    if (hyp < 0) {
+    // everything more distant than the laserRange can mean just the end of the
+    // sensor and distorts the actual measurements
+    if (hyp > LASER_RANGE) {
       continue;
     }
 
     float alpha =
-        laserScan->angle_min + (i / resolution) * laserScan->angle_increment;
+        laserScan->angle_min + i * laserScan->angle_increment;
     int sign = alpha < 0 ? -1 : 1;
 
     float opp = std::abs(hyp * std::sin(alpha));
@@ -216,7 +199,8 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   cv::Point2f bestCircleCenter;
   float bestCircleRadius;
   float bestCirclePercentage = 0;
-  float minRadius = 19; // TODO: ADJUST THIS PARAMETER; currently not used
+  float minRadius = 0.22; // TODO: make this configurable/macro/put in config file
+  float maxRadius = 0.25; //in meter [m]
 
   float minCirclePercentage = 0.45f;
   float maxCirclePercentage = 1.0f;
@@ -256,7 +240,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
 
     // update best circle information if necessary
     if (cPerc >= bestCirclePercentage && cPerc < maxCirclePercentage)
-      if (radius >= minRadius) {
+      if (radius/STRETCH_FACTOR >= minRadius && radius/STRETCH_FACTOR <= maxRadius) {
         bestCirclePercentage = cPerc;
         bestCircleRadius = radius;
         bestCircleCenter = center;
@@ -297,7 +281,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     }
     line(color, bestCircleCenter, cv::Point(color.cols/2, color.rows/2),cv::Scalar(0,255,0)); 
     
-   // std::cout << bestCirclePercentage << " " << alpha << " " << angle << std::endl;
+    std::cout << bestCirclePercentage << std::endl;
 
   cv::imwrite("/home/robotics/color.jpg", color);
 

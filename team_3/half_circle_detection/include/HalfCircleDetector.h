@@ -57,6 +57,8 @@
   */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
+/** @brief If robot to close to obstacle the values become unusable. */
+#define MIN_WALL_DISTANCE 0.3
 /**
   * @brief Compound class for detecting half-circles.
   */
