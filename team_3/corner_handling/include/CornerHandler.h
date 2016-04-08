@@ -40,7 +40,6 @@ public:
    */
   geometry_msgs::Twist getTwist();
 
-private:
   /** 
     * @brief Latest computed twist.
     */
