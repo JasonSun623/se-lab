@@ -77,18 +77,21 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
   if (maxInlierDist > maxInlierDistMax)
     maxInlierDist = maxInlierDistMax;
 
-  // choose samples along the semicircle and count inlier percentage starting from semiCircleStart
-  for (float t = semiCircleStart; t < semiCircleStart + 3.14159265359f; t += 0.05f) {
+  // choose samples along the circle and count inlier percentage
+//  for (float t = 0; t < 2 * 3.14159265359f; t += 0.05f) {
+for (float t = semiCircleStart; t < semiCircleStart + 3.14159265359f; t += 0.05f) {
     counter++;
     float cX = radius * cos(t) + center.x;
     float cY = radius * sin(t) + center.y;
 
-    if (cX < dt.cols && cX >= 0 && cY < dt.rows && cY >= 0) {
+    if (cX < dt.cols)
+      if (cX >= 0)
+        if (cY < dt.rows)
+          if (cY >= 0)
             if (dt.at<float>(cY, cX) < maxInlierDist) {
               inlier++;
               inlierSet.push_back(cv::Point2f(cX, cY));
             }
-    }
   }
 
   return (float)inlier / float(counter);
@@ -135,28 +138,57 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
       0.15 * STRETCH_FACTOR; // about 30 cm height for circle
 
   while (rightIndex < v.size()) {
+
     float difference = fabs(distance(v[rightIndex], v[leftIndex]));
     if (difference > (halfCircleRadius * 2 + errorMargin)) {
       ++leftIndex;
     } else if (difference < (halfCircleRadius * 2 - errorMargin)) {
       ++rightIndex;
     } else {
+
       first = leftIndex;
       second = rightIndex;
       third = (leftIndex + rightIndex) / 2;
       return;
     }
   }
-
   first = leftIndex;
   second = rightIndex - 1;
   third = (leftIndex + rightIndex - 1) / 2;
   return;
 }
 
-geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image, std::vector<cv::Point2f>& edgePositions) {
+float computeAngleBetweenVectors(float v1_x, float v1_y, float v2_x, float v2_y) {
+  //normalize vectors
+  float norm_v1 = sqrt((v1_x*v1_x) + (v1_y*v1_y));
+  float norm_v2 = sqrt((v2_x*v2_x) + (v2_y*v2_y));
 
-  //cv::threshold(image, image, 40, 255, CV_THRESH_BINARY);
+  v1_x /= norm_v1;
+  v1_y /= norm_v1;
+
+  v2_x /= norm_v2;
+  v2_y /= norm_v2;
+
+  //compute dot-product
+  float dot_product = v1_x * v2_x + v1_y * v2_y;
+
+  //return result
+  if(dot_product >= 1.0) {
+    return 0.0;
+  } else if (dot_product <= -1.0) {
+    return 3.14; //use some PI constant (consistency!)
+  } else {
+    return acos(dot_product);
+  }
+
+}
+
+geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
+
+  cv::threshold(image, image, 100, 255, CV_THRESH_BINARY);
+
+  std::vector<cv::Point2f> edgePositions;
+  edgePositions = points;
 
   // create distance transform to efficiently evaluate distance to nearest edge
   cv::Mat dt;
@@ -232,6 +264,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image, std::
     float m_y = (image.rows/2 - bestCircleCenter.y);
 
     float alpha = atan2(-m_x, m_y);
+    //make color image, draw red circle at starting point
 
     cv::Mat color(image);
     cv::cvtColor(color, color, CV_GRAY2BGR);
@@ -255,6 +288,14 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image, std::
   return pose;
 }
 
+geometry_msgs::Pose2D HalfCircleDetector::getHalfCirclePose() {
+  return HalfCircleDetector::halfCirclePose;
+}
+
+void HalfCircleDetector::setHalfCirclePose(geometry_msgs::Pose2D &pose) {
+  HalfCircleDetector::halfCirclePose = pose;
+}
+
 geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
                                                      int robotX, int robotY) {
   geometry_msgs::Pose2D msg;
@@ -269,4 +310,3 @@ geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
 
   return msg;
 }
-
