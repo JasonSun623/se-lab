@@ -53,6 +53,8 @@
 #define STRETCH_FACTOR 100
 
 
+/** @brief If robot to close to obstacle the values become unusable. */
+#define MIN_WALL_DISTANCE 0.3
 /**
   * @brief Compound class for detecting half-circles.
   */
