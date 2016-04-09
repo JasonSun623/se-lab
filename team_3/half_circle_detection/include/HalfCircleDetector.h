@@ -51,6 +51,9 @@
   */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
+/** @brief If robot to close to obstacle the values become unusable. */
+#define MIN_WALL_DISTANCE 0.3
+
 /**
   * @brief Compound class for detecting half-circles.
   */
@@ -147,7 +150,7 @@ private:
    * present.
    * @return Percentage of circle covered [0,1]*/
   float verifyCircle(cv::Mat dt, cv::Point2f center, float radius,
-                     std::vector<cv::Point2f> &inlierSet);
+                     std::vector<cv::Point2f> &inlierSet, float semiCircleStart);
 
   /** @brief Constructs a circle out of three given points on the circle.
    *  Mostly taken from http://stackoverflow.com/a/26234137.
