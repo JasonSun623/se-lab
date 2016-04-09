@@ -35,12 +35,6 @@
 #include <cmath>
 
 /**
-  * @brief Threshold from which on distance values are not considered objects
- * anymore
-  */
-#define LASER_RANGE 3.9
-
-/**
   * @brief Epsilon for comparing floating point numbers.
   * Currently used only for comparing pixels, has to be 1 at least
   */
@@ -62,6 +56,14 @@
   */
 class HalfCircleDetector {
 public:
+  
+  /** @brief Constructor for HalfCircleDetector.
+   *  Here the environment variables are loaded.
+   */
+  HalfCircleDetector() {
+    laserRange = std::stof(std::string(std::getenv("LASER_RANGE"))); //maybe assert that value is valid?
+  }
+
   /** @brief Processes a sensor_msgs::LaserScan and calls necessary other
    * functions.
    *  The actual magic happens in the called functions.
@@ -82,6 +84,7 @@ public:
 private:
   /** Contains all the points drawn onto the last OpenCV-image */
   std::vector<cv::Point2f> points;
+  float laserRange;
 
   /** Last computed half-circle pose */
   geometry_msgs::Pose2D halfCirclePose;
@@ -98,13 +101,13 @@ private:
   float interpolate(int index, int resolution, std::vector<float> data);
 
   /** @brief Takes a LaserScan and returns an OpenCV-image
-    * Converts the laserScan-data from polar into cartesian coordinates.
-    * Then cleans the data from various problems and finally translates the
+   * Converts the laserScan-data from polar into cartesian coordinates.
+   * Then cleans the data from various problems and finally translates the
    * points
-    * into pixels on an actual image (in form of an OpenCV-matrix).
-    * @param laserScan Laser scan message that detection is run on.
-    * @return Generated OpenCV image
-    */
+   * into pixels on an actual image (in form of an OpenCV-matrix).
+   * @param laserScan Laser scan message that detection is run on.
+   * @return Generated OpenCV image
+   */
   cv::Mat createOpenCVImageFromLaserScan(
       const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
@@ -120,46 +123,47 @@ private:
   geometry_msgs::Pose2D detectHalfCircle(cv::Mat &image);
 
   /** @brief Converts coordinates from image-frame to robot-frame
-     * Basically converts coordinates from cartesian in the image frame
-     * to polar in the world frame.
-     *  @param posX x-coordinate of the object
-     *  @param posY y-coordinate of the object
-     *  @param robotX x-coordinate of the robot
-     *  @param robotY y-coordinate of the robot
-     *  @return The pose of the given point within the robot frame.
-     */
+   * Basically converts coordinates from cartesian in the image frame
+   * to polar in the world frame.
+   *  @param posX x-coordinate of the object
+   *  @param posY y-coordinate of the object
+   *  @param robotX x-coordinate of the robot
+   *  @param robotY y-coordinate of the robot
+   *  @return The pose of the given point within the robot frame.
+   */
   geometry_msgs::Pose2D createPose(int posX, int posY, int robotX, int robotY);
 
   /** @brief Computes how much of the circle given is actually present in the
-    * picture.
-    * Mostly taken from http://stackoverflow.com/a/26234137.
-    * Takes a matrix of distances and certifies how much of the given circle if
+   * picture.
+   * Mostly taken from http://stackoverflow.com/a/26234137.
+   * Takes a matrix of distances and certifies how much of the given circle if
    * represented.
-    * @param dt Matrix of distances to the nearest pixel. Can be created using
+   * @param dt Matrix of distances to the nearest pixel. Can be created using
    * distance transform.
-    * @param center Center of the circle to be verified.
-    * @param radius Radius of the circle to be verified.
-    * @param inlierSet Reference to container for points detected to be within
+   * @param center Center of the circle to be verified.
+   * @param radius Radius of the circle to be verified.
+   * @param inlierSet Reference to container for points detected to be within
    * the circle. Can be for further used for verifying that an actual circle is
    * present.
-    * @return Percentage of circle covered [0,1]*/
+   * @return Percentage of circle covered [0,1]*/
   float verifyCircle(cv::Mat dt, cv::Point2f center, float radius,
                      std::vector<cv::Point2f> &inlierSet);
 
   /** @brief Constructs a circle out of three given points on the circle.
-    * Mostly taken from http://stackoverflow.com/a/26234137.
-    * @return void. Changes arguments passed via reference. */
+   *  Mostly taken from http://stackoverflow.com/a/26234137.
+   *  @return void. Changes arguments passed via reference. */
   void getCircle(cv::Point2f &p1, cv::Point2f &p2, cv::Point2f &p3,
                  cv::Point2f &center, float &radius);
 
   /** @brief Helper function that computes the direct distance between two
-     points.
-      @return Distance between given points. */
+   *  points.
+   *  @return Distance between given points. */
   float distance(cv::Point2f &a, cv::Point2f &b);
 
   /** @brief Computes possible candidates for being on the circle.
-      @return void. Returns indexes via reference. */
+   *  @return void. Returns indexes via reference. */
   void getSamplePoints(int &first, int &second, int &third, int &rightIndex,
                        int &leftIndex, std::vector<cv::Point2f> &v);
 };
 #endif
+

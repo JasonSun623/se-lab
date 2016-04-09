@@ -26,7 +26,7 @@ float HalfCircleDetector::interpolate(int index, int resolution,
 
   // everthing more distant than the laserRange can mean just the end of the
   // sensor and distorts the actual measurements
-  if (data[leftIndex] > LASER_RANGE || data[rightIndex] > LASER_RANGE) {
+  if (data[leftIndex] > laserRange || data[rightIndex] > laserRange) {
     return -1.0;
   }
 

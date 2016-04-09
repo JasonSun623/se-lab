@@ -188,7 +188,7 @@ target_link_libraries(wall_following_strategy_node
 
 ## Add gtest based cpp test target and link libraries
 catkin_add_gtest(tests_wall_following_strategy 
-  test/WallFollowingStrategyTest.cpp src/WallFollowingStrategy.cpp)
+  src/test/WallFollowingStrategyTest.cpp src/WallFollowingStrategy.cpp)
 
 target_link_libraries(tests_wall_following_strategy ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})
 # if(TARGET ${PROJECT_NAME}-test)
