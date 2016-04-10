@@ -20,8 +20,7 @@ int main(int argc, char **argv) {
   ros::Subscriber sub = n.subscribe(
       "base_scan", 1, &CornerHandler::receiveLaserScan, &cornerHandler);
 
-  ros::Publisher pub =
-      n.advertise< geometry_msgs::Twist >("corner_handling", 1);
+  ros::Publisher pub = n.advertise<geometry_msgs::Twist>("corner_handling", 1);
 
   ros::Rate rate(10);
 
