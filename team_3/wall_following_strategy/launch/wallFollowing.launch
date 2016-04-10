@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
 
-  <!-- Threshold from which on distance values are not considered objects anymore. -->
+  <!-- Threshold (in meters) from which on distance values are not considered objects anymore. -->
 	<env name="LASER_RANGE" value="3.9" />
 	<env name="RANGE" value="10.0" />
-	<env name="STRETCH_FACTOR" value="100" />
-	<env name="EPSILON" value="1.01" />
 
-
-	<env name="WALL_FOLLOWING_DISTANCE" value="0.2" />
+  <!-- For half circle detection -->
+  <!-- If the robot is too close to a wall the half-circle detection does not work properly. This is the threshold in meters that define 'too close'. -->
+  <env name="HALFCIRCLE_DETECTION_DISTANCE" value="0.3" />
 
 	<!-- For crash recovery -->
 	<env name="CRASH_DISTANCE" value="0.05" />
@@ -18,6 +17,7 @@
 
 	<!-- For wall-following strategy -->
 	<env name="LINEAR_VEL" value="1.0" />
+	<env name="WALL_FOLLOWING_DISTANCE" value="0.2" />
 
 	<!-- The amount of variation that is allowed before direction is corrected. [deg] -->
 	<env name="VARIATION_THRESHOLD" value="8" />

@@ -51,8 +51,6 @@
   */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
-/** @brief If robot to close to obstacle the values become unusable. */
-#define MIN_WALL_DISTANCE 0.3
 
 /**
   * @brief Compound class for detecting half-circles.
@@ -65,6 +63,7 @@ public:
    */
   HalfCircleDetector() {
     laserRange = std::stof(std::string(std::getenv("LASER_RANGE"))); //maybe assert that value is valid?
+    minimumDistance = std::stof(std::string(std::getenv("HALFCIRCLE_DETECTION_DISTANCE"))); 
   }
 
   /** @brief Processes a sensor_msgs::LaserScan and calls necessary other
@@ -88,6 +87,7 @@ private:
   /** Contains all the points drawn onto the last OpenCV-image */
   std::vector<cv::Point2f> points;
   float laserRange;
+  float minimumDistance;
 
   /** Last computed half-circle pose */
   geometry_msgs::Pose2D halfCirclePose;
