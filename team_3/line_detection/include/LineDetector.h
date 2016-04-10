@@ -25,6 +25,7 @@
 #include <vector>
 #include <algorithm>
 #include <memory>
+#include <stdlib.h>
 
 #define LASER_RANGE 3.9
 
@@ -44,7 +45,7 @@ class LineDetector {
 public:
   /**
   * @brief Comparison function for std::sort
-  * @detail Compares the x-coordinates of starting points of the line segments
+  * @details Compares the x-coordinates of starting points of the line segments
   * @param one, two Starting and ending position coordinates of line segments
   * @return A value that is convertible to bool and shows the order of two
   * coordinates
@@ -55,7 +56,7 @@ public:
 
   /**
   * @brief Comparison function for std::sort
-  * @detail Compares the x-coordinates of ending points of the line segments
+  * @details Compares the x-coordinates of ending points of the line segments
   * @param one, two Vectors with 4 parameters (Starting and ending position
   * coordinates of line segments)
   * @return A value that is convertible to bool and shows the order of two
@@ -68,7 +69,7 @@ public:
 
   /**
   * @brief Comparison function for std::sort
-  * @detail Compares the slopes of the line segments
+  * @details Compares the slopes of the line segments
   * @param one, two pairs of a vector with 4 parameters and a slope
   * @return A value that is convertible to bool and shows the order of two
   * coordinates
@@ -99,7 +100,7 @@ public:
   float calcSlope(cv::Vec4i);
   /**
   * @brief Finds the average line segment
-  * @detail All the similar lines (please see the strategy in line detection
+  * @details All the similar lines (please see the strategy in line detection
   * package)
   * are gathered in the vector, then the critical points are taken for the
   * endpoints
@@ -124,7 +125,7 @@ public:
 
   /**
   * @brief Remove unnecessary lines from a vector of line segments (cv::Mat)
-  * @detail As laser scan has noise we detect for each wall a lot of unnecessary
+  * @details As laser scan has noise we detect for each wall a lot of unnecessary
   * lines
   * we eliminate the lines that represent the same wall by finding the slope
   * along with computing the location of endpoints with respect to each other
@@ -140,11 +141,6 @@ public:
   */
   cv::Mat
   createOpenCVImageFromLaserScan(const sensor_msgs::LaserScan::ConstPtr &);
-
-  /** @brief Interpolates the data up to the requested resolution using linear
-  * interpolation.
-  */
-  float interpolate(int, int, std::vector< float >);
 
   /**
   * @brief Receives a laser scan message and creates an OpenCV image
