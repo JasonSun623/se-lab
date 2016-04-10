@@ -37,7 +37,7 @@
 	<!-- Minimum distance allowed toward obstacles -->
 	<env name="MIN_DISTANCE" value="0.5" />
 
-	<node name="movementSimulator" pkg="stage_ros" type="stageros" args="$(find movement)/worlds/lab-competition03.world"/>
+	<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition03.world"/>
 	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" output="screen"/>
 	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen"/>
 	<node pkg="corner_handling" type="corner_handling_node" name="corner_handling" output="screen"/>

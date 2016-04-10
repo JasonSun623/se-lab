@@ -197,3 +197,4 @@ target_link_libraries(tests_wall_following_strategy ${catkin_LIBRARIES} ${GTEST_
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+

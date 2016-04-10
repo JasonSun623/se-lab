@@ -24,9 +24,10 @@
   */
 class CornerHandler {
 public:
-  /**
-    * @brief Callback function for corner handling.
-    */
+
+/**
+  * @brief Callback function for corner handling.
+  */
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
   /**
@@ -39,8 +40,7 @@ public:
    */
   geometry_msgs::Twist getTwist();
 
-private:
-  /**
+  /** 
     * @brief Latest computed twist.
     */
   geometry_msgs::Twist twist;
@@ -59,8 +59,7 @@ private:
     * @return Returns a Twist-message that has all fields set to 0 if no corner
    * is detected and otherwise returns the next suggested move.
     */
-  geometry_msgs::Twist
-  handleCorner(const sensor_msgs::LaserScan::ConstPtr &laserScan);
+  geometry_msgs::Twist handleCorner(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 };
 
 #endif

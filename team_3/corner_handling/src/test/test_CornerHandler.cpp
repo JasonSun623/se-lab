@@ -30,15 +30,15 @@ TEST(CornerHandlingTestSuite, cornerDetectionTestCase) {
   path += "/src/test/laserScan.bag";
   bag.open(path, rosbag::bagmode::Read);
 
-  std::vector< std::string > topics;
+  std::vector<std::string> topics;
   topics.push_back(std::string("base_scan"));
 
   rosbag::View view(bag, rosbag::TopicQuery(topics));
 
   for (rosbag::MessageInstance m : view) {
-
     sensor_msgs::LaserScan::ConstPtr ptr =
-        m.instantiate< sensor_msgs::LaserScan >();
+        m.instantiate<sensor_msgs::LaserScan>();
+
     if (ptr != NULL) {
       ASSERT_TRUE(handler.detectCorner(ptr));
     }

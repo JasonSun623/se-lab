@@ -5,8 +5,8 @@
   */
 
 /* OpenCV includes */
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include <iostream>
 #include <cmath>
@@ -34,30 +34,6 @@
 using namespace cv;
 using namespace std;
 
-/** @details Interpolates the data up to the requested resolution using linear
- * interpolation.
- */
-float interpolate(int index, int resolution,
-                                      std::vector<float> data) {
-  int size = data.size();
-  float step = 1.0 / ((float)resolution);
-
-  // finding closest actual data in the dataset
-  int leftIndex = RANGE(0, (int)(step * index), size - 1);
-  int rightIndex = RANGE(0, leftIndex + 1, size - 1);
-
-  // everthing more distant than the laserRange can mean just the end of the
-  // sensor and distorts the actual measurements
-  if (data[leftIndex] > LASER_RANGE || data[rightIndex] > LASER_RANGE) {
-    return -1.0;
-  }
-
-  // interpolation
-  float offset = step * index - leftIndex;
-  float value = (1 - offset) * data[leftIndex] + offset * data[rightIndex];
-
-  return value;
-}
 
 /**
  * @details Converts the laserScan-data from polar into cartesian coordinates.
@@ -75,18 +51,17 @@ cv::Mat createOpenCVImageFromLaserScan(
 
   cv::Mat image(imageHeight, imageWidth, CV_8UC3, cv::Scalar::all(0));
 
-  int resolution = 8;
-  for (int i = 0; i < numOfValues * resolution; ++i) {
+  for (int i = 0; i < numOfValues; ++i) {
     float hyp =
-        interpolate(i, resolution, laserScan->ranges);
+        laserScan->ranges[i];
 
     // skip invalid values
-    if (hyp < 0) {
+    if (hyp > LASER_RANGE) {
       continue;
     }
 
     float alpha =
-        laserScan->angle_min + (i / resolution) * laserScan->angle_increment;
+        laserScan->angle_min + i * laserScan->angle_increment;
     int sign = alpha < 0 ? -1 : 1;
 
     float opp = std::abs(hyp * std::sin(alpha));

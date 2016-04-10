@@ -142,11 +142,6 @@ public:
   cv::Mat
   createOpenCVImageFromLaserScan(const sensor_msgs::LaserScan::ConstPtr &);
 
-  /** @brief Interpolates the data up to the requested resolution using linear
-  * interpolation.
-  */
-  float interpolate(int, int, std::vector< float >);
-
   /**
   * @brief Receives a laser scan message and creates an OpenCV image
   * @param laserScan LaserScan Message with information about the distances

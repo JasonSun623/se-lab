@@ -10,7 +10,7 @@
 /* gtest include */
 #include <gtest/gtest.h>
 
-#include "../include/WallFollowingStrategy.h"
+#include "../../include/WallFollowingStrategy.h"
 
 typedef std::shared_ptr<WallFollowingStrategy> WallFollowingStrategyPtr;
 
