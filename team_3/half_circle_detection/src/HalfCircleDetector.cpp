@@ -7,6 +7,7 @@
 
 void HalfCircleDetector::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
+
   geometry_msgs::Pose2D pose;
   pose.x = -1;
   pose.y = -1;
@@ -32,7 +33,6 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 
   cv::Mat image(imageHeight, imageWidth, CV_8U, cv::Scalar::all(0));
 
-  int resolution = 1;
   for (int i = 0; i < numOfValues; ++i) {
     float hyp = laserScan->ranges[i];
 
@@ -50,9 +50,9 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     float adj = hyp * std::cos(alpha);
 
     // make sure that values are always within bounds
-    int x = RANGE(0, (int)((imageWidth / 2) + STRETCH_FACTOR * opp * sign),
+    int x = RANGE(0, static_cast<int>((imageWidth / 2) + STRETCH_FACTOR * opp * sign),
                   imageWidth - 1);
-    int y = RANGE(0, (int)((imageHeight / 2) + adj * STRETCH_FACTOR),
+    int y = RANGE(0, static_cast<int>((imageHeight / 2) + adj * STRETCH_FACTOR),
                   imageHeight - 1);
 
     HalfCircleDetector::points.push_back(cv::Point2f(x, y));
@@ -67,34 +67,45 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
                                        float radius,
                                        std::vector<cv::Point2f> &inlierSet,
                                        float semiCircleStart) {
-  unsigned int counter = 0;
-  unsigned int inlier = 0;
+  int counter = 0;
+  int inlier = 0;
+
   float minInlierDist = 1.0f;
   float maxInlierDistMax = 100.0f;
   float maxInlierDist = 2.0f;
+
   if (maxInlierDist < minInlierDist)
     maxInlierDist = minInlierDist;
   if (maxInlierDist > maxInlierDistMax)
     maxInlierDist = maxInlierDistMax;
 
+  int discontinuity = 0;
+  int inlierMax = 0;
+
   // choose samples along the circle and count inlier percentage
-//  for (float t = 0; t < 2 * 3.14159265359f; t += 0.05f) {
-for (float t = semiCircleStart; t < semiCircleStart + 3.14159265359f; t += 0.05f) {
+for (float t = semiCircleStart; t < semiCircleStart + M_PI; t += 0.05f) {
     counter++;
     float cX = radius * cos(t) + center.x;
     float cY = radius * sin(t) + center.y;
 
+    if(discontinuity > 2) {inlier = 0;}
+
     if (cX < dt.cols)
       if (cX >= 0)
-        if (cY < dt.rows)
-          if (cY >= 0)
+        if (cY < dt.rows) {
+          if (cY >= 0) {
             if (dt.at<float>(cY, cX) < maxInlierDist) {
               inlier++;
               inlierSet.push_back(cv::Point2f(cX, cY));
+              discontinuity = 0;
+              inlierMax = std::max(inlier, inlierMax);
             }
+            else { ++discontinuity; }
+          }
+         }
   }
 
-  return (float)inlier / float(counter);
+  return (static_cast<float>(inlier) / static_cast<float>(counter));
 }
 
 void HalfCircleDetector::getCircle(cv::Point2f &p1, cv::Point2f &p2,
@@ -137,7 +148,8 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
   float halfCircleRadius =
       0.15 * STRETCH_FACTOR; // about 30 cm height for circle
 
-  while (rightIndex < v.size()) {
+  while (rightIndex < static_cast<int>(v.size())) {
+    // semi-circle dimensions: 30cm x 16cm
 
     float difference = fabs(distance(v[rightIndex], v[leftIndex]));
     if (difference > (halfCircleRadius * 2 + errorMargin)) {
@@ -158,30 +170,6 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
   return;
 }
 
-float computeAngleBetweenVectors(float v1_x, float v1_y, float v2_x, float v2_y) {
-  //normalize vectors
-  float norm_v1 = sqrt((v1_x*v1_x) + (v1_y*v1_y));
-  float norm_v2 = sqrt((v2_x*v2_x) + (v2_y*v2_y));
-
-  v1_x /= norm_v1;
-  v1_y /= norm_v1;
-
-  v2_x /= norm_v2;
-  v2_y /= norm_v2;
-
-  //compute dot-product
-  float dot_product = v1_x * v2_x + v1_y * v2_y;
-
-  //return result
-  if(dot_product >= 1.0) {
-    return 0.0;
-  } else if (dot_product <= -1.0) {
-    return 3.14; //use some PI constant (consistency!)
-  } else {
-    return acos(dot_product);
-  }
-
-}
 
 geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
 
@@ -212,7 +200,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   int leftIndex = 0;
 
   for (unsigned int its = 0;
-       its < maxNrOfIterations && rightIndex < edgePositions.size(); ++its) {
+       its < maxNrOfIterations && rightIndex < static_cast<int>(edgePositions.size()); ++its) {
     // RANSAC: randomly choose 3 point and create a circle:
     int idx1 = 0;
     int idx2 = 0;
@@ -274,7 +262,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     cv::circle(color, s, 6, cv::Scalar(0,0,255),1);     
 
     //draw tested points
-    for (float t = alpha; t < alpha + 3.14159265359f; t += 0.05f) {
+    for (float t = alpha; t < alpha + M_PI; t += 0.05f) {
       float cX = bestCircleRadius * cos(t) + bestCircleCenter.x;
       float cY = bestCircleRadius * sin(t) + bestCircleCenter.y;
       cv::circle(color, cv::Point2f(cX, cY), 1, cv::Scalar(0,0,255),1);
