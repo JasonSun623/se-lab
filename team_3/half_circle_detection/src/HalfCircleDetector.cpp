@@ -14,7 +14,7 @@ void HalfCircleDetector::receiveLaserScan(
   pose.theta = -1;
 
   //ignore measurements if wall too close
-  if(*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) > MIN_WALL_DISTANCE) {
+  if(*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) > minimumDistance) {
     cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
     pose = HalfCircleDetector::detectHalfCircle(image);
   }
@@ -38,7 +38,7 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 
     // everything more distant than the laserRange can mean just the end of the
     // sensor and distorts the actual measurements
-    if (hyp > LASER_RANGE) {
+    if (hyp > laserRange) {
       continue;
     }
 
@@ -79,30 +79,20 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
   if (maxInlierDist > maxInlierDistMax)
     maxInlierDist = maxInlierDistMax;
 
-  int discontinuity = 0;
-  int inlierMax = 0;
-
   // choose samples along the circle and count inlier percentage
 for (float t = semiCircleStart; t < semiCircleStart + M_PI; t += 0.05f) {
     counter++;
     float cX = radius * cos(t) + center.x;
     float cY = radius * sin(t) + center.y;
 
-    if(discontinuity > 2) {inlier = 0;}
-
-    if (cX < dt.cols)
-      if (cX >= 0)
-        if (cY < dt.rows) {
-          if (cY >= 0) {
-            if (dt.at<float>(cY, cX) < maxInlierDist) {
-              inlier++;
-              inlierSet.push_back(cv::Point2f(cX, cY));
-              discontinuity = 0;
-              inlierMax = std::max(inlier, inlierMax);
-            }
-            else { ++discontinuity; }
-          }
-         }
+    if (cX < dt.cols && cX >= 0) {
+      if (cY < dt.rows && cY >= 0) {
+        if (dt.at<float>(cY, cX) < maxInlierDist) {
+          inlier++;
+          inlierSet.push_back(cv::Point2f(cX, cY));
+        }
+      }
+    }
   }
 
   return (static_cast<float>(inlier) / static_cast<float>(counter));

@@ -5,8 +5,8 @@
   */
 
 /* OpenCV includes */
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
+#include <opencv2/highgui/imgproc.hpp>
+#include <opencv2/imgproc/highgui.hpp>
 
 #include <iostream>
 #include <cmath>
