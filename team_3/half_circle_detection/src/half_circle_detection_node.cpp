@@ -8,9 +8,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Pose2D.h>
-
 #include "../include/HalfCircleDetector.h"
-#include "../include/LaserScanAggregator.h"
 
 /** @brief Starts the program. */
 int main(int argc, char **argv) {
@@ -18,11 +16,10 @@ int main(int argc, char **argv) {
 
   ros::NodeHandle n;
 
-  HalfCircleDetector detector;
-  LaserScanAggregator aggregator;
+  HalfCircleDetector *detector = new HalfCircleDetector();
 
   ros::Subscriber sub = n.subscribe(
-      "base_scan", 1, &LaserScanAggregator::receiveLaserScan, &aggregator);
+      "base_scan", 1, &HalfCircleDetector::receiveLaserScan, detector);
 
   ros::Publisher pub =
       n.advertise<geometry_msgs::Pose2D>("half_circle_detection", 1);
@@ -30,15 +27,14 @@ int main(int argc, char **argv) {
   ros::Rate rate(10);
 
   while (ros::ok()) {
+
+    pub.publish(detector->getHalfCirclePose());
+
     ros::spinOnce();
-    
-    std::vector<cv::Point2f> imagePoints;
-    cv::Mat image = aggregator.createOpenCVImage(imagePoints);
-
-    pub.publish(detector.detectHalfCircle(image, imagePoints));
-
     rate.sleep();
   }
+
+  delete detector;
 
   return 0;
 }

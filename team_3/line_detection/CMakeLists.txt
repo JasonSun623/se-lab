@@ -1,24 +1,21 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(half_circle_detection)
+
+project(line_detection)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  sensor_msgs
-  rostest
-  roslib
-  rosbag
-)
+	roscpp
+	sensor_msgs
+	rostest
+	roslib)
 
 find_package(OpenCV REQUIRED)
-
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
-
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -73,7 +70,7 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   sensor_msgs
+#   std_msgs  # Or other packages containing msgs
 # )
 
 ################################################
@@ -107,8 +104,8 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES half_circle_detection
-  CATKIN_DEPENDS roscpp sensor_msgs 
+#  LIBRARIES line_detection
+#  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
 
@@ -118,34 +115,34 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS} 
+ include_directories(
+	${catkin_INCLUDE_DIRS}
+	${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(half_circle_detection
-#   src/${PROJECT_NAME}/half_circle_detection.cpp
+# add_library(line_detection
+#   src/${PROJECT_NAME}/line_detection.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(half_circle_detection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(line_detection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(half_circle_detection_node src/half_circle_detection_node.cpp src/HalfCircleDetector.cpp)
+ #add_executable(line_detection_node src/LineDetector.cpp src/#line_detectionV2.cpp)
+add_executable(line_detection_node src/LineDetector.cpp src/line_detection_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(half_circle_detection_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(line_detection_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(half_circle_detection_node
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
+ target_link_libraries(line_detection_node
+   ${catkin_LIBRARIES}
+   ${OpenCV_LIBRARIES}
+ )
 
 #############
 ## Install ##
@@ -162,7 +159,7 @@ target_link_libraries(half_circle_detection_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS half_circle_detection half_circle_detection_node
+# install(TARGETS line_detection line_detection_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -187,14 +184,11 @@ target_link_libraries(half_circle_detection_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_half_circle_detection.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_line_detection.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
-
+catkin_add_gtest(test_line_detection test/line_detection_test.cpp)
+target_link_libraries(test_line_detection ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-catkin_add_gtest(tests_half_circle_detection src/test/HalfCircleDetectionTest.cpp src/HalfCircleDetector.cpp)
-
-target_link_libraries(tests_half_circle_detection ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})

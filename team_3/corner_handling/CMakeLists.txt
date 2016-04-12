@@ -1,24 +1,23 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(half_circle_detection)
+project(corner_handling)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-
 find_package(catkin REQUIRED COMPONENTS
+  geometry_msgs
   roscpp
   sensor_msgs
   rostest
-  roslib
   rosbag
+  roslib
 )
-
-find_package(OpenCV REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -73,7 +72,7 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   sensor_msgs
+#   geometry_msgs#   sensor_msgs
 # )
 
 ################################################
@@ -107,8 +106,8 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES half_circle_detection
-  CATKIN_DEPENDS roscpp sensor_msgs 
+#  LIBRARIES corner_handling
+#  CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs
 #  DEPENDS system_lib
 )
 
@@ -121,30 +120,28 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS} 
 )
 
 ## Declare a C++ library
-# add_library(half_circle_detection
-#   src/${PROJECT_NAME}/half_circle_detection.cpp
+# add_library(corner_handling
+#   src/${PROJECT_NAME}/corner_handling.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(half_circle_detection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(corner_handling ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(half_circle_detection_node src/half_circle_detection_node.cpp src/HalfCircleDetector.cpp)
+add_executable(corner_handling_node src/corner_handling_node.cpp src/CornerHandler.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(half_circle_detection_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(corner_handling_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(half_circle_detection_node
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
+target_link_libraries(corner_handling_node
+   ${catkin_LIBRARIES}
 )
 
 #############
@@ -162,7 +159,7 @@ target_link_libraries(half_circle_detection_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS half_circle_detection half_circle_detection_node
+# install(TARGETS corner_handling corner_handling_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -187,14 +184,11 @@ target_link_libraries(half_circle_detection_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_half_circle_detection.cpp)
+catkin_add_gtest(${PROJECT_NAME}-test src/test/test_CornerHandler.cpp src/CornerHandler.cpp)
+target_link_libraries(${PROJECT_NAME}-test ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${rosbag_LIBRARIES})
 # if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+#    target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-catkin_add_gtest(tests_half_circle_detection src/test/HalfCircleDetectionTest.cpp src/HalfCircleDetector.cpp)
-
-target_link_libraries(tests_half_circle_detection ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})

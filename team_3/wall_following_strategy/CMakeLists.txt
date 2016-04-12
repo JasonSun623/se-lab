@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   image_transport
   roslib
+  rostest
 )
 
 find_package(OpenCV REQUIRED)
@@ -120,7 +121,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_LIBRARIES}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -134,7 +135,7 @@ include_directories(
 # add_dependencies(wall_following_strategy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(wall_following_strategy_node src/WallFollowingStrategy.cpp src/WallFollowingPublisher.cpp)
+add_executable(wall_following_strategy_node src/WallFollowingStrategy.cpp src/wall_following_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -186,10 +187,14 @@ target_link_libraries(wall_following_strategy_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_wall_following_strategy.cpp)
+catkin_add_gtest(tests_wall_following_strategy 
+  src/test/WallFollowingStrategyTest.cpp src/WallFollowingStrategy.cpp)
+
+target_link_libraries(tests_wall_following_strategy ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+

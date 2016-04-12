@@ -5,6 +5,8 @@
   */
 #include "../include/WallFollowingStrategy.h"
 
+#include <ros/package.h>
+
 int main(int argc, char **argv) {
   ros::init(argc, argv, "wall_following_strategy");
   ros::NodeHandle n;

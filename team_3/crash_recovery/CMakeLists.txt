@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(half_circle_detection)
+project(crash_recovery)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -10,15 +10,12 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   rostest
   roslib
-  rosbag
 )
 
 find_package(OpenCV REQUIRED)
-
-set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
-
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -107,8 +104,8 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES half_circle_detection
-  CATKIN_DEPENDS roscpp sensor_msgs 
+#  LIBRARIES crash_recovery
+  CATKIN_DEPENDS roscpp sensor_msgs
 #  DEPENDS system_lib
 )
 
@@ -121,30 +118,28 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS} 
 )
 
 ## Declare a C++ library
-# add_library(half_circle_detection
-#   src/${PROJECT_NAME}/half_circle_detection.cpp
+# add_library(crash_recovery
+#   src/${PROJECT_NAME}/crash_recovery.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(half_circle_detection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(crash_recovery ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(half_circle_detection_node src/half_circle_detection_node.cpp src/HalfCircleDetector.cpp)
+add_executable(crash_recovery_node src/crash_recovery_node.cpp src/CrashRecoverer.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(half_circle_detection_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(crash_recovery_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(half_circle_detection_node
+target_link_libraries(crash_recovery_node
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
 )
 
 #############
@@ -162,7 +157,7 @@ target_link_libraries(half_circle_detection_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS half_circle_detection half_circle_detection_node
+# install(TARGETS crash_recovery crash_recovery_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -187,7 +182,7 @@ target_link_libraries(half_circle_detection_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_half_circle_detection.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_crash_recovery.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
@@ -195,6 +190,6 @@ target_link_libraries(half_circle_detection_node
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-catkin_add_gtest(tests_half_circle_detection src/test/HalfCircleDetectionTest.cpp src/HalfCircleDetector.cpp)
+catkin_add_gtest(tests_crash_recovery src/test/CrashRecoveryTest.cpp src/CrashRecoverer.cpp)
 
-target_link_libraries(tests_half_circle_detection ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(tests_crash_recovery ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
