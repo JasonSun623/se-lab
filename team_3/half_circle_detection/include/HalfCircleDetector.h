@@ -62,8 +62,9 @@ public:
    *  Here the environment variables are loaded.
    */
   HalfCircleDetector() {
-//    getEnvironmentVariable("LASER_RANGE", laserRange);
-//    getEnvironmentVariable("HALFCIRCLE_DETECTION_DISTANCE", minimumDistance);
+    getEnvironmentVariable("LASER_RANGE", laserRange);
+    getEnvironmentVariable("HALFCIRCLE_DETECTION_DISTANCE", minimumDistance);
+    getEnvironmentVariable("HALFCIRCLE_RADIUS", halfCircleRadius);
   }
 
   /** @brief Processes a sensor_msgs::LaserScan and calls necessary other
@@ -88,6 +89,7 @@ private:
   std::vector<cv::Point2f> points;
   float laserRange = 3.9;
   float minimumDistance = 0.4;
+  float halfCircleRadius = 0.25;
 
   /** Last computed half-circle pose */
   geometry_msgs::Pose2D halfCirclePose;

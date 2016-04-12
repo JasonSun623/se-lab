@@ -8,6 +8,8 @@
   <!-- For half circle detection -->
   <!-- If the robot is too close to a wall the half-circle detection does not work properly. This is the threshold in meters that define 'too close'. -->
   <env name="HALFCIRCLE_DETECTION_DISTANCE" value="0.3" />
+  <!-- Radius of the half circle to be detected in meters. -->
+  <env name="HALFCIRCLE_RADIUS" value="0.25" />
 
 	<!-- For crash recovery -->
 	<env name="CRASH_DISTANCE" value="0.05" />

@@ -177,8 +177,8 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   cv::Point2f bestCircleCenter;
   float bestCircleRadius;
   float bestCirclePercentage = 0;
-  float minRadius = 0.22; // TODO: make this configurable/macro/put in config file
-  float maxRadius = 0.25; //in meter [m]
+  float minRadius = halfCircleRadius -0.03; // TODO: make this configurable/macro/put in config file
+  float maxRadius = halfCircleRadius + 0.03; //in meter [m]
 
   float minCirclePercentage = 0.45f;
   float maxCirclePercentage = 1.0f;
