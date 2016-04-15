@@ -38,8 +38,16 @@ void WallFollowingStrategy::receiveCirclePosition(
 void WallFollowingStrategy::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   lastScan = *laserScan;
-  WallFollowingStrategy::src =
-      WallFollowingStrategy::createOpenCVImageFromLaserScan(laserScan);
+}
+
+void WallFollowingStrategy::receiveOpenCVImage(const sensor_msgs::ImageConstPtr& msg) {
+  cv_bridge::CvImagePtr cv_ptr;
+  try {
+    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::MONO8);
+    setImage(cv_ptr->image);
+  } catch (cv_bridge::Exception& e) {
+    ROS_ERROR("cv_bridge exception: %s", e.what());
+  }
 }
 
 float WallFollowingStrategy::calcSlope(cv::Vec4i one) {
@@ -77,81 +85,6 @@ void WallFollowingStrategy::printLinesImage(cv::Mat dst,
   }
 }
 
-float WallFollowingStrategy::interpolate(int index, int resolution,
-                                         std::vector< float > data) {
-  int size = data.size();
-  float step = 1.0 / (static_cast< float >(resolution));
-
-  // finding closest actual data in the dataset
-  int leftIndex = RANGE(0, static_cast< int >(step * index), size - 1);
-  int rightIndex = RANGE(0, leftIndex + 1, size - 1);
-
-  // everything more distant than the laserRange can mean just the end of the
-  // sensor and distorts the actual measurements
-  if (data[leftIndex] > LASER_RANGE || data[rightIndex] > LASER_RANGE) {
-    return -1.0;
-  }
-
-  // interpolation
-  float offset = step * index - leftIndex;
-  float value = (1 - offset) * data[leftIndex] + offset * data[rightIndex];
-
-  return value;
-}
-
-cv::Mat WallFollowingStrategy::createOpenCVImageFromLaserScan(
-    const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-  WallFollowingStrategy::points.clear();
-
-  int numOfValues = (laserScan->angle_max - laserScan->angle_min) /
-                    laserScan->angle_increment;
-
-  int imageHeight = 8 * STRETCH_FACTOR;
-  int imageWidth = 16 * STRETCH_FACTOR;
-
-  cv::Mat image(imageHeight, imageWidth, CV_8UC3, cv::Scalar::all(0));
-
-  int resolution = 8;
-  for (int i = 0; i < numOfValues * resolution; ++i) {
-    float hyp =
-        WallFollowingStrategy::interpolate(i, resolution, laserScan->ranges);
-
-    // skip invalid values
-    if (hyp < 0) {
-      continue;
-    }
-
-    float alpha =
-        laserScan->angle_min + (i / resolution) * laserScan->angle_increment;
-    int sign = alpha < 0 ? -1 : 1;
-
-    float opp = std::abs(hyp * std::sin(alpha));
-    float adj = hyp * std::cos(alpha);
-
-    // make sure that values are always within bounds
-    int x = RANGE(
-        0, static_cast< int >((imageWidth / 2) + STRETCH_FACTOR * opp * sign),
-        imageWidth - 1);
-    int y =
-        RANGE(0, static_cast< int >((imageHeight / 2) + adj * STRETCH_FACTOR),
-              imageHeight - 1);
-
-    WallFollowingStrategy::points.push_back(std::make_pair(x, y));
-
-    image.at< cv::Vec3b >(cv::Point(x, y)) = cv::Vec3b(200, 200, 200);
-  }
-
-  src = image;
-
-  std::string path = ros::package::getPath("wall_following_strategy");
-  path += "/src/Image.jpg";
-  cv::imwrite(path, image);
-  cv::waitKey(20);
-
-  assert(this->getImage().data);
-
-  return image;
-}
 
 void WallFollowingStrategy::removeLines(std::vector< cv::Vec4i > lines1) {
   // "bucket" for each of the group of "similar" lines
@@ -257,17 +190,20 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   float theta = 0;
   int k = 0;
 
+  if(getLaserScan().ranges.size() == 0) return msg;
+
   // the global closest line to the robot
   std::pair< float, float > line =
-      WallFollowingStrategy::findMinimDistance(0, getLaserScan().ranges.size());
+      WallFollowingStrategy::findMinimDistance(0, 250);
   std::vector< cv::Vec4i > vec = getLines();
 
   // closest line segment on the right range of laser scan with respect to the
   // robot
-  std::pair< float, float > right = this->findMinimDistance(180, getLaserScan().ranges.size());
+  //TODO: this 250 comes from the previous macro, but it leads basically to the omission of all values to the right of the robot, which is extremely questionable; the current implementation does not work though if you change it to the correct value
+  std::pair< float, float > right = this->findMinimDistance(180, 250);
 
   // if no data is received yet
-  if (!src.data) {
+  if (!src.size().height) {
     msg.linear.x = 0;
     return msg;
   }

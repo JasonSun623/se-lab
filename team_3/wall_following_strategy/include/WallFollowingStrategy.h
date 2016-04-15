@@ -18,9 +18,12 @@
 
 /** include messages */
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/image_encodings.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/Polygon.h>
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
 
 /** include OpenCV */
 #include <opencv2/opencv.hpp>
@@ -30,8 +33,6 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
-
-#define RANGES 250
 
 #define LASER_RANGE 3.9
 
@@ -113,10 +114,16 @@ public:
   void receiveCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePos);
 
   /**
-  * @brief Receives a laser scan message and creates an OpenCV image
+  * @brief Receives a laser scan message
   * @param laserScan LaserScan Message with information about the distances
   */
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
+
+  /**
+   * @brief Callback for receiving OpenCV images from half_circle_detection.
+   * @param msg Pointer to the new OpenCV image
+   */
+  void receiveOpenCVImage(const sensor_msgs::ImageConstPtr& msg);
 
   /**
   * @brief Receives a message from crash_recovery topic of robot behavior
@@ -226,13 +233,6 @@ public:
   * HoughLinesP function from OpenCV
   */
   void removeLines(std::vector< cv::Vec4i > lines1);
-  /**
-  * @brief Converts the laserScan-data from polar into cartesian coordinates.
-  * Then cleans the data from various problems and finally translates the points
-  * into pixels on an actual image (in form of an OpenCV-matrix).
-  */
-  cv::Mat
-  createOpenCVImageFromLaserScan(const sensor_msgs::LaserScan::ConstPtr &);
 
   /** @brief Interpolates the data up to the requested resolution using linear
   * interpolation.
