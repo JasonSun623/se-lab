@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   rostest
   roslib
   rosbag
+  cv_bridge
+  image_transport
 )
 
 find_package(OpenCV REQUIRED)

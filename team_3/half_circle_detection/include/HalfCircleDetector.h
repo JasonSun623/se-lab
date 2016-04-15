@@ -41,12 +41,6 @@
 #define EPSILON 1.01
 
 /**
-  * @brief Factor by which the distances are scaled up to the image. (100 px for
- * 1m)
-  */
-#define STRETCH_FACTOR 100
-
-/**
   * @brief Limiting integers to be within a certain range.
   */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
@@ -62,8 +56,10 @@ public:
    *  Here the environment variables are loaded.
    */
   HalfCircleDetector() {
-    laserRange = std::stof(std::string(std::getenv("LASER_RANGE"))); //maybe assert that value is valid?
-    minimumDistance = std::stof(std::string(std::getenv("HALFCIRCLE_DETECTION_DISTANCE"))); 
+    getEnvironmentVariable("LASER_RANGE", laserRange);
+    getEnvironmentVariable("HALFCIRCLE_DETECTION_DISTANCE", minimumDistance);
+    getEnvironmentVariable("HALFCIRCLE_RADIUS", halfCircleRadius);
+    getEnvironmentVariable("STRETCH_FACTOR", stretchFactor);
   }
 
   /** @brief Processes a sensor_msgs::LaserScan and calls necessary other
@@ -79,15 +75,21 @@ public:
    *  @return Last computed half-circle position */
   geometry_msgs::Pose2D getHalfCirclePose();
 
-  /** @brief Sets last processed half-circle pose
-   *  @param pose New half-circle pose */
-  void setHalfCirclePose(geometry_msgs::Pose2D &pose);
+  /** @brief Returns image from last processed LaserScan.
+   *  @return Latest OpenCV-image */
+  cv::Mat getLaserScanImage() { return laserScanImage; };
 
 private:
-  /** Contains all the points drawn onto the last OpenCV-image */
+  /** @brief Contains all points drawn onto the last OpenCV-image. */
   std::vector<cv::Point2f> points;
-  float laserRange;
-  float minimumDistance;
+
+  float laserRange = 3.9;
+  float minimumDistance = 0.4;
+  float halfCircleRadius = 0.18;
+  /** @brief Factor by which distances are scaled up in image (e.g. 100 px for 1m). */
+  float stretchFactor = 100;
+  
+  cv::Mat laserScanImage;
 
   /** Last computed half-circle pose */
   geometry_msgs::Pose2D halfCirclePose;
@@ -167,6 +169,26 @@ private:
    *  @return void. Returns indexes via reference. */
   void getSamplePoints(int &first, int &second, int &third, int &rightIndex,
                        int &leftIndex, std::vector<cv::Point2f> &v);
+
+  /** @brief Sets last processed half-circle pose
+   *  @param pose New half-circle pose */
+  void setHalfCirclePose(geometry_msgs::Pose2D &pose);
+
+  /** @brief Sets image created from last LaserScan.
+   *  @param image Latest image */
+  void setLaserScanImage(cv::Mat image) {laserScanImage = image;};
+
+  /** @brief Helper function for retrieving float environment variables declared in the launch file. */
+  void getEnvironmentVariable(const char* varString, float& var) {
+    char* c;
+
+    c = std::getenv(varString); 
+    if(!c) { 
+      ROS_INFO("Environment variable %s not found. Using %lf as a default value.", varString, var);
+    } else {
+      var = std::stof(std::string(c)); 
+    }
+  }
 };
 #endif
 

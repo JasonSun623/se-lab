@@ -16,6 +16,7 @@ void HalfCircleDetector::receiveLaserScan(
   //ignore measurements if wall too close
   if(*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) > minimumDistance) {
     cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
+    setLaserScanImage(image);
     pose = HalfCircleDetector::detectHalfCircle(image);
   }
   
@@ -28,8 +29,8 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 
   int numOfValues = laserScan->ranges.size();
 
-  int imageHeight = 8 * STRETCH_FACTOR;
-  int imageWidth = 16 * STRETCH_FACTOR;
+  int imageHeight = 8 * stretchFactor;
+  int imageWidth = 16 * stretchFactor;
 
   cv::Mat image(imageHeight, imageWidth, CV_8U, cv::Scalar::all(0));
 
@@ -50,9 +51,9 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     float adj = hyp * std::cos(alpha);
 
     // make sure that values are always within bounds
-    int x = RANGE(0, static_cast<int>((imageWidth / 2) + STRETCH_FACTOR * opp * sign),
+    int x = RANGE(0, static_cast<int>((imageWidth / 2) + stretchFactor * opp * sign),
                   imageWidth - 1);
-    int y = RANGE(0, static_cast<int>((imageHeight / 2) + adj * STRETCH_FACTOR),
+    int y = RANGE(0, static_cast<int>((imageHeight / 2) + adj * stretchFactor),
                   imageHeight - 1);
 
     HalfCircleDetector::points.push_back(cv::Point2f(x, y));
@@ -134,17 +135,16 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
                                          std::vector<cv::Point2f> &v) {
 
   ++rightIndex;
-  float errorMargin = 0.03 * STRETCH_FACTOR;
-  float halfCircleRadius =
-      0.15 * STRETCH_FACTOR; // about 30 cm height for circle
+  float errorMargin = 0.03 * stretchFactor;
+  float halfCircleRadiusPixel =
+      halfCircleRadius * stretchFactor;
 
   while (rightIndex < static_cast<int>(v.size())) {
-    // semi-circle dimensions: 30cm x 16cm
 
     float difference = fabs(distance(v[rightIndex], v[leftIndex]));
-    if (difference > (halfCircleRadius * 2 + errorMargin)) {
+    if (difference > (halfCircleRadiusPixel * 2 + errorMargin)) {
       ++leftIndex;
-    } else if (difference < (halfCircleRadius * 2 - errorMargin)) {
+    } else if (difference < (halfCircleRadiusPixel * 2 - errorMargin)) {
       ++rightIndex;
     } else {
 
@@ -177,11 +177,10 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   cv::Point2f bestCircleCenter;
   float bestCircleRadius;
   float bestCirclePercentage = 0;
-  float minRadius = 0.22; // TODO: make this configurable/macro/put in config file
-  float maxRadius = 0.25; //in meter [m]
+  float minRadius = halfCircleRadius -0.03; 
+  float maxRadius = halfCircleRadius + 0.03;
 
   float minCirclePercentage = 0.45f;
-  float maxCirclePercentage = 1.0f;
 
   int maxNrOfIterations =
       edgePositions.size(); 
@@ -217,12 +216,13 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     float cPerc = verifyCircle(dt, center, radius, inlierSet, alpha);
 
     // update best circle information if necessary
-    if (cPerc >= bestCirclePercentage && cPerc < maxCirclePercentage)
-      if (radius/STRETCH_FACTOR >= minRadius && radius/STRETCH_FACTOR <= maxRadius) {
+    if (cPerc >= bestCirclePercentage) {
+      if (radius/stretchFactor >= minRadius && radius/stretchFactor <= maxRadius) {
         bestCirclePercentage = cPerc;
         bestCircleRadius = radius;
         bestCircleCenter = center;
       }
+    }
   }
 
   geometry_msgs::Pose2D pose;
@@ -259,7 +259,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     }
     line(color, bestCircleCenter, cv::Point(color.cols/2, color.rows/2),cv::Scalar(0,255,0)); 
     
-    std::cout << bestCirclePercentage << std::endl;
+  ROS_INFO("Circle certainty: %lf", bestCirclePercentage);
 
   cv::imwrite("/home/robotics/color.jpg", color);
 
@@ -281,8 +281,8 @@ geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
   if (posX == -1) {
     msg.x = msg.y = msg.theta = -1;
   } else {
-    msg.x = (posX - robotX) / static_cast<float>(STRETCH_FACTOR);
-    msg.y = (posY - robotY) / static_cast<float>(STRETCH_FACTOR);
+    msg.x = (posX - robotX) / static_cast<float>(stretchFactor);
+    msg.y = (posY - robotY) / static_cast<float>(stretchFactor);
     msg.theta = std::atan2(msg.y, msg.x);
   }
 
