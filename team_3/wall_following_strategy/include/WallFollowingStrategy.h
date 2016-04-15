@@ -92,7 +92,6 @@ private:
   float robotAngle;
 
   bool crashMode;
-  bool cornerStuck;
   bool followWall;
   bool circleFoundMode;
   bool correcting;
@@ -103,7 +102,6 @@ private:
   std::vector< std::pair< int, int > > points;
   sensor_msgs::LaserScan lastScan;
   cv::Mat src;
-  geometry_msgs::Twist cornerHandler;
   geometry_msgs::Twist crashHandler;
 
 public:
@@ -121,14 +119,6 @@ public:
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
   /**
-  * @brief Receives a message from corner_handling topic of robot behavior
-  * in case of detecting a corner or an obstacle
-  * @detail Slowly moves the robot out of the corner or in the opposite to
-  * the wall direction without touching touching other obstacles/walls.
-  */
-  void getCornerRecovery(const geometry_msgs::Twist::ConstPtr &cornerOut);
-
-  /**
   * @brief Receives a message from crash_recovery topic of robot behavior
   * in case of crashing into the obstacle
   * @detail Slowly moves the robot opposite to
@@ -144,10 +134,6 @@ public:
   * @brief Returns whether a robot crashed into the obstacle or not
   */
   bool getCrashMode();
-  /**
-  * @brief Returns whether a robot has stuck in a corner or not
-  */
-  bool getCornerHandle();
 
   /**
   * @brief Comparison function for std::sort

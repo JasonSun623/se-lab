@@ -9,34 +9,6 @@ bool WallFollowingStrategy::getCircleVisible() { return circleVisible; }
 
 bool WallFollowingStrategy::getCrashMode() { return crashMode; }
 
-bool WallFollowingStrategy::getCornerHandle() { return cornerStuck; }
-
-void WallFollowingStrategy::getCornerRecovery(
-    const geometry_msgs::Twist::ConstPtr &cornerOut) {
-  // in case the input message contains all 0 then no change in motion
-  if (cornerOut->linear.x == 0 && cornerOut->linear.y == 0 &&
-      cornerOut->angular.x == 0 && cornerOut->angular.y == 0) {
-    cornerStuck = false;
-    cornerHandler.linear.x = 0;
-    cornerHandler.linear.y = 0;
-
-    cornerHandler.angular.x = 0;
-    cornerHandler.angular.y = 0;
-    cornerHandler.angular.z = 0;
-    return;
-  }
-  // if the message from Corner Handler contains values different from 0
-  // update the twist message that will be sent to get out of the corner/
-  // move out from the wall
-  cornerStuck = true;
-  cornerHandler.linear.x = cornerOut->linear.x;
-  cornerHandler.linear.y = cornerOut->linear.y;
-
-  cornerHandler.angular.x = cornerOut->angular.x;
-  cornerHandler.angular.y = cornerOut->angular.y;
-  cornerHandler.angular.z = cornerOut->angular.z;
-}
-
 void WallFollowingStrategy::getCrashRecovery(
     const geometry_msgs::Twist::ConstPtr &crashOut) {
   if (crashOut->linear.x == 0 && crashOut->angular.z == 0) {
@@ -265,7 +237,6 @@ void WallFollowingStrategy::removeLines(std::vector< cv::Vec4i > lines1) {
 std::pair< float, float > WallFollowingStrategy::findMinimDistance(int left,
                                                                    int right) {
   sensor_msgs::LaserScan scan = WallFollowingStrategy::getLaserScan();
-  scan.ranges.resize(RANGES);
   std::pair< float, float > p = std::make_pair(scan.ranges[left], 0);
 
   for (int i = left; i < right; i++) {
@@ -288,12 +259,12 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
 
   // the global closest line to the robot
   std::pair< float, float > line =
-      WallFollowingStrategy::findMinimDistance(0, RANGES - 1);
+      WallFollowingStrategy::findMinimDistance(0, getLaserScan().ranges.size());
   std::vector< cv::Vec4i > vec = getLines();
 
   // closest line segment on the right range of laser scan with respect to the
   // robot
-  std::pair< float, float > right = this->findMinimDistance(180, RANGES - 1);
+  std::pair< float, float > right = this->findMinimDistance(180, getLaserScan().ranges.size());
 
   // if no data is received yet
   if (!src.data) {
@@ -309,18 +280,6 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     float variationToCircle = 90 - circleAngle;
     msg.angular.z = std::min(MAX_TURN, 0.035 * variationToCircle);
     msg.linear.x = 0.3;
-    return msg;
-  }
-
-  if (cornerStuck && !circleFoundMode) {
-    ROS_INFO("Stuck!");
-    msg.linear.x = cornerHandler.linear.x;
-    msg.linear.y = cornerHandler.linear.y;
-
-    msg.angular.x = cornerHandler.angular.x;
-    msg.angular.y = cornerHandler.angular.y;
-    msg.angular.z = cornerHandler.angular.z;
-
     return msg;
   }
 
