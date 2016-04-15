@@ -121,7 +121,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_LIBRARIES}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -188,7 +188,7 @@ target_link_libraries(wall_following_strategy_node
 
 ## Add gtest based cpp test target and link libraries
 catkin_add_gtest(tests_wall_following_strategy 
-  test/WallFollowingStrategyTest.cpp src/WallFollowingStrategy.cpp)
+  src/test/WallFollowingStrategyTest.cpp src/WallFollowingStrategy.cpp)
 
 target_link_libraries(tests_wall_following_strategy ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})
 # if(TARGET ${PROJECT_NAME}-test)
@@ -197,3 +197,4 @@ target_link_libraries(tests_wall_following_strategy ${catkin_LIBRARIES} ${GTEST_
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+

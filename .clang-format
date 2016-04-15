@@ -1,0 +1,7 @@
+# Author: Leonhard Kuboschek
+# Style file for Team 3
+# Required to fix #57
+
+BasedOnStyle: LLVM
+SpacesInAngles: true
+ReflowComments: true

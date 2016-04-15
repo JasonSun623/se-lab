@@ -3,13 +3,20 @@
   * @author Mariia Gladkova
   * @author Leonhard Kuboschek
   */
-#include "../include/WallFollowingStrategy.h"
 
-#include <gtest/gtest.h>
+/* Includes */
 #include <geometry_msgs/Pose2D.h>
+
+/* gtest include */
+#include <gtest/gtest.h>
+
+#include "../../include/WallFollowingStrategy.h"
 
 typedef std::shared_ptr<WallFollowingStrategy> WallFollowingStrategyPtr;
 
+/** @brief Tests if the node is successfully detecting corners and not giving
+ * false positives.
+  */
 TEST(WallFollowingStrategyTest, noCircleTestCase) {
 
   geometry_msgs::Pose2D pose;
