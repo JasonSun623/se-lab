@@ -22,15 +22,17 @@ int main(int argc, char **argv) {
   ros::NodeHandle imageHandle;
   image_transport::ImageTransport imageTransport(imageHandle);
   image_transport::Subscriber imageSub;
- 
-  imageSub = imageTransport.subscribe("laserScan_image", 1, &WallFollowingStrategy::receiveOpenCVImage, &strategy);
- 
-  ros::Publisher pub = n.advertise< geometry_msgs::Twist >("cmd_vel", 1);
+
+  imageSub = imageTransport.subscribe(
+      "laserScan_image", 1, &WallFollowingStrategy::receiveOpenCVImage,
+      &strategy);
+
+  ros::Publisher pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
   ros::Rate rate(10);
 
   cv::Mat bw, s;
-  std::vector< cv::Vec4i > lines;
+  std::vector<cv::Vec4i> lines;
   ros::spinOnce();
 
   strategy.setCurrentAngle(0);

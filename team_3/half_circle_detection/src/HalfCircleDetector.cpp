@@ -180,7 +180,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   float minRadius = halfCircleRadius -0.03; 
   float maxRadius = halfCircleRadius + 0.03;
 
-  float minCirclePercentage = 0.45f;
+  float minCirclePercentage = 0.40f;
 
   int maxNrOfIterations =
       edgePositions.size(); 
@@ -236,28 +236,28 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
                       image.rows / 2);
   }
 
-    cv::circle(image, bestCircleCenter, bestCircleRadius, cv::Scalar(255,255,0), 1);
+  cv::circle(image, bestCircleCenter, bestCircleRadius, cv::Scalar(255,255,0), 1);
 
-    float m_x = (image.cols/2 - bestCircleCenter.x);
-    float m_y = (image.rows/2 - bestCircleCenter.y);
+  float m_x = (image.cols/2 - bestCircleCenter.x);
+  float m_y = (image.rows/2 - bestCircleCenter.y);
 
-    float alpha = atan2(-m_x, m_y);
-    //make color image, draw red circle at starting point
+  float alpha = atan2(-m_x, m_y);
+  //make color image, draw red circle at starting point
 
-    cv::Mat color(image);
-    cv::cvtColor(color, color, CV_GRAY2BGR);
+  cv::Mat color(image);
+  cv::cvtColor(color, color, CV_GRAY2BGR);
 
-    cv::Point s(bestCircleCenter.x + cos(alpha)*bestCircleRadius, bestCircleCenter.y + sin(alpha)*bestCircleRadius);
+  cv::Point s(bestCircleCenter.x + cos(alpha)*bestCircleRadius, bestCircleCenter.y + sin(alpha)*bestCircleRadius);
 
-    cv::circle(color, s, 6, cv::Scalar(0,0,255),1);     
+  cv::circle(color, s, 6, cv::Scalar(0,0,255),1);     
 
-    //draw tested points
-    for (float t = alpha; t < alpha + M_PI; t += 0.05f) {
-      float cX = bestCircleRadius * cos(t) + bestCircleCenter.x;
-      float cY = bestCircleRadius * sin(t) + bestCircleCenter.y;
-      cv::circle(color, cv::Point2f(cX, cY), 1, cv::Scalar(0,0,255),1);
-    }
-    line(color, bestCircleCenter, cv::Point(color.cols/2, color.rows/2),cv::Scalar(0,255,0)); 
+  //draw tested points
+  for (float t = alpha; t < alpha + M_PI; t += 0.05f) {
+    float cX = bestCircleRadius * cos(t) + bestCircleCenter.x;
+    float cY = bestCircleRadius * sin(t) + bestCircleCenter.y;
+    cv::circle(color, cv::Point2f(cX, cY), 1, cv::Scalar(0,0,255),1);
+  }
+  line(color, bestCircleCenter, cv::Point(color.cols/2, color.rows/2),cv::Scalar(0,255,0)); 
     
   ROS_INFO("Circle certainty: %lf", bestCirclePercentage);
 

@@ -87,7 +87,8 @@
 
 class WallFollowingStrategy {
 private:
-  bool circleVisible;
+  bool circleVisible = false;
+  int circleSeenCount = 0; //initialize stuff to 0 in constructor?
   float circleAngle;
   float circleDistance;
   float robotAngle;
@@ -100,7 +101,6 @@ private:
 
   std::vector< cv::Vec4i > res;
   std::vector< std::pair< float, float > > initialLineChoice;
-  std::vector< std::pair< int, int > > points;
   sensor_msgs::LaserScan lastScan;
   cv::Mat src;
   geometry_msgs::Twist crashHandler;
@@ -297,3 +297,4 @@ public:
   void setCurrentAngle(float angle) { robotAngle = angle; }
 };
 #endif
+
