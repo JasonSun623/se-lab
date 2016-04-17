@@ -91,6 +91,15 @@ void WallFollowingStrategy::printLinesImage(cv::Mat dst,
   }
 }
 
+bool WallFollowingStrategy::lineCondition(std::pair<cv::Vec4i, float> line, cv::Vec4i initialLineSegment){
+  float slope = calcSlope(initialLineSegment);
+  return fabs(line.second - slope) < 0.3 &&
+               abs(line.first[0] - initialLineSegment[0]) <
+                   getDifference(line.first[0], line.first[2]) &&
+               compareY(line.first[1], initialLineSegment[1]) <
+                   compareY(line.first[1], line.first[3]);
+}
+
 void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines) {
   // "bucket" for each of the group of "similar" lines
   std::vector<std::pair<cv::Vec4i, float>> temp;
@@ -103,7 +112,10 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines) {
   // loop through all the lines that have been detected by HoughLinesP
   for (size_t i = 0; i < lines.size(); i++) {
     float slope = calcSlope(lines[i]);
-
+    std::pair<cv::Vec4i, float> lastLine;
+    if (!temp.empty()){
+      lastLine = temp.back();
+    }
     // if the bucket is empty push the current line to be processed
     if (temp.empty()) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines[i], slope);
@@ -115,24 +127,19 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines) {
          points of first line segment. Taking into account that the line
          segments are not too far apart in y-direction 
          (e.g. two  parallel walls) */
-      //TODO: break up this expression, e.g. create local var for temp.back()
-    } else if (fabs(temp.back().second - slope) < 0.3 &&
-               abs(temp.back().first[0] - lines[i][0]) <
-                   getDifference(temp.back().first[0], temp.back().first[2]) &&
-               compareY(temp.back().first[1], lines[i][1]) <
-                   compareY(temp.back().first[1], temp.back().first[3])) {
+    } else if (lineCondition(lastLine, lines[i])) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines[i], slope);
       temp.push_back(p);
 
       /* case 2 and 3 of similar lines: the slopes are almost the same, but
          for the second line segment x coordinate of the starting point lies a
          bit farther from the endpoint of the first line segment */
-    } else if (slope < 0 && fabs(temp.back().second - slope) < 0.3 &&
-               abs(temp.back().first[2] - lines[i][0]) < 2) {
+    } else if (slope < 0 && fabs(lastLine.second - slope) < 0.3 &&
+               abs(lastLine.first[2] - lines[i][0]) < 2) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines[i], slope);
       temp.push_back(p);
-    } else if (slope > 0 && compareY(temp.back().first[3], lines[i][1]) < 2 &&
-               fabs(temp.back().second - slope) < 0.3) {
+    } else if (slope > 0 && compareY(lastLine.first[3], lines[i][1]) < 2 &&
+               fabs(lastLine.second - slope) < 0.3) {
       std::pair<cv::Vec4i, float> p = std::make_pair(lines[i], slope);
       temp.push_back(p);
     } else {

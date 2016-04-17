@@ -293,8 +293,13 @@ public:
   float getCurrentAngle() { return robotAngle; }
 
   /** @brief Sets the angle of the robot in the global frame
- */
+   */
   void setCurrentAngle(float angle) { robotAngle = angle; }
+
+  /** @brief Returns whether the condition for elimination of line
+   * segments is satisfied
+   */
+  bool lineCondition(std::pair<cv::Vec4i, float>, cv::Vec4i);
 };
 #endif
 
