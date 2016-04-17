@@ -232,7 +232,8 @@ public:
 
   /**
   * @brief Remove unnecessary lines from a vector of line segments (cv::Mat)
-  * @details As laser scan has noise we detect for each wall a lot of unnecessary
+  * @details As laser scan has noise we detect for each wall a lot of
+  * unnecessary
   * lines
   * we eliminate the lines that represent the same wall by finding the slope
   * along with computing the location of endpoints with respect to each other

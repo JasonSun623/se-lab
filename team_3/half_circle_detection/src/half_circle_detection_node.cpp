@@ -1,8 +1,8 @@
 /** @file half_circle_detection_node.cpp
   * @brief Main executable for half-circle detection.
   * Subscribes to ```base_scan``` for laser data.
-  * Publishes to ```half_circle_detection``` for publishing circle positions. 
-  * @author Felix Schmoll (LiftnLearn) 
+  * Publishes to ```half_circle_detection``` for publishing circle positions.
+  * @author Felix Schmoll (LiftnLearn)
   */
 
 #include <ros/ros.h>
@@ -16,7 +16,14 @@
 
 /** @brief Starts the program. */
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "half_circle_publisher");
+  if (argc < 6) {
+    ROS_ERROR("Not enough arguments for topic names. 6 expected, %d given. "
+              "Terminating half_circle_detection.",
+              argc);
+    return 1;
+  }
+
+  ros::init(argc, argv, argv[1]);
 
   ros::NodeHandle poseNode;
 
@@ -26,18 +33,20 @@ int main(int argc, char **argv) {
       "base_scan", 1, &HalfCircleDetector::receiveLaserScan, &detector);
 
   ros::Publisher posePub =
-      poseNode.advertise<geometry_msgs::Pose2D>("half_circle_detection", 1);
+      poseNode.advertise< geometry_msgs::Pose2D >(argv[2], 1);
 
   ros::NodeHandle imageHandle;
   image_transport::ImageTransport it(imageHandle);
-  image_transport::Publisher imagePub = it.advertise("laserScan_image", 1);
+  image_transport::Publisher imagePub = it.advertise(argv[3], 1);
 
   ros::Rate rate(10);
 
   while (ros::ok()) {
     posePub.publish(detector.getHalfCirclePose());
 
-    sensor_msgs::ImagePtr imagePtr = cv_bridge::CvImage(std_msgs::Header(), "CV_8U", detector.getLaserScanImage()).toImageMsg();
+    sensor_msgs::ImagePtr imagePtr =
+        cv_bridge::CvImage(std_msgs::Header(), "CV_8U",
+                           detector.getLaserScanImage()).toImageMsg();
     imagePub.publish(imagePtr);
 
     ros::spinOnce();

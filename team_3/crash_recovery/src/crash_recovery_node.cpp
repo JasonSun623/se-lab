@@ -14,11 +14,10 @@ int main(int argc, char **argv) {
 
   CrashRecoverer *recover = new CrashRecoverer();
 
-  ros::Subscriber sub = n.subscribe(
-      "base_scan", 1, &CrashRecoverer::receiveLaserScan, recover);
+  ros::Subscriber sub =
+      n.subscribe("base_scan", 1, &CrashRecoverer::receiveLaserScan, recover);
 
-  ros::Publisher pub =
-      n.advertise<geometry_msgs::Twist>("crash_recovery", 1);
+  ros::Publisher pub = n.advertise< geometry_msgs::Twist >("crash_recovery", 1);
 
   ros::Rate rate(10);
 
