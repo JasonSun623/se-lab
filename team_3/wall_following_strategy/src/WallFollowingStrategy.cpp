@@ -185,7 +185,7 @@ std::pair<float, float> WallFollowingStrategy::findMinimDistance(int left,
     if (p.first == scan.ranges[i]) {
       // will represent an angle from the robot to the line segment
       p.second = i;
-      ROS_DEBUG("Min %f\n", scan.ranges[i]);
+      //ROS_INFO("Min %f\n", scan.ranges[i]);
     }
   }
 
@@ -205,7 +205,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   int scanSize = WallFollowingStrategy::getLaserScan().ranges.size();
   // the global closest line to the robot
   std::pair<float, float> line =
-      WallFollowingStrategy::findMinimDistance(0, scanSize-1);
+      WallFollowingStrategy::findMinimDistance(0, scanSize/2);
   std::vector<cv::Vec4i> vec = getLines();
 
   // closest line segment on the right range of laser scan with respect to the
@@ -214,7 +214,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
      omission of all values to the right of the robot, which is extremely
      questionable; the current implementation does not work though if you change
      it to the correct value */
-  std::pair<float, float> right = this->findMinimDistance(180, 250);
+  std::pair<float, float> right = this->findMinimDistance(scanSize/4, scanSize/3);
 
   // if no data is received yet
   if (!src.size().height) {

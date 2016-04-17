@@ -259,7 +259,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   }
   line(color, bestCircleCenter, cv::Point(color.cols/2, color.rows/2),cv::Scalar(0,255,0)); 
     
-  ROS_INFO("Circle certainty: %lf", bestCirclePercentage);
+  //ROS_INFO("Circle certainty: %lf", bestCirclePercentage);
 
   cv::imwrite("/home/robotics/color.jpg", color);
 
