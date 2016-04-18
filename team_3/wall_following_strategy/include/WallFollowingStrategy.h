@@ -34,22 +34,6 @@
 #include <algorithm>
 #include <cmath>
 
-#define LASER_RANGE 3.9
-
-#define LINEAR_VEL 1.0
-
-/**
- * @brief The amount of variation that is allowed before direction is corrected
- * [deg]
- */
-#define VARIATION_THRESHOLD 8
-
-/**
-  * @brief The value for which realignment is being done. If the value is
- * smaller we don't correct anymore. [deg]
-  */
-#define HYSTERESIS 2
-
 /**
  * @brief Angular velocity value that is used to turn
  */
@@ -61,30 +45,34 @@
 #define MAX_TURN 0.8
 
 /**
- * @brief Angular velocity for scanning for circle
- */
-#define SCAN_VELOCITY 0.5
-
-/**
  * @brief Minimum allowed distance to obstacles
  */
-#define MIN_DISTANCE 0.5
+#define WALL_DISTANCE 0.3
 
 /**
-  * @brief Limiting integers to be within a certain range.
-  */
-#define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
+ * @brief Linear velocity value that is used in usual routine of the robot
+ */
+#define LINEAR_VELOCITY 0.3
 
 /**
-  * @brief Factor to define an image dimensions
-  */
-
-#define STRETCH_FACTOR 100
+ * @brief Angular velocity value that is used to turn to a circle
+ */
+#define TURN_CIRCLE_CORRECTION 0.035
 
 /**
-  * @brief Compound class for wall-following strategy implementation
-  */
+ * @brief Linear velocity value that is used in case a robot is too close
+ * to the wall
+ */
+#define CRASH_VELOCITY -0.1
 
+/**
+ * @brief Smaller values for slope of the line segment are neglected
+ */
+#define EPSILON_SLOPE 0.1
+
+/**
+ * @brief Compound class for wall-following strategy implementation
+ */
 class WallFollowingStrategy {
 private:
   bool circleVisible = false;
@@ -92,7 +80,7 @@ private:
   float circleAngle;
   float circleDistance;
   float robotAngle;
-
+  int circleCallCount = 0;
   bool crashMode;
   bool followWall;
   bool circleFoundMode;
@@ -300,6 +288,18 @@ public:
    * segments is satisfied
    */
   bool lineCondition(std::pair<cv::Vec4i, float>, cv::Vec4i);
+
+  /** @brief Helper function for retrieving float environment variables declared in the launch file. */
+  void getEnvironmentVariable(const char* varString, float& var) {
+    char* c;
+
+    c = std::getenv(varString); 
+    if(!c) { 
+      ROS_INFO("Environment variable %s not found. Using %lf as a default value.", varString, var);
+    } else {
+      var = std::stof(std::string(c)); 
+    }
+  }
 };
 #endif
 
