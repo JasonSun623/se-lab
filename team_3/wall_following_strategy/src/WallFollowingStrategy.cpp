@@ -29,12 +29,12 @@ void WallFollowingStrategy::receiveCirclePosition(
 //    circleSeenCount = std::max(circleSeenCount - 1, 0);
 //    if(circleSeenCount == 0) {
       circleVisible = false;
-//      circleFoundMode = false;
+      //circleFoundMode = false;
 //    }
     return;
   }
 
-//  circleSeenCount = std::min(circleSeenCount + 1, 4); 
+//  circleSeenCount = std::min(circleSeenCount + 1, 4);
   circleVisible = true;
   circleAngle = circlePose->theta * (180 / M_PI);
   circleDistance = sqrt(pow(circlePose->x, 2) + pow(circlePose->y, 2));
@@ -206,14 +206,12 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   // the global closest line to the robot
   std::pair<float, float> line =
       WallFollowingStrategy::findMinimDistance(0, scanSize/2);
+  std::pair<float, float> lLine =
+      WallFollowingStrategy::findMinimDistance(scanSize/2, scanSize -1);
   std::vector<cv::Vec4i> vec = getLines();
 
   // closest line segment on the right range of laser scan with respect to the
   // robot
-  /* TODO: this 250 comes from the previous macro, but it leads basically to the
-     omission of all values to the right of the robot, which is extremely
-     questionable; the current implementation does not work though if you change
-     it to the correct value */
   std::pair<float, float> right = this->findMinimDistance(scanSize/4, scanSize/3);
 
   // if no data is received yet
@@ -222,30 +220,43 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     return msg;
   }
 
+  if (crashMode) {
+    ROS_INFO("Crash!");
+    msg.linear.x = crashHandler.linear.x;
+    msg.angular.z = crashHandler.angular.z;
+    return msg;
+  }
+
   // finding of circle is prioritized to other maneuvers
   if (circleVisible && circleDistance != 0) {
-    circleFoundMode = true;
-    ROS_INFO("Found Circle!");
-
+    ROS_INFO("Found Circle! %f %f", circleDistance,circleAngle);
+    circleFoundMode = true; 
     // the angle to follow with respect to the norm
     float variationToCircle = 90 - circleAngle;
     msg.angular.z = std::min(MAX_TURN, 0.035 * variationToCircle);
     msg.linear.x = 0.3;
+    std::cout << circleDistance << "right " << line.first << "left " << lLine.first << std::endl;
+    // if (!circleVisible || line.first < 0.3 || lLine.first < 0.3){
+    //   circleFoundMode = false;
+    // } 
+    
     return msg;
-  }
-
-  if (crashMode && !circleFoundMode) {
-    ROS_INFO("Crash!");
-    msg.linear.x = crashHandler.linear.x;
-    msg.angular.z = crashHandler.angular.z;
-
-    return msg;
+    
   }
 
   //TODO: create macros/variables for all magic numbers here (0.3,0.5,...)
   // movement of the robot in free space
   if (line.first > 0.3 && !followWall && !circleFoundMode) {
     msg.linear.x = 0.3;
+    std::cout << line.first << std::endl;
+    return msg;
+  }
+
+  if (lLine.first < 0.2){
+    msg.angular.z = M_PI / 10;
+    msg.linear.x = -0.15;
+    if (circleFoundMode)
+      circleFoundMode = false;
     return msg;
   }
 
@@ -299,7 +310,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     msg.angular.z = std::min(MAX_TURN, TURN_CORRECTION * variation);
     this->setCorrecting(false);
   }
-
+  ROS_INFO("FOUND CIRCLE: %d", circleFoundMode);
   return msg;
 }
 
