@@ -35,40 +35,14 @@
 #include <cmath>
 
 /**
- * @brief Angular velocity value that is used to turn
- */
-#define TURN_CORRECTION 0.01
-
-/**
   * @brief Upper speed for turning rate
   */
-#define MAX_TURN 0.8
-
-/**
- * @brief Minimum allowed distance to obstacles
- */
-#define WALL_DISTANCE 0.3
-
-/**
- * @brief Linear velocity value that is used in usual routine of the robot
- */
-#define LINEAR_VELOCITY 0.3
-
-/**
- * @brief Angular velocity value that is used to turn to a circle
- */
-#define TURN_CIRCLE_CORRECTION 0.035
-
-/**
- * @brief Linear velocity value that is used in case a robot is too close
- * to the wall
- */
-#define CRASH_VELOCITY -0.1
+#define MAX_TURN 0.8f
 
 /**
  * @brief Smaller values for slope of the line segment are neglected
  */
-#define EPSILON_SLOPE 0.1
+#define EPSILON_SLOPE 0.1f
 
 /**
  * @brief Compound class for wall-following strategy implementation
@@ -87,6 +61,12 @@ private:
   bool correcting;
   bool cornerEdge;
 
+  float linearVelocity = 0.3;
+  float wallDistance = 0.3;
+  float crashVelocity = -0.1;
+  float turnCorrection = 0.01;
+  float turnCircleCorrection = 0.035;
+
   std::vector< cv::Vec4i > res;
   std::vector< std::pair< float, float > > initialLineChoice;
   sensor_msgs::LaserScan lastScan;
@@ -94,6 +74,18 @@ private:
   geometry_msgs::Twist crashHandler;
 
 public:
+
+  /** @brief Constructor for HalfCircleDetector.
+   *  Here the environment variables are loaded.
+   */
+  WallFollowingStrategy() {
+    getEnvironmentVariable("LINEAR_VEL", linearVelocity);
+    getEnvironmentVariable("WALL_FOLLOWING_DISTANCE", wallDistance);
+    getEnvironmentVariable("CRASH_VELOCITY", crashVelocity);
+    getEnvironmentVariable("TURN_CORRECTION", turnCorrection);
+    getEnvironmentVariable("TURN_CIRCLE_CORRECTION", turnCircleCorrection);
+  }
+
   /**
   * @brief Gets position of a circle if detected as a Pose2D message
   * @param circlePos Pose2D message about location of the circle(x,y coordinates
@@ -221,11 +213,6 @@ public:
   * HoughLinesP function from OpenCV
   */
   void removeLines(std::vector< cv::Vec4i > lines1);
-
-  /** @brief Interpolates the data up to the requested resolution using linear
-  * interpolation.
-  */
-  float interpolate(int, int, std::vector< float >);
 
   /** @brief Gets number of line segments after elimination
   */
