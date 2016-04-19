@@ -18,9 +18,12 @@
 
 /** include messages */
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/image_encodings.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/Polygon.h>
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
 
 /** include OpenCV */
 #include <opencv2/opencv.hpp>
@@ -31,82 +34,58 @@
 #include <algorithm>
 #include <cmath>
 
-#define RANGES 250
-
-#define LASER_RANGE 3.9
-
-#define LINEAR_VEL 1.0
-
-/**
- * @brief The amount of variation that is allowed before direction is corrected
- * [deg]
- */
-#define VARIATION_THRESHOLD 8
-
-/**
-  * @brief The value for which realignment is being done. If the value is
- * smaller we don't correct anymore. [deg]
-  */
-#define HYSTERESIS 2
-
-/**
- * @brief Angular velocity value that is used to turn
- */
-#define TURN_CORRECTION 0.01
-
 /**
   * @brief Upper speed for turning rate
   */
-#define MAX_TURN 0.8
+#define MAX_TURN 0.8f
 
 /**
- * @brief Angular velocity for scanning for circle
+ * @brief Smaller values for slope of the line segment are neglected
  */
-#define SCAN_VELOCITY 0.5
+#define EPSILON_SLOPE 0.1f
 
 /**
- * @brief Minimum allowed distance to obstacles
+ * @brief Compound class for wall-following strategy implementation
  */
-#define MIN_DISTANCE 0.5
-
-/**
-  * @brief Limiting integers to be within a certain range.
-  */
-#define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
-
-/**
-  * @brief Factor to define an image dimensions
-  */
-
-#define STRETCH_FACTOR 100
-
-/**
-  * @brief Compound class for wall-following strategy implementation
-  */
-
 class WallFollowingStrategy {
 private:
-  bool circleVisible;
+  bool circleVisible = false;
+  int circleSeenCount = 0; //initialize stuff to 0 in constructor?
   float circleAngle;
   float circleDistance;
   float robotAngle;
-
+  int circleCallCount = 0;
   bool crashMode;
-  bool cornerStuck;
   bool followWall;
   bool circleFoundMode;
   bool correcting;
   bool cornerEdge;
 
+  float linearVelocity = 0.3;
+  float wallDistance = 0.3;
+  float crashVelocity = -0.1;
+  float turnCorrection = 0.01;
+  float turnCircleCorrection = 0.035;
+
   std::vector< cv::Vec4i > res;
   std::vector< std::pair< float, float > > initialLineChoice;
-  std::vector< std::pair< int, int > > points;
   sensor_msgs::LaserScan lastScan;
   cv::Mat src;
-  geometry_msgs::Twist cornerHandler;
   geometry_msgs::Twist crashHandler;
 
 public:
+
+  /** @brief Constructor for HalfCircleDetector.
+   *  Here the environment variables are loaded.
+   */
+  WallFollowingStrategy() {
+    getEnvironmentVariable("LINEAR_VEL", linearVelocity);
+    getEnvironmentVariable("WALL_FOLLOWING_DISTANCE", wallDistance);
+    getEnvironmentVariable("CRASH_VELOCITY", crashVelocity);
+    getEnvironmentVariable("TURN_CORRECTION", turnCorrection);
+    getEnvironmentVariable("TURN_CIRCLE_CORRECTION", turnCircleCorrection);
+  }
+
   /**
   * @brief Gets position of a circle if detected as a Pose2D message
   * @param circlePos Pose2D message about location of the circle(x,y coordinates
@@ -115,18 +94,16 @@ public:
   void receiveCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePos);
 
   /**
-  * @brief Receives a laser scan message and creates an OpenCV image
+  * @brief Receives a laser scan message
   * @param laserScan LaserScan Message with information about the distances
   */
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
   /**
-  * @brief Receives a message from corner_handling topic of robot behavior
-  * in case of detecting a corner or an obstacle
-  * @details Slowly moves the robot out of the corner or in the opposite to
-  * the wall direction without touching touching other obstacles/walls.
-  */
-  void getCornerRecovery(const geometry_msgs::Twist::ConstPtr &cornerOut);
+   * @brief Callback for receiving OpenCV images from half_circle_detection.
+   * @param msg Pointer to the new OpenCV image
+   */
+  void receiveOpenCVImage(const sensor_msgs::ImageConstPtr& msg);
 
   /**
   * @brief Receives a message from crash_recovery topic of robot behavior
@@ -144,10 +121,6 @@ public:
   * @brief Returns whether a robot crashed into the obstacle or not
   */
   bool getCrashMode();
-  /**
-  * @brief Returns whether a robot has stuck in a corner or not
-  */
-  bool getCornerHandle();
 
   /**
   * @brief Comparison function for std::sort
@@ -240,18 +213,6 @@ public:
   * HoughLinesP function from OpenCV
   */
   void removeLines(std::vector< cv::Vec4i > lines1);
-  /**
-  * @brief Converts the laserScan-data from polar into cartesian coordinates.
-  * Then cleans the data from various problems and finally translates the points
-  * into pixels on an actual image (in form of an OpenCV-matrix).
-  */
-  cv::Mat
-  createOpenCVImageFromLaserScan(const sensor_msgs::LaserScan::ConstPtr &);
-
-  /** @brief Interpolates the data up to the requested resolution using linear
-  * interpolation.
-  */
-  float interpolate(int, int, std::vector< float >);
 
   /** @brief Gets number of line segments after elimination
   */
@@ -307,7 +268,25 @@ public:
   float getCurrentAngle() { return robotAngle; }
 
   /** @brief Sets the angle of the robot in the global frame
- */
+   */
   void setCurrentAngle(float angle) { robotAngle = angle; }
+
+  /** @brief Returns whether the condition for elimination of line
+   * segments is satisfied
+   */
+  bool lineCondition(std::pair<cv::Vec4i, float>, cv::Vec4i);
+
+  /** @brief Helper function for retrieving float environment variables declared in the launch file. */
+  void getEnvironmentVariable(const char* varString, float& var) {
+    char* c;
+
+    c = std::getenv(varString); 
+    if(!c) { 
+      ROS_INFO("Environment variable %s not found. Using %lf as a default value.", varString, var);
+    } else {
+      var = std::stof(std::string(c)); 
+    }
+  }
 };
 #endif
+

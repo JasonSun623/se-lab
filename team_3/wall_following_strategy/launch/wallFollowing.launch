@@ -1,47 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
 
+  <!-- For half circle detection -->
   <!-- Threshold (in meters) from which on distance values are not considered objects anymore. -->
 	<env name="LASER_RANGE" value="3.9" />
 	<env name="RANGE" value="10.0" />
 
-  <!-- For half circle detection -->
+  <!-- Parameter determines the size of the image converted from laserscan data-->
+	<env name="STRETCH_FACTOR" value="100" />
+
   <!-- If the robot is too close to a wall the half-circle detection does not work properly. This is the threshold in meters that define 'too close'. -->
-  <env name="HALFCIRCLE_DETECTION_DISTANCE" value="0.3" />
-  <!-- Radius of the half circle to be detected in meters. -->
-  <env name="HALFCIRCLE_RADIUS" value="0.25" />
+  	<env name="HALFCIRCLE_DETECTION_DISTANCE" value="0.3" />
+  	<!-- Radius of the half circle to be detected in meters. -->
+  	<env name="HALFCIRCLE_RADIUS" value="0.25" />
 
 	<!-- For crash recovery -->
 	<env name="CRASH_DISTANCE" value="0.05" />
 
-	<!-- For corner handling-->
-	<env name="CRITICAL_DISTANCE" value="0.1" />
-
 	<!-- For wall-following strategy -->
-	<env name="LINEAR_VEL" value="1.0" />
-	<env name="WALL_FOLLOWING_DISTANCE" value="0.2" />
+	<env name="LINEAR_VEL" value="0.3" />
+	<env name="WALL_FOLLOWING_DISTANCE" value="0.3" />
 
-	<!-- The amount of variation that is allowed before direction is corrected. [deg] -->
-	<env name="VARIATION_THRESHOLD" value="8" />
-
-	<!-- The value for which realignment is being done. If the value is smaller we don't correct anymore. [deg]-->
-	<env name="HYSTERESIS" value="2" />
+	<!-- Linear velocity value that is used in case a robot is too close
+ 	to the wall -->
+	<env name= "CRASH_VELOCITY" value= "-0.1" />
 
 	<!-- Angular velocity value that is used to turn (multiplier for proportional controller) -->
 	<env name="TURN_CORRECTION" value="0.01" />
-
-	<!-- Upper limit for turn correction -->
-	<env name="MAX_TURN" value="0.8" />
-
-	<!-- Angular velocitiy when scanning for circle -->
-	<env name="SCAN_VELOCITY" value="0.5" />
-
-	<!-- Minimum distance allowed toward obstacles -->
-	<env name="MIN_DISTANCE" value="0.5" />
+	<env name="TURN_CIRCLE_CORRECTION" value="0.035" />
 
 	<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition03.world"/>
 	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" output="screen"/>
 	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen"/>
-	<node pkg="corner_handling" type="corner_handling_node" name="corner_handling" output="screen"/>
 	<node pkg="crash_recovery" type="crash_recovery_node" name="crash_recovery" output="screen"/>
 </launch>

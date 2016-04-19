@@ -84,7 +84,7 @@ private:
   std::vector<cv::Point2f> points;
 
   float laserRange = 3.9;
-  float minimumDistance = 0.4;
+  float minimumDistance = 0.15;
   float halfCircleRadius = 0.18;
   /** @brief Factor by which distances are scaled up in image (e.g. 100 px for 1m). */
   float stretchFactor = 100;
