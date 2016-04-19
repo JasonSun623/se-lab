@@ -22,24 +22,21 @@
 /**
   * Fixed sequence of linear velocities
   */
-float linVelocities [RECOVERY_STEPS] = {
-  -0.2, -0.3, -0.5, -0.7, -0.7,
-  -0.7, -0.7, -0.5, -0.3, -0.2
-};
+float linVelocities[RECOVERY_STEPS] = {-0.2, -0.3, -0.5, -0.7, -0.7,
+                                       -0.7, -0.7, -0.5, -0.3, -0.2};
 
 /**
   * Fixed sequence of angular velocities
   */
-float angVelocities [RECOVERY_STEPS] = {
-  0.0, 0.0, 0.0, 0.2, 0.4,
-  0.4, 0.4, 0.4, 0.2, 0.0
-};
+float angVelocities[RECOVERY_STEPS] = {0.0, 0.0, 0.0, 0.2, 0.4,
+                                       0.4, 0.4, 0.4, 0.2, 0.0};
 
 void CrashRecoverer::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
   geometry_msgs::Twist msg;
 
-  float min = *std::min_element(laserScan->ranges.begin(), laserScan->ranges.end());
+  float min =
+      *std::min_element(laserScan->ranges.begin(), laserScan->ranges.end());
 
   if (min < CRASH_DISTANCE) {
     // Crash condition, change state

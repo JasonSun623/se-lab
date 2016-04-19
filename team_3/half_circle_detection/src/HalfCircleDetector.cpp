@@ -13,12 +13,15 @@ void HalfCircleDetector::receiveLaserScan(
   pose.y = -1;
   pose.theta = -1;
 
-  //ignore measurements if wall too close
-  if(*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) > minimumDistance) {
-    cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
+  // ignore measurements if wall too close
+  if (*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) >
+      minimumDistance) {
+    cv::Mat image =
+        HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
+    setLaserScanImage(image);
     pose = HalfCircleDetector::detectHalfCircle(image);
   }
-  
+
   setHalfCirclePose(pose);
 }
 
@@ -28,8 +31,8 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 
   int numOfValues = laserScan->ranges.size();
 
-  int imageHeight = 8 * STRETCH_FACTOR;
-  int imageWidth = 16 * STRETCH_FACTOR;
+  int imageHeight = 8 * stretchFactor;
+  int imageWidth = 16 * stretchFactor;
 
   cv::Mat image(imageHeight, imageWidth, CV_8U, cv::Scalar::all(0));
 
@@ -42,22 +45,23 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
       continue;
     }
 
-    float alpha =
-        laserScan->angle_min + i * laserScan->angle_increment;
+    float alpha = laserScan->angle_min + i * laserScan->angle_increment;
     int sign = alpha < 0 ? -1 : 1;
 
     float opp = std::abs(hyp * std::sin(alpha));
     float adj = hyp * std::cos(alpha);
 
     // make sure that values are always within bounds
-    int x = RANGE(0, static_cast<int>((imageWidth / 2) + STRETCH_FACTOR * opp * sign),
-                  imageWidth - 1);
-    int y = RANGE(0, static_cast<int>((imageHeight / 2) + adj * STRETCH_FACTOR),
-                  imageHeight - 1);
+    int x = RANGE(
+        0, static_cast< int >((imageWidth / 2) + stretchFactor * opp * sign),
+        imageWidth - 1);
+    int y =
+        RANGE(0, static_cast< int >((imageHeight / 2) + adj * stretchFactor),
+              imageHeight - 1);
 
     HalfCircleDetector::points.push_back(cv::Point2f(x, y));
 
-    image.at<unsigned char>(cv::Point(x, y)) = 255;
+    image.at< unsigned char >(cv::Point(x, y)) = 255;
   }
 
   return image;
@@ -65,29 +69,23 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 
 float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
                                        float radius,
-                                       std::vector<cv::Point2f> &inlierSet,
+                                       std::vector< cv::Point2f > &inlierSet,
                                        float semiCircleStart) {
   int counter = 0;
   int inlier = 0;
 
-  float minInlierDist = 1.0f;
-  float maxInlierDistMax = 100.0f;
+  //has to be at least 1.0
   float maxInlierDist = 2.0f;
 
-  if (maxInlierDist < minInlierDist)
-    maxInlierDist = minInlierDist;
-  if (maxInlierDist > maxInlierDistMax)
-    maxInlierDist = maxInlierDistMax;
-
   // choose samples along the circle and count inlier percentage
-for (float t = semiCircleStart; t < semiCircleStart + M_PI; t += 0.05f) {
+  for (float t = semiCircleStart; t < semiCircleStart + M_PI; t += 0.05f) {
     counter++;
     float cX = radius * cos(t) + center.x;
     float cY = radius * sin(t) + center.y;
 
     if (cX < dt.cols && cX >= 0) {
       if (cY < dt.rows && cY >= 0) {
-        if (dt.at<float>(cY, cX) < maxInlierDist) {
+        if (dt.at< float >(cY, cX) < maxInlierDist) {
           inlier++;
           inlierSet.push_back(cv::Point2f(cX, cY));
         }
@@ -95,7 +93,7 @@ for (float t = semiCircleStart; t < semiCircleStart + M_PI; t += 0.05f) {
     }
   }
 
-  return (static_cast<float>(inlier) / static_cast<float>(counter));
+  return (static_cast< float >(inlier) / static_cast< float >(counter));
 }
 
 void HalfCircleDetector::getCircle(cv::Point2f &p1, cv::Point2f &p2,
@@ -125,47 +123,42 @@ void HalfCircleDetector::getCircle(cv::Point2f &p1, cv::Point2f &p2,
 }
 
 float HalfCircleDetector::distance(cv::Point2f &a, cv::Point2f &b) {
-
   return sqrt(pow((a.x - b.x), 2) + pow((a.y - b.y), 2));
 }
 
 void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
                                          int &rightIndex, int &leftIndex,
-                                         std::vector<cv::Point2f> &v) {
+                                         std::vector< cv::Point2f > &v) {
 
   ++rightIndex;
-  float errorMargin = 0.03 * STRETCH_FACTOR;
-  float halfCircleRadius =
-      0.15 * STRETCH_FACTOR; // about 30 cm height for circle
+  float errorMargin = 0.02 * stretchFactor;
+  float halfCircleRadiusPixel = halfCircleRadius * stretchFactor;
 
-  while (rightIndex < static_cast<int>(v.size())) {
-    // semi-circle dimensions: 30cm x 16cm
-
+  while (rightIndex < static_cast< int >(v.size())) {
     float difference = fabs(distance(v[rightIndex], v[leftIndex]));
-    if (difference > (halfCircleRadius * 2 + errorMargin)) {
+
+    if (difference > (halfCircleRadiusPixel * 2 + errorMargin)) {
       ++leftIndex;
-    } else if (difference < (halfCircleRadius * 2 - errorMargin)) {
+    } else if (difference < (halfCircleRadiusPixel * 2 - errorMargin)) {
       ++rightIndex;
     } else {
-
       first = leftIndex;
       second = rightIndex;
       third = (leftIndex + rightIndex) / 2;
       return;
     }
   }
+
   first = leftIndex;
   second = rightIndex - 1;
   third = (leftIndex + rightIndex - 1) / 2;
-  return;
 }
-
 
 geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
 
   cv::threshold(image, image, 100, 255, CV_THRESH_BINARY);
 
-  std::vector<cv::Point2f> edgePositions;
+  std::vector< cv::Point2f > edgePositions;
   edgePositions = points;
 
   // create distance transform to efficiently evaluate distance to nearest edge
@@ -177,20 +170,17 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   cv::Point2f bestCircleCenter;
   float bestCircleRadius;
   float bestCirclePercentage = 0;
-  float minRadius = halfCircleRadius -0.03; // TODO: make this configurable/macro/put in config file
-  float maxRadius = halfCircleRadius + 0.03; //in meter [m]
+  float minRadius = halfCircleRadius - 0.03;
+  float maxRadius = halfCircleRadius + 0.03;
 
-  float minCirclePercentage = 0.45f;
-  float maxCirclePercentage = 1.0f;
-
-  int maxNrOfIterations =
-      edgePositions.size(); 
+  int maxNrOfIterations = edgePositions.size();
 
   int rightIndex = 0;
   int leftIndex = 0;
 
-  for (unsigned int its = 0;
-       its < maxNrOfIterations && rightIndex < static_cast<int>(edgePositions.size()); ++its) {
+  for (unsigned int its = 0; its < maxNrOfIterations &&
+           rightIndex < static_cast< int >(edgePositions.size());
+       ++its) {
     // RANSAC: randomly choose 3 point and create a circle:
     int idx1 = 0;
     int idx2 = 0;
@@ -205,24 +195,25 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
               center, radius);
     // inlier set unused at the moment but could be used to approximate a (more
     // robust) circle from alle inlier
-    std::vector<cv::Point2f> inlierSet;
+    std::vector< cv::Point2f > inlierSet;
 
-    float m_x = (image.cols/2 - center.x);
-    float m_y = (image.rows/2 - center.y);
+    float m_x = (image.cols / 2 - center.x);
+    float m_y = (image.rows / 2 - center.y);
 
     float alpha = atan2(-m_x, m_y);
-
 
     // verify or falsify the circle by inlier counting:
     float cPerc = verifyCircle(dt, center, radius, inlierSet, alpha);
 
     // update best circle information if necessary
-    if (cPerc >= bestCirclePercentage && cPerc < maxCirclePercentage)
-      if (radius/STRETCH_FACTOR >= minRadius && radius/STRETCH_FACTOR <= maxRadius) {
+    if (cPerc >= bestCirclePercentage) {
+      if (radius / stretchFactor >= minRadius &&
+          radius / stretchFactor <= maxRadius) {
         bestCirclePercentage = cPerc;
         bestCircleRadius = radius;
         bestCircleCenter = center;
       }
+    }
   }
 
   geometry_msgs::Pose2D pose;
@@ -236,34 +227,43 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
                       image.rows / 2);
   }
 
-    cv::circle(image, bestCircleCenter, bestCircleRadius, cv::Scalar(255,255,0), 1);
+  ROS_DEBUG("Circle certainty: %lf", bestCirclePercentage);
 
-    float m_x = (image.cols/2 - bestCircleCenter.x);
-    float m_y = (image.rows/2 - bestCircleCenter.y);
-
-    float alpha = atan2(-m_x, m_y);
-    //make color image, draw red circle at starting point
-
-    cv::Mat color(image);
-    cv::cvtColor(color, color, CV_GRAY2BGR);
-
-    cv::Point s(bestCircleCenter.x + cos(alpha)*bestCircleRadius, bestCircleCenter.y + sin(alpha)*bestCircleRadius);
-
-    cv::circle(color, s, 6, cv::Scalar(0,0,255),1);     
-
-    //draw tested points
-    for (float t = alpha; t < alpha + M_PI; t += 0.05f) {
-      float cX = bestCircleRadius * cos(t) + bestCircleCenter.x;
-      float cY = bestCircleRadius * sin(t) + bestCircleCenter.y;
-      cv::circle(color, cv::Point2f(cX, cY), 1, cv::Scalar(0,0,255),1);
-    }
-    line(color, bestCircleCenter, cv::Point(color.cols/2, color.rows/2),cv::Scalar(0,255,0)); 
-    
-    std::cout << bestCirclePercentage << std::endl;
-
-  cv::imwrite("/home/robotics/color.jpg", color);
+  drawHalfCircle(image, bestCircleRadius, bestCircleCenter);
 
   return pose;
+}
+
+void HalfCircleDetector::drawHalfCircle(cv::Mat image, float bestCircleRadius, cv::Point2f bestCircleCenter) {
+  cv::Mat color(image);
+  cv::cvtColor(color, color, CV_GRAY2BGR);
+
+  cv::circle(color, bestCircleCenter, bestCircleRadius, cv::Scalar(255, 255, 0), 1);
+
+  float m_x = (image.cols / 2 - bestCircleCenter.x);
+  float m_y = (image.rows / 2 - bestCircleCenter.y);
+
+  float alpha = atan2(-m_x, m_y);
+
+  cv::Point s(bestCircleCenter.x + cos(alpha) * bestCircleRadius,
+              bestCircleCenter.y + sin(alpha) * bestCircleRadius);
+
+  cv::circle(color, s, 6, cv::Scalar(0, 0, 255), 1);
+
+  // draw tested points
+  for (float t = alpha; t < alpha + M_PI; t += 0.05f) {
+    float cX = bestCircleRadius * cos(t) + bestCircleCenter.x;
+    float cY = bestCircleRadius * sin(t) + bestCircleCenter.y;
+    cv::circle(color, cv::Point2f(cX, cY), 1, cv::Scalar(0, 0, 255), 1);
+  }
+
+  line(color, bestCircleCenter, cv::Point(color.cols / 2, color.rows / 2),
+       cv::Scalar(0, 255, 0));
+
+  std::string path = ros::package::getPath("half_circle_detection");
+  path += "/halfCircle.jpg";
+
+  cv::imwrite(path, color);
 }
 
 geometry_msgs::Pose2D HalfCircleDetector::getHalfCirclePose() {
@@ -281,8 +281,8 @@ geometry_msgs::Pose2D HalfCircleDetector::createPose(int posX, int posY,
   if (posX == -1) {
     msg.x = msg.y = msg.theta = -1;
   } else {
-    msg.x = (posX - robotX) / static_cast<float>(STRETCH_FACTOR);
-    msg.y = (posY - robotY) / static_cast<float>(STRETCH_FACTOR);
+    msg.x = (posX - robotX) / static_cast< float >(stretchFactor);
+    msg.y = (posY - robotY) / static_cast< float >(stretchFactor);
     msg.theta = std::atan2(msg.y, msg.x);
   }
 
