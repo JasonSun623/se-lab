@@ -14,7 +14,15 @@
 
 #include "../include/HalfCircleDetector.h"
 
-/** @brief Starts the program. */
+/** @brief Starts the program. 
+  * @param[in] argc Number of Arguments
+  * @param[in] argv Array of Arguments 
+  *   - [0] Program name
+  *   - [1] Topic name for receiving LaserScans
+  *   - [2] Topic name for publishing detected half circles
+  *   - [3] Topic name for publishing OpenCV images
+  *   - ... other ros-specific arguments
+  */
 int main(int argc, char **argv) {
   if (argc < 6) {
     ROS_ERROR("Not enough arguments for topic names. 6 expected, %d given. "
