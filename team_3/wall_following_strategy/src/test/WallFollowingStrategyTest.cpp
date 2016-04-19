@@ -78,36 +78,6 @@ TEST(WallFollowingStrategyTest, controlMovementTestCase) {
   ASSERT_GT(out.angular.z, 0);
 }
 
-TEST(WallFollowingStrategyTest, getCornerRecoveryTestCase) {
-
-  geometry_msgs::Twist msg;
-  msg.linear.x = 0;
-  msg.linear.y = 3;
-  msg.angular.x = 9;
-  msg.angular.y = 1;
-  msg.angular.z = 5;
-
-  std::string path = ros::package::getPath("wall_following_strategy");
-  path += "/src/Image.jpg";
-  cv::Mat image = cv::imread(path);
-
-  const geometry_msgs::Twist::ConstPtr cornerRecovPtr(
-      new geometry_msgs::Twist(msg));
-  WallFollowingStrategyPtr ptr(new WallFollowingStrategy());
-
-  ptr->getCornerRecovery(cornerRecovPtr);
-  ptr->setImage(image);
-
-  geometry_msgs::Twist out = ptr->controlMovement();
-
-  ASSERT_TRUE(ptr->getCornerHandle());
-  ASSERT_EQ(out.linear.x, 0);
-  ASSERT_EQ(out.linear.y, 3);
-  ASSERT_EQ(out.angular.x, 9);
-  ASSERT_EQ(out.angular.y, 1);
-  ASSERT_EQ(out.angular.z, 5);
-}
-
 TEST(WallFollowingStrategyTest, getCrashRecoveryTestCase) {
 
   geometry_msgs::Twist msg;

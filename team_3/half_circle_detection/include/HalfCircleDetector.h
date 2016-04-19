@@ -19,6 +19,7 @@
 
 /* ROS include */
 #include <ros/ros.h>
+#include <ros/package.h>
 
 /* ROS message type includes */
 #include <sensor_msgs/LaserScan.h>
@@ -45,13 +46,11 @@
   */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
-
 /**
   * @brief Compound class for detecting half-circles.
   */
 class HalfCircleDetector {
 public:
-  
   /** @brief Constructor for HalfCircleDetector.
    *  Here the environment variables are loaded.
    */
@@ -60,6 +59,7 @@ public:
     getEnvironmentVariable("HALFCIRCLE_DETECTION_DISTANCE", minimumDistance);
     getEnvironmentVariable("HALFCIRCLE_RADIUS", halfCircleRadius);
     getEnvironmentVariable("STRETCH_FACTOR", stretchFactor);
+    getEnvironmentVariable("MIN_CIRCLE_PERCENTAGE", minCirclePercentage);
   }
 
   /** @brief Processes a sensor_msgs::LaserScan and calls necessary other
@@ -81,29 +81,27 @@ public:
 
 private:
   /** @brief Contains all points drawn onto the last OpenCV-image. */
-  std::vector<cv::Point2f> points;
+  std::vector< cv::Point2f > points;
 
+  /** @brief Maximum measurement distance of laserScanner. */
   float laserRange = 3.9;
+  /** @brief Prevent taking corners as half-circles if robot too close to wall.
+   */
   float minimumDistance = 0.15;
+  /** @brief Approximate radius of half-circle in meters. */
   float halfCircleRadius = 0.18;
-  /** @brief Factor by which distances are scaled up in image (e.g. 100 px for 1m). */
+  /** @brief Factor by which distances are scaled up in image (e.g. 100 px for
+   * 1m). */
   float stretchFactor = 100;
-  
+
+  /** @brief Cutoff threshold for considering something as half circle. */
+  float minCirclePercentage = 0.5f;
+
+  /** @brief OpenCV representation of latest laserScan */
   cv::Mat laserScanImage;
 
-  /** Last computed half-circle pose */
+  /** @brief Last computed half-circle pose */
   geometry_msgs::Pose2D halfCirclePose;
-
-  /** @brief Uses linear interpolation to increase the resolution of the
-   * OpenCV-image generated from a LaserScan.
-   * Interpolates the data up to the requested resolution using linear
-   * interpolation.
-   * @param index Index of the point to be interpolated
-   * @param resolution Resolution of the generated points
-   * @param data Vector of all data points
-   * @param size Size of the data vector
-   * @return Interpolated function value, or -1 if not successful */
-  float interpolate(int index, int resolution, std::vector<float> data);
 
   /** @brief Takes a LaserScan and returns an OpenCV-image
    * Converts the laserScan-data from polar into cartesian coordinates.
@@ -150,9 +148,12 @@ private:
    * @param inlierSet Reference to container for points detected to be within
    * the circle. Can be for further used for verifying that an actual circle is
    * present.
+   * @param semiCircleStart Angle in radius from which semiCircle is searched
+   * for (starting at bottom and going clockwise).
    * @return Percentage of circle covered [0,1]*/
   float verifyCircle(cv::Mat dt, cv::Point2f center, float radius,
-                     std::vector<cv::Point2f> &inlierSet, float semiCircleStart);
+                     std::vector< cv::Point2f > &inlierSet,
+                     float semiCircleStart);
 
   /** @brief Constructs a circle out of three given points on the circle.
    *  Mostly taken from http://stackoverflow.com/a/26234137.
@@ -168,7 +169,7 @@ private:
   /** @brief Computes possible candidates for being on the circle.
    *  @return void. Returns indexes via reference. */
   void getSamplePoints(int &first, int &second, int &third, int &rightIndex,
-                       int &leftIndex, std::vector<cv::Point2f> &v);
+                       int &leftIndex, std::vector< cv::Point2f > &v);
 
   /** @brief Sets last processed half-circle pose
    *  @param pose New half-circle pose */
@@ -176,19 +177,25 @@ private:
 
   /** @brief Sets image created from last LaserScan.
    *  @param image Latest image */
-  void setLaserScanImage(cv::Mat image) {laserScanImage = image;};
+  void setLaserScanImage(cv::Mat image) { laserScanImage = image; };
 
-  /** @brief Helper function for retrieving float environment variables declared in the launch file. */
-  void getEnvironmentVariable(const char* varString, float& var) {
-    char* c;
+  /** @brief Ouputs an image indicating the best guess for a half circle.
+    *        Useful for debugging. */
+void drawHalfCircle(cv::Mat image, float bestCircleRadius, cv::Point2f bestCircleCenter);
 
-    c = std::getenv(varString); 
-    if(!c) { 
-      ROS_INFO("Environment variable %s not found. Using %lf as a default value.", varString, var);
+  /** @brief Helper function for retrieving float environment variables declared
+   * in the launch file. */
+  void getEnvironmentVariable(const char *varString, float &var) {
+    char *c;
+
+    c = std::getenv(varString);
+    if (!c) {
+      ROS_INFO(
+          "Environment variable %s not found. Using %lf as a default value.",
+          varString, var);
     } else {
-      var = std::stof(std::string(c)); 
+      var = std::stof(std::string(c));
     }
   }
 };
 #endif
-

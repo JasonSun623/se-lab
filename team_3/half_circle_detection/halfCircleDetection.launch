@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<launch>
-
-  <env name="HALFCIRCLE_DETECTION_DISTANCE" value="0.3" />
-  <env name="HALFCIRCLE_RADIUS" value="0.20"/>
-
-  <node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" output="screen" /> 
-
-</launch>
