@@ -221,39 +221,41 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     return msg;
   }
 
-  if (crashMode) {
-    ROS_INFO("Crash!");
-    msg.linear.x = crashHandler.linear.x;
-    msg.angular.z = crashHandler.angular.z;
-    return msg;
-  }
+  // if (crashMode) {
+  //   ROS_INFO("Crash!");
+  //   msg.linear.x = crashHandler.linear.x;
+  //   msg.angular.z = crashHandler.angular.z;
+  //   return msg;
+  // }
 
   // finding of circle is prioritized to other maneuvers
-  if (circleVisible && circleDistance != 0) {
-    ROS_INFO("Found Circle!");
-    circleCallCount++;
-    if (circleCallCount > 2){
-      circleFoundMode = true; 
-    }
-    // the angle to follow with respect to the norm
-    float variationToCircle = 90 - circleAngle;
-    msg.angular.z = std::min(MAX_TURN, turnCircleCorrection * variationToCircle);
-    msg.linear.x = linearVelocity;
-    return msg;
+  // if (circleVisible && circleDistance != 0) {
+  //   ROS_INFO("Found Circle!");
+  //   circleCallCount++;
+  //   if (circleCallCount > 2){
+  //     circleFoundMode = true; 
+  //   }
+  //   // the angle to follow with respect to the norm
+  //   float variationToCircle = 90 - circleAngle;
+  //   msg.angular.z = std::min(MAX_TURN, turnCircleCorrection * variationToCircle);
+  //   msg.linear.x = linearVelocity;
+  //   return msg;
     
-  }
+  // }
 
   //TODO: create macros/variables for all magic numbers here (0.3,0.5,...)
   // movement of the robot in free space
   if (rightRangeLine.first > wallDistance && !followWall && !circleFoundMode) {
     msg.linear.x = linearVelocity;
+    ROS_INFO("Move forward with %f velocity", linearVelocity);
     return msg;
   }
 
   // if the robot is too close to the obstacle on its left
-  if (leftRangeLine.first < wallDistance/3){
-    msg.angular.z = M_PI / 10;
+  if (leftRangeLine.first < wallDistance/4){
+    msg.angular.z = M_PI / 20;
     msg.linear.x = crashVelocity;
+    ROS_INFO("Too close to the wall, move with %f speed", crashVelocity);
     // case if a robot is too close to the circle
     if (circleFoundMode){
       circleFoundMode = false;
@@ -277,32 +279,33 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     float m = 0;
     if (den < EPSILON_SLOPE || num < EPSILON_SLOPE) {
       m = M_PI / 2;
+    } else {
+      m = num/den;
     }
 
     msg.angular.z = (this->getCurrentAngle() + m) / 10;
     this->setCurrentAngle(this->getCurrentAngle() + m);
 
     followWall = true;
+    ROS_INFO("Robot is next to the wall, turn");
     return msg;
     // if the robot is approaching the end of the wall
-  } else if (right.first > wallDistance * 1.8 && !circleFoundMode) {
+  } else if (right.first > wallDistance * 1.5 && !circleFoundMode) {
     cornerEdge = true;
     msg.linear.x = linearVelocity/2;
-    if (!circleVisible)
-      msg.angular.z = -M_PI / 10;
-    else {
-      // angle is less than for usual case as we want to
-      // move towards the goal
-      msg.angular.z = -M_PI / 5;
-    }
+    msg.angular.z = -M_PI / 10;
+    ROS_INFO("Robot is turning");
     return msg;
+
   }
 
   // robot is following the wall and deviates from it
   if (right.first > wallDistance * 1.5 && !circleFoundMode) {
     this->setCorrecting(true);
     followWall = false;
+    ROS_INFO("Robot corrects itself, turn");
   } else {
+    ROS_INFO("Robot moves forward");
     msg.linear.x = linearVelocity;
   }
 
