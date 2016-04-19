@@ -14,6 +14,8 @@
   <env name="HALFCIRCLE_DETECTION_DISTANCE" value="0.15" />
   <!-- Radius of the half circle to be detected in meters. -->
   <env name="HALFCIRCLE_RADIUS" value="0.18" />
+  <!-- Cutoff threshold for considering sth. as a half circle -->
+  <env name="MIN_CIRCLE_PERCENTAGE" value="0.50" />
 
 	<!-- For crash recovery -->
 	<env name="CRASH_DISTANCE" value="0.05" />
@@ -39,6 +41,9 @@
 
 	<!-- Minimum distance allowed toward obstacles -->
 	<env name="MIN_DISTANCE" value="0.5" />
+
+  <!-- Internal scaling for OpenCV images -->
+  <env name="STRETCH_FACTOR" value="100" />
 
 	<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition03.world"/>
 	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" args="$(arg half_circle_node_name) $(arg half_circle_topic) $(arg laserScan_image_topic)" output="screen"/>

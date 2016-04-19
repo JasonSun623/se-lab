@@ -19,6 +19,7 @@
 
 /* ROS include */
 #include <ros/ros.h>
+#include <ros/package.h>
 
 /* ROS message type includes */
 #include <sensor_msgs/LaserScan.h>
@@ -58,6 +59,7 @@ public:
     getEnvironmentVariable("HALFCIRCLE_DETECTION_DISTANCE", minimumDistance);
     getEnvironmentVariable("HALFCIRCLE_RADIUS", halfCircleRadius);
     getEnvironmentVariable("STRETCH_FACTOR", stretchFactor);
+    getEnvironmentVariable("MIN_CIRCLE_PERCENTAGE", minCirclePercentage);
   }
 
   /** @brief Processes a sensor_msgs::LaserScan and calls necessary other
@@ -85,12 +87,15 @@ private:
   float laserRange = 3.9;
   /** @brief Prevent taking corners as half-circles if robot too close to wall.
    */
-  float minimumDistance = 0.25;
+  float minimumDistance = 0.15;
   /** @brief Approximate radius of half-circle in meters. */
   float halfCircleRadius = 0.18;
   /** @brief Factor by which distances are scaled up in image (e.g. 100 px for
    * 1m). */
   float stretchFactor = 100;
+
+  /** @brief Cutoff threshold for considering something as half circle. */
+  float minCirclePercentage = 0.5f;
 
   /** @brief OpenCV representation of latest laserScan */
   cv::Mat laserScanImage;
@@ -173,6 +178,10 @@ private:
   /** @brief Sets image created from last LaserScan.
    *  @param image Latest image */
   void setLaserScanImage(cv::Mat image) { laserScanImage = image; };
+
+  /** @brief Ouputs an image indicating the best guess for a half circle.
+    *        Useful for debugging. */
+void drawHalfCircle(cv::Mat image, float bestCircleRadius, cv::Point2f bestCircleCenter);
 
   /** @brief Helper function for retrieving float environment variables declared
    * in the launch file. */
