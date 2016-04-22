@@ -84,6 +84,39 @@ TEST(HalfCircleDetectionTestSuite, falsePositiveTestCase) {
   }
 }
 
+/** @brief This test case checks if the detector is giving false positives on real data, in particular checking if a sharp convex corner is mistakenly taken to be a half circle. */
+TEST(HalfCircleDetectionTestSuite, CornerTestCase) {
+  HalfCircleDetector h;
+
+  //read LaserScan-messages from .bag-file
+  std::string path = ros::package::getPath("half_circle_detection");
+  path += "/src/test/laserScan_Corner.bag";
+
+  rosbag::Bag bag;
+  bag.open(path, rosbag::bagmode::Read);
+
+  std::vector<std::string> topics = {"base_scan"};
+
+  rosbag::View view(bag, rosbag::TopicQuery(topics));
+
+  //certify that no semicircle is being detected
+  for (rosbag::MessageInstance m : view) {
+
+    sensor_msgs::LaserScan::ConstPtr ptr =
+        m.instantiate<sensor_msgs::LaserScan>();
+    if (ptr != NULL) {
+
+      h.receiveLaserScan(ptr);
+
+      geometry_msgs::Pose2D pose = h.getHalfCirclePose();
+
+      ASSERT_NEAR(pose.x, -1, 0.01);
+      ASSERT_NEAR(pose.y, -1, 0.01);
+      ASSERT_NEAR(pose.theta, -1, 0.01);
+    }
+  }
+}
+
 /** @brief Main testing function */
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
