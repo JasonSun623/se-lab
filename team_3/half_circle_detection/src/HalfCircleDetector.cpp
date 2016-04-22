@@ -74,9 +74,6 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
   int counter = 0;
   int inlier = 0;
 
-  //has to be at least 1.0
-  float maxInlierDist = 2.0f;
-
   // choose samples along the circle and count inlier percentage
   for (float t = semiCircleStart; t < semiCircleStart + M_PI; t += 0.05f) {
     counter++;
@@ -85,7 +82,7 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
 
     if (cX < dt.cols && cX >= 0) {
       if (cY < dt.rows && cY >= 0) {
-        if (dt.at< float >(cY, cX) < maxInlierDist) {
+        if (dt.at< float >(cY, cX) < MAX_INLIER_DIST) {
           inlier++;
           inlierSet.push_back(cv::Point2f(cX, cY));
         }
@@ -227,7 +224,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
                       image.rows / 2);
   }
 
-  ROS_DEBUG("Circle certainty: %lf", bestCirclePercentage);
+  ROS_INFO("Circle certainty: %lf", bestCirclePercentage);
 
   drawHalfCircle(image, bestCircleRadius, bestCircleCenter);
 

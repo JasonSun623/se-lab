@@ -36,15 +36,12 @@
 #include <cmath>
 
 /**
-  * @brief Epsilon for comparing floating point numbers.
-  * Currently used only for comparing pixels, has to be 1 at least
-  */
-#define EPSILON 1.01
-
-/**
   * @brief Limiting integers to be within a certain range.
   */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
+
+/** @brief Maximum distance of a point to be considered as a circle inlier in pixel (thus related to stretchFactor). */
+#define MAX_INLIER_DIST 3.0f
 
 /**
   * @brief Compound class for detecting half-circles.
@@ -92,10 +89,10 @@ private:
   float halfCircleRadius = 0.18;
   /** @brief Factor by which distances are scaled up in image (e.g. 100 px for
    * 1m). */
-  float stretchFactor = 100;
+  float stretchFactor = 200;
 
   /** @brief Cutoff threshold for considering something as half circle. */
-  float minCirclePercentage = 0.5f;
+  float minCirclePercentage = 0.45f;
 
   /** @brief OpenCV representation of latest laserScan */
   cv::Mat laserScanImage;
