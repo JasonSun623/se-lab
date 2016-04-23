@@ -32,7 +32,7 @@
 	<!-- Minimum distance allowed toward obstacles -->
 	<env name="MIN_DISTANCE" value="0.5" />
 
-	<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition03.world"/> 
+  <node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition03.world"/>
 	<node pkg="half_circle_detection" type="half_circle_detection_node" name="$(arg half_circle_node_name)" args="$(arg half_circle_node_name) $(arg half_circle_topic) $(arg laserScan_image_topic)" output="screen">
     <!-- Threshold (in meters) from which on distance values are not considered objects anymore. -->
   	<param name="laserRange" value="3.9" />
@@ -45,7 +45,9 @@ properly. This is the threshold in meters that define 'too close'. -->
     <param name="halfCircleRadius" value="0.18" />
      <!-- Cutoff threshold for considering sth. as a half circle -->
     <param name="minCirclePercentage" value="0.50" />
+    <!-- Maximum Distance to be considered an inlier of a circle in px -->
+    <param name="maxInlierDist" value="2.5" />
   </node>
-	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen"/> 
+	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen"/>
 	<node pkg="crash_recovery" type="crash_recovery_node" name="crash_recovery" output="screen"/>
 </launch>

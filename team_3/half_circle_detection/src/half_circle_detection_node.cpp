@@ -37,15 +37,17 @@ int main(int argc, char **argv) {
   int stretchFactor;
   float halfCircleRadius;
   float minCirclePercentage;
+  float maxInlierDist;
 
   ROS_ASSERT(node.getParam("laserRange", laserRange));
   ROS_ASSERT(node.getParam("minimumDistance", minimumDistance)); 
   ROS_ASSERT(node.getParam("stretchFactor", stretchFactor));
   ROS_ASSERT(node.getParam("halfCircleRadius", halfCircleRadius));
   ROS_ASSERT(node.getParam("minCirclePercentage", minCirclePercentage));
+  ROS_ASSERT(node.getParam("maxInlierDist", maxInlierDist));
 
   HalfCircleDetector detector(laserRange, minimumDistance, stretchFactor,
-    halfCircleRadius, minCirclePercentage);
+    halfCircleRadius, minCirclePercentage, maxInlierDist);
 
   /** Subscribers */
   ros::Subscriber sub = node.subscribe(

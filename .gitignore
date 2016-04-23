@@ -11,5 +11,4 @@ devel/
 Documentation/doxygen/
 
 # Ignore files for debugging
-team_3/half_circle_detection/halfCircle.jpg
 *.jpg

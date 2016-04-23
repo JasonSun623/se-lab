@@ -41,10 +41,6 @@
   */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
-/** @brief Maximum distance of a point to be considered as a circle inlier in pixel (thus related to stretchFactor).
- */
-#define MAX_INLIER_DIST 3.0f
-
 /**
   * @brief Compound class for detecting half-circles.
   */
@@ -54,7 +50,7 @@ public:
    * @brief Constructor for HalfCircleDetector.
    */
   HalfCircleDetector(float laserRange, float mimimumDistance, int stretchFactor,
-    float halfCircleRadius, float minCirclePercentage);
+    float halfCircleRadius, float minCirclePercentage, float maxInlierDist);
 
   /** 
    * @brief Processes a sensor_msgs::LaserScan and calls necessary other
@@ -88,6 +84,7 @@ private:
   float halfCircleRadius; ///> Approximate radius of half-circle in meters.
   float stretchFactor; ///> Factor to scale data to image (e.g. 100 px for 1m).
   float minCirclePercentage; ///> Cutoff threshold for considering something as half circle.
+  float maxInlierDist; ///> Maximum distance of point to object to count as circle inlier.
 
   cv::Mat laserScanImage; ///> OpenCV representation of latest laserScan.
   geometry_msgs::Pose2D halfCirclePose; ///> Last computed half-circle pose.
@@ -167,13 +164,6 @@ private:
    */
   void getCircle(cv::Point2f &p1, cv::Point2f &p2, cv::Point2f &p3,
                  cv::Point2f &center, float &radius);
-
-  /** 
-   * @brief Helper function that computes the direct distance between two
-   *  points.
-   * @return Distance between given points.
-   */
-  float distance(cv::Point2f &a, cv::Point2f &b);
 
   /** 
    * @brief Computes possible candidates for being on the circle.

@@ -5,12 +5,13 @@
   */
 #include "../include/HalfCircleDetector.h"
 
-HalfCircleDetector::HalfCircleDetector(float laserRange, float minimumDistance, int stretchFactor, float halfCircleRadius, float minCirclePercentage) {
+HalfCircleDetector::HalfCircleDetector(float laserRange, float minimumDistance, int stretchFactor, float halfCircleRadius, float minCirclePercentage, float maxInlierDist) {
     this->laserRange = laserRange;
     this->minimumDistance = minimumDistance;
     this->halfCircleRadius = halfCircleRadius;
     this->stretchFactor = stretchFactor;
     this->minCirclePercentage = minCirclePercentage;
+    this->maxInlierDist = maxInlierDist;
 }
 
 
@@ -72,6 +73,15 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     image.at< unsigned char >(cv::Point(x, y)) = 255;
   }
 
+  for(int i = 0; i < HalfCircleDetector::points.size()-2; ++i) {
+    cv::Point a = points[i];
+    cv::Point b = points[i+1];
+    
+    /* Very basic interpolation. Makes up for the fact that at lines/corners
+     * the resolution is much higher than at semicircles. */
+    image.at< unsigned char >(cv::Point((a.x+b.x)/2, (a.y+b.y)/2));
+  }
+
   return image;
 }
 
@@ -83,14 +93,14 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
   int inlier = 0;
 
   // choose samples along the circle and count inlier percentage
-  for (float t = semiCircleStart; t < semiCircleStart + M_PI; t += 0.05f) {
+  for (float t = semiCircleStart+M_PI/5; t < semiCircleStart + 4*M_PI/5; t += 0.01f) {
     counter++;
     float cX = radius * cos(t) + center.x;
     float cY = radius * sin(t) + center.y;
 
     if (cX < dt.cols && cX >= 0) {
       if (cY < dt.rows && cY >= 0) {
-        if (dt.at< float >(cY, cX) < MAX_INLIER_DIST) {
+        if (dt.at< float >(cY, cX) < maxInlierDist) {
           inlier++;
           inlierSet.push_back(cv::Point2f(cX, cY));
         }
@@ -127,10 +137,6 @@ void HalfCircleDetector::getCircle(cv::Point2f &p1, cv::Point2f &p2,
                 (center.y - y1) * (center.y - y1));
 }
 
-float HalfCircleDetector::distance(cv::Point2f &a, cv::Point2f &b) {
-  return sqrt(pow((a.x - b.x), 2) + pow((a.y - b.y), 2));
-}
-
 void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
                                          int &rightIndex, int &leftIndex,
                                          std::vector< cv::Point2f > &v) {
@@ -140,7 +146,7 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
   float halfCircleRadiusPixel = halfCircleRadius * stretchFactor;
 
   while (rightIndex < static_cast< int >(v.size())) {
-    float difference = fabs(distance(v[rightIndex], v[leftIndex]));
+    float difference = fabs(norm(v[rightIndex]-v[leftIndex]));
 
     if (difference > (halfCircleRadiusPixel * 2 + errorMargin)) {
       ++leftIndex;
@@ -242,20 +248,18 @@ void HalfCircleDetector::drawHalfCircle(cv::Mat image, float bestCircleRadius, c
   cv::Mat color(image);
   cv::cvtColor(color, color, CV_GRAY2BGR);
 
-  cv::circle(color, bestCircleCenter, bestCircleRadius, cv::Scalar(255, 255, 0), 1);
+  //cv::circle(color, bestCircleCenter, bestCircleRadius, cv::Scalar(255, 255, 0), 1);
 
   float m_x = (image.cols / 2 - bestCircleCenter.x);
   float m_y = (image.rows / 2 - bestCircleCenter.y);
 
-  float alpha = atan2(-m_x, m_y);
+  float semiCircleStart = atan2(-m_x, m_y);
 
-  cv::Point s(bestCircleCenter.x + cos(alpha) * bestCircleRadius,
-              bestCircleCenter.y + sin(alpha) * bestCircleRadius);
-
-  cv::circle(color, s, 6, cv::Scalar(0, 0, 255), 1);
+  cv::Point s(bestCircleCenter.x + cos(semiCircleStart) * bestCircleRadius,
+              bestCircleCenter.y + sin(semiCircleStart) * bestCircleRadius);
 
   // draw tested points
-  for (float t = alpha; t < alpha + M_PI; t += 0.05f) {
+  for (float t = semiCircleStart+M_PI/5; t < semiCircleStart + 4*M_PI/5; t += 0.01f) {
     float cX = bestCircleRadius * cos(t) + bestCircleCenter.x;
     float cY = bestCircleRadius * sin(t) + bestCircleCenter.y;
     cv::circle(color, cv::Point2f(cX, cY), 1, cv::Scalar(0, 0, 255), 1);
