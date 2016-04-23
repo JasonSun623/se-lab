@@ -5,9 +5,17 @@
   */
 #include "../include/HalfCircleDetector.h"
 
+HalfCircleDetector::HalfCircleDetector(float laserRange, float minimumDistance, int stretchFactor, float halfCircleRadius, float minCirclePercentage) {
+    this->laserRange = laserRange;
+    this->minimumDistance = minimumDistance;
+    this->halfCircleRadius = halfCircleRadius;
+    this->stretchFactor = stretchFactor;
+    this->minCirclePercentage = minCirclePercentage;
+}
+
+
 void HalfCircleDetector::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-
   geometry_msgs::Pose2D pose;
   pose.x = -1;
   pose.y = -1;
@@ -152,7 +160,6 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
 }
 
 geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
-
   cv::threshold(image, image, 100, 255, CV_THRESH_BINARY);
 
   std::vector< cv::Point2f > edgePositions;

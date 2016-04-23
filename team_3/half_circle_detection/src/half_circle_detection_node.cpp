@@ -1,7 +1,9 @@
 /** @file half_circle_detection_node.cpp
   * @brief Main executable for half-circle detection.
+  *
   * Subscribes to ```base_scan``` for laser data.
   * Publishes to ```half_circle_detection``` for publishing circle positions.
+  *
   * @author Felix Schmoll (LiftnLearn)
   */
 
@@ -14,7 +16,7 @@
 
 #include "../include/HalfCircleDetector.h"
 
-/** @brief Starts the program. 
+/** @brief Starts the node. 
   * @param[in] argc Number of Arguments
   * @param[in] argv Array of Arguments 
   *   - [0] Program name
@@ -24,27 +26,34 @@
   *   - ... other ros-specific arguments
   */
 int main(int argc, char **argv) {
-  if (argc < 6) {
-    ROS_ERROR("Not enough arguments for topic names. 6 expected, %d given. "
-              "Terminating half_circle_detection.",
-              argc);
-    return 1;
-  }
+  ROS_ASSERT_MSG(argc > 5, "Not enough arguments for topic names. 6 expected, %d given.", argc);
 
   ros::init(argc, argv, argv[1]);
 
-  ros::NodeHandle poseNode;
+  ros::NodeHandle node(argv[1]);
 
-  HalfCircleDetector detector;
+  float laserRange;
+  float minimumDistance;
+  int stretchFactor;
+  float halfCircleRadius;
+  float minCirclePercentage;
 
-  ros::Subscriber sub = poseNode.subscribe(
-      "base_scan", 1, &HalfCircleDetector::receiveLaserScan, &detector);
+  ROS_ASSERT(node.getParam("laserRange", laserRange));
+  ROS_ASSERT(node.getParam("minimumDistance", minimumDistance)); 
+  ROS_ASSERT(node.getParam("stretchFactor", stretchFactor));
+  ROS_ASSERT(node.getParam("halfCircleRadius", halfCircleRadius));
+  ROS_ASSERT(node.getParam("minCirclePercentage", minCirclePercentage));
 
-  ros::Publisher posePub =
-      poseNode.advertise< geometry_msgs::Pose2D >(argv[2], 1);
+  HalfCircleDetector detector(laserRange, minimumDistance, stretchFactor,
+    halfCircleRadius, minCirclePercentage);
 
-  ros::NodeHandle imageHandle;
-  image_transport::ImageTransport it(imageHandle);
+  /** Subscribers */
+  ros::Subscriber sub = node.subscribe(
+      "/base_scan", 1, &HalfCircleDetector::receiveLaserScan, &detector);
+
+  /** Publishers */
+  ros::Publisher posePub = node.advertise< geometry_msgs::Pose2D >(argv[2], 1);
+  image_transport::ImageTransport it(node);
   image_transport::Publisher imagePub = it.advertise(argv[3], 1);
 
   ros::Rate rate(10);
