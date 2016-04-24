@@ -42,12 +42,16 @@ properly. This is the threshold in meters that define 'too close'. -->
     <!-- Internal scaling for OpenCV images -->
     <param name="stretchFactor" value="250" />
     <!-- Radius of the half circle to be detected in meters. -->
-    <param name="halfCircleRadius" value="0.175" />
+    <param name="halfCircleRadius" value="0.18" />
      <!-- Cutoff threshold for considering sth. as a half circle -->
     <param name="minCirclePercentage" value="0.70" />
     <!-- Maximum Distance to be considered an inlier of a circle in px -->
     <param name="maxInlierDist" value="2.5" />
+    <!-- Maximum average density of points on half-circle -->
+    <param name="maxCircleDensity" value="1.5" />
+    <!-- Maximum number of points on half-circle -->
+    <param name="maxCirclePoints" value="40" />
   </node>
-	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen"/>
+  <node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen"/>
 	<node pkg="crash_recovery" type="crash_recovery_node" name="crash_recovery" output="screen"/>
 </launch>

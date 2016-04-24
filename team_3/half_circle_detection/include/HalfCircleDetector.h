@@ -50,7 +50,8 @@ public:
    * @brief Constructor for HalfCircleDetector.
    */
   HalfCircleDetector(float laserRange, float mimimumDistance, int stretchFactor,
-    float halfCircleRadius, float minCirclePercentage, float maxInlierDist);
+    float halfCircleRadius, float minCirclePercentage, float maxInlierDist, 
+    float maxCircleDensity, int maxCirclePoints);
 
   /** 
    * @brief Processes a sensor_msgs::LaserScan and calls necessary other
@@ -77,16 +78,18 @@ public:
   cv::Mat getLaserScanImage() { return laserScanImage; };
 
 private:
-  float laserRange; ///> Maximum measurement distance of laserScanner.
-  float minimumDistance; ///> Prevent taking corners as half-circles if robot too close.
-  float halfCircleRadius; ///> Approximate radius of half-circle in meters.
-  float stretchFactor; ///> Factor to scale data to image (e.g. 100 px for 1m).
-  float minCirclePercentage; ///> Cutoff threshold for considering something as half circle.
-  float maxInlierDist; ///> Maximum distance of point to object to count as circle inlier.
+  float laserRange; ///< Maximum measurement distance of laserScanner.
+  float minimumDistance; ///< Prevent taking corners as half-circles if robot too close.
+  float halfCircleRadius; ///< Approximate radius of half-circle in meters.
+  int stretchFactor; ///< Factor to scale data to image (e.g. 100 px for 1m).
+  float minCirclePercentage; ///< Cutoff threshold for considering something as half circle.
+  float maxInlierDist; ///< Maximum distance of point to object to count as circle inlier.
+  float maxCircleDensity; ///< Maximum density of points for half-circle.
+  int maxCirclePoints; ///< Maximum number of data points on half-circle.
 
-  cv::Mat laserScanImage; ///> OpenCV representation of latest laserScan.
-  geometry_msgs::Pose2D halfCirclePose; ///> Last computed half-circle pose.
-  std::vector< cv::Point2f > points; ///> Contains points drawn onto the last OpenCV-image.
+  cv::Mat laserScanImage; ///< OpenCV representation of latest laserScan.
+  geometry_msgs::Pose2D halfCirclePose; ///< Last computed half-circle pose.
+  std::vector< cv::Point2f > points; ///< Contains points drawn onto the last OpenCV-image.
 
   /**
    * @brief Takes a LaserScan and returns an OpenCV-image
@@ -138,22 +141,22 @@ private:
    *
    * @param dt Matrix of distances to the nearest pixel. Can be created using
    * distance transform.
-   * @param center Center of the circle to be verified.
-   * @param radius Radius of the circle to be verified.
-   * @param semiCircleStart Angle in radius from which semiCircle is searched
+   * @param[in] center Center of the circle to be verified.
+   * @param[in] radius Radius of the circle to be verified.
+   * @param[in] semiCircleStart Angle in radius from which semiCircle is searched
    * for (starting at bottom and going clockwise).
    * @return Percentage of circle covered [0,1]
    *
    * @see http://stackoverflow.com/a/26234137
    */
   float verifyCircle(cv::Mat dt, cv::Point2f center, float radius,
-     float semiCircleStart);
+    float semiCircleStart);
 
   /** 
    * @brief Constructs a circle out of three given points on the circle.
    * @param[in] p1,p2,p3 Points on circle
-   * @param[out] Center of circle constructed from given points.
-   * @param [out] Radius of circle constructed from given points. 
+   * @param[out] center Center of circle constructed from given points.
+   * @param [out] radius Radius of circle constructed from given points. 
    * @return Void.
    * @see http://stackoverflow.com/a/26234137
    */
@@ -169,6 +172,17 @@ private:
    */
   void getSamplePoints(int &first, int &second, int &third, int &rightIndex,
                        int &leftIndex, std::vector< cv::Point2f > &v);
+
+  /**
+   * @brief Checks if the point density of the detected semiCircle.
+   *
+   * A high laserScan-point density might hint towards a false positive 
+   * (i.e. it is actually a corner).
+   *
+   * @param[in] boundaries Left and right index of laserScan points circle is constructed from.
+   * @return True if it is a real semi-circle.
+   */
+  bool verifyCircleDensity(std::pair<int, int>& boundaries);
 
   /** 
    * @brief Sets last processed half-circle pose
