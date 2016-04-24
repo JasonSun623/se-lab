@@ -77,8 +77,6 @@ public:
   cv::Mat getLaserScanImage() { return laserScanImage; };
 
 private:
-  std::vector< cv::Point2f > points; ///> Contains points drawn onto the last OpenCV-image.
-
   float laserRange; ///> Maximum measurement distance of laserScanner.
   float minimumDistance; ///> Prevent taking corners as half-circles if robot too close.
   float halfCircleRadius; ///> Approximate radius of half-circle in meters.
@@ -88,6 +86,7 @@ private:
 
   cv::Mat laserScanImage; ///> OpenCV representation of latest laserScan.
   geometry_msgs::Pose2D halfCirclePose; ///> Last computed half-circle pose.
+  std::vector< cv::Point2f > points; ///> Contains points drawn onto the last OpenCV-image.
 
   /**
    * @brief Takes a LaserScan and returns an OpenCV-image
@@ -141,9 +140,6 @@ private:
    * distance transform.
    * @param center Center of the circle to be verified.
    * @param radius Radius of the circle to be verified.
-   * @param inlierSet Reference to container for points detected to be within
-   * the circle. Can be for further used for verifying that an actual circle is
-   * present.
    * @param semiCircleStart Angle in radius from which semiCircle is searched
    * for (starting at bottom and going clockwise).
    * @return Percentage of circle covered [0,1]
@@ -151,8 +147,7 @@ private:
    * @see http://stackoverflow.com/a/26234137
    */
   float verifyCircle(cv::Mat dt, cv::Point2f center, float radius,
-                     std::vector< cv::Point2f > &inlierSet,
-                     float semiCircleStart);
+     float semiCircleStart);
 
   /** 
    * @brief Constructs a circle out of three given points on the circle.
