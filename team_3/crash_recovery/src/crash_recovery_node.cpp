@@ -5,19 +5,17 @@
 
 /** @brief Helper function for retrieving float environment variables declared
    * in the launch file. */
-  void getEnvironmentVariable(const char *varString, char *var) {
-    char *c;
+void getEnvironmentVariable(const char *varString, std::string &var) {
+  char *c;
 
-    c = std::getenv(varString);
-    if (!c) {
-      ROS_INFO(
-          "Environment variable %s not found. Using %lf as a default value.",
-          varString, var);
-    } else {
-      var = c
-    }
+  c = std::getenv(varString);
+  if (!c) {
+    ROS_INFO("Environment variable %s not found. Using %s as a default value.",
+             varString, var.c_str());
+  } else {
+    var = std::string(c);
   }
-};
+}
 
 /** Main executable for crash resolution advice node.
  *
@@ -27,8 +25,8 @@ int main(int argc, char **argv) {
   std::string laser_topic = "base_scan";
   std::string crash_topic = "crash_recovery";
 
-  getEnvironmentVariable("laser_topic", &laser_topic);
-  getEnvironmentVariable("crash_topic", &crash_topic);
+  getEnvironmentVariable("laser_topic", laser_topic);
+  getEnvironmentVariable("crash_topic", crash_topic);
 
   ros::init(argc, argv, crash_topic);
 
@@ -36,11 +34,10 @@ int main(int argc, char **argv) {
 
   CrashRecoverer *recover = new CrashRecoverer();
 
-  ros::Subscriber sub = n.subscribe(
-      laser_topic, 1, &CrashRecoverer::receiveLaserScan, recover);
+  ros::Subscriber sub =
+      n.subscribe(laser_topic, 1, &CrashRecoverer::receiveLaserScan, recover);
 
-  ros::Publisher pub =
-      n.advertise<geometry_msgs::Twist>(crash_topic, 1);
+  ros::Publisher pub = n.advertise< geometry_msgs::Twist >(crash_topic, 1);
 
   ros::Rate rate(10);
 
