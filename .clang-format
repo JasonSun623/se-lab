@@ -4,4 +4,3 @@
 
 BasedOnStyle: LLVM
 SpacesInAngles: true
-ReflowComments: true
