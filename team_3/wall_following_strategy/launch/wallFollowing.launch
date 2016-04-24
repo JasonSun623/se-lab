@@ -4,6 +4,9 @@
   <arg name="half_circle_topic" default="half_circle_detection" />
   <arg name="laserScan_image_topic" default="laserScan_image" />
   <arg name="half_circle_node_name" default="half_circle_publisher" />
+  
+  <arg name="laserScan_topic" default="base_scan" />
+  <arg name="crash_topic" default="crash_recovery" />
 
   <!-- For half circle detection -->
   <!-- Threshold (in meters) from which on distance values are not considered objects anymore. -->
@@ -41,5 +44,5 @@
 	<!--<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition03.world"/>-->
 	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" args="$(arg half_circle_node_name) $(arg half_circle_topic) $(arg laserScan_image_topic)" output="screen"/>
 	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen"/>
-	<node pkg="crash_recovery" type="crash_recovery_node" name="crash_recovery" output="screen"/>
+	<node pkg="crash_recovery" type="crash_recovery_node" name="crash_recovery" args="$(arg laserScan_topic) $(arg crash_topic)" output="screen"/>
 </launch>
