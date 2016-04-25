@@ -18,8 +18,8 @@
 	<env name="CRASH_DISTANCE" value="0.05" />
 
 	<!-- For wall-following strategy -->
-	<env name="LINEAR_VEL" value="0.3" />
-	<env name="WALL_FOLLOWING_DISTANCE" value="0.3" />
+	<env name="LINEAR_VEL" value="0.6" />
+	<env name="WALL_FOLLOWING_DISTANCE" value="0.2" />
 
 	<!-- Linear velocity value that is used in case a robot is too close
  	to the wall -->

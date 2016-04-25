@@ -60,7 +60,7 @@ private:
   bool circleFoundMode;
   bool correcting;
   bool cornerEdge;
-
+  bool start;
   float linearVelocity = 0.3;
   float wallDistance = 0.3;
   float crashVelocity = -0.1;
@@ -79,6 +79,7 @@ public:
    *  Here the environment variables are loaded.
    */
   WallFollowingStrategy() {
+    start = true;
     getEnvironmentVariable("LINEAR_VEL", linearVelocity);
     getEnvironmentVariable("WALL_FOLLOWING_DISTANCE", wallDistance);
     getEnvironmentVariable("CRASH_VELOCITY", crashVelocity);

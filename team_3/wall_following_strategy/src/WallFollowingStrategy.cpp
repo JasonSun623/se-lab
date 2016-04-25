@@ -30,7 +30,7 @@ void WallFollowingStrategy::receiveCirclePosition(
 //    circleSeenCount = std::max(circleSeenCount - 1, 0);
 //    if(circleSeenCount == 0) {
       circleVisible = false;
-      //circleFoundMode = false;
+      circleFoundMode = false;
 //    }
     return;
   }
@@ -229,30 +229,33 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   }
 
   // finding of circle is prioritized to other maneuvers
-  if (circleVisible && circleDistance != 0) {
-    ROS_INFO("Found Circle!");
-    circleCallCount++;
-    if (circleCallCount > 2){
-      circleFoundMode = true; 
-    }
-    // the angle to follow with respect to the norm
-    float variationToCircle = 90 - circleAngle;
-    msg.angular.z = std::min(MAX_TURN, turnCircleCorrection * variationToCircle);
-    msg.linear.x = linearVelocity;
-    return msg;
+  // if (circleVisible && circleDistance != 0) {
+  //   ROS_INFO("Found Circle!");
+  //   circleCallCount++;
+  //   if (circleCallCount > 2){
+  //     circleFoundMode = true; 
+  //   }
+  //   // the angle to follow with respect to the norm
+  //   float variationToCircle = 90 - circleAngle;
+  //   msg.angular.z = std::min(MAX_TURN, turnCircleCorrection * variationToCircle);
+  //   msg.linear.x = linearVelocity;
+  //   return msg;
     
-  }
+  // }
 
   //TODO: create macros/variables for all magic numbers here (0.3,0.5,...)
   // movement of the robot in free space
-  if (rightRangeLine.first > wallDistance && !followWall && !circleFoundMode) {
+  if (rightRangeLine.first > wallDistance && !followWall && !circleFoundMode && !correcting) {
     msg.linear.x = linearVelocity;
-    return msg;
+    if (start){
+      ROS_INFO("Moving forward");
+      return msg;
+    }
   }
 
   // if the robot is too close to the obstacle on its left
   if (leftRangeLine.first < wallDistance/3){
-    msg.angular.z = M_PI / 10;
+    msg.angular.z = M_PI / 5;
     msg.linear.x = crashVelocity;
     // case if a robot is too close to the circle
     if (circleFoundMode){
@@ -263,7 +266,8 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   }
 
   // when a robot is next to the wall
-  if (rightRangeLine.first < wallDistance && right.first < wallDistance * 2 && !circleFoundMode) {
+  if (rightRangeLine.first < wallDistance * 1.3 && right.first < wallDistance * 1.3 && !circleFoundMode) {
+    start = false;
     for (auto i = 0; i < vec.size(); i++) {
       // take the closest line to the robot with respect to its front
       if (minim < abs(vec[i][0] - src.rows / 2)) {
@@ -271,7 +275,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
         k = i;
       }
     }
-
+    ROS_INFO("Turning Wall Mode");
     float den = vec[k][2] - vec[k][0];
     float num = vec[k][3] - vec[k][1];
     float m = 0;
@@ -279,27 +283,27 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
       m = M_PI / 2;
     }
 
-    msg.angular.z = (this->getCurrentAngle() + m) / 10;
+    msg.angular.z = (this->getCurrentAngle() + m) / 5;
     this->setCurrentAngle(this->getCurrentAngle() + m);
 
     followWall = true;
     return msg;
     // if the robot is approaching the end of the wall
-  } else if (right.first > wallDistance * 1.8 && !circleFoundMode) {
-    cornerEdge = true;
+  } else if (right.first > wallDistance*2  && !circleFoundMode) {
+    ROS_INFO("Turning End Wall Mode");
     msg.linear.x = linearVelocity/2;
-    if (!circleVisible)
+    if (right.first < wallDistance*5/2){
       msg.angular.z = -M_PI / 10;
-    else {
-      // angle is less than for usual case as we want to
-      // move towards the goal
+    } else {
       msg.angular.z = -M_PI / 5;
     }
+    
     return msg;
   }
 
   // robot is following the wall and deviates from it
-  if (right.first > wallDistance * 1.5 && !circleFoundMode) {
+  if ((right.first < wallDistance * 0.5 || right.first > wallDistance * 1.3) && !circleFoundMode && followWall) {
+    ROS_INFO("Correction");
     this->setCorrecting(true);
     followWall = false;
   } else {
@@ -308,8 +312,9 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
 
   // in case of deviation turn according to the wall to the right
   if (correcting) {
-    float variation = 90 - right.second;
-    msg.angular.z = std::min(MAX_TURN, turnCorrection * variation);
+    float variation = 90 - rightRangeLine.second;
+    std::cout << turnCorrection * variation << std::endl;
+    msg.angular.z = std::min(MAX_TURN, turnCorrection * variation)/5;
     this->setCorrecting(false);
   }
   return msg;
