@@ -59,7 +59,7 @@ private:
   bool followWall;
   bool circleFoundMode;
   bool correcting;
-  bool cornerEdge;
+  bool stuck;
   bool start;
   float linearVelocity = 0.3;
   float wallDistance = 0.3;

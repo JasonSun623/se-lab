@@ -243,6 +243,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     
   // }
 
+
   //TODO: create macros/variables for all magic numbers here (0.3,0.5,...)
   // movement of the robot in free space
   if (rightRangeLine.first > wallDistance && !followWall && !circleFoundMode && !correcting) {
@@ -250,14 +251,16 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     if (start){
       ROS_INFO("Moving forward");
       return msg;
-    } else if (leftRangeLine.first > 2* wallDistance && rightRangeLine.first > 2* wallDistance ){
+    } else if (leftRangeLine.first > 1.8* wallDistance && rightRangeLine.first > 1.8* wallDistance ){
       start = true;
     }
   }
 
   // if the robot is too close to the obstacle on its left
-  if (leftRangeLine.first < wallDistance/3){
-    msg.angular.z = M_PI / (5*(linearVelocity/0.3));
+  std::cout << leftRangeLine.first << std::endl;
+  if (leftRangeLine.first < wallDistance/2){
+    ROS_INFO("here");
+    msg.angular.z = M_PI;
     msg.linear.x = crashVelocity;
     // case if a robot is too close to the circle
     if (circleFoundMode){
@@ -277,14 +280,16 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
         k = i;
       }
     }
-    ROS_INFO("Turning Wall Mode");
     float den = vec[k][2] - vec[k][0];
     float num = vec[k][3] - vec[k][1];
     float m = 0;
-    if (den < EPSILON_SLOPE || num < EPSILON_SLOPE) {
+    if (den < EPSILON_SLOPE || num < EPSILON_SLOPE || num/den < EPSILON_SLOPE) {
       m = M_PI / 2;
+    } else {
+      ROS_INFO("Turning Wall Mode");
+      std::cout << den << " " << num << std::endl;
+      m = num/den;
     }
-
     msg.angular.z = (this->getCurrentAngle() + m) / (5*(0.6/linearVelocity));
     this->setCurrentAngle(this->getCurrentAngle() + m);
 
@@ -292,12 +297,13 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     return msg;
     // if the robot is approaching the end of the wall
   } else if (right.first > wallDistance*2  && !circleFoundMode) {
-    ROS_INFO("Turning End Wall Mode");
+    ROS_INFO("Turning End Wall Mode %f", right.first);
     msg.linear.x = linearVelocity/2;
     if (right.first < wallDistance*5/2){
-      msg.angular.z = -M_PI / 10;
+      msg.angular.z = -M_PI / 5;
     } else {
-      msg.angular.z = -M_PI / (5*(0.6/linearVelocity));
+      followWall = true;
+      msg.angular.z = -M_PI / 10;
     }
     
     return msg;
