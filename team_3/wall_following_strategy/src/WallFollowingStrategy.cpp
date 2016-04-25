@@ -250,12 +250,14 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     if (start){
       ROS_INFO("Moving forward");
       return msg;
+    } else if (leftRangeLine.first > 2* wallDistance && rightRangeLine.first > 2* wallDistance ){
+      start = true;
     }
   }
 
   // if the robot is too close to the obstacle on its left
   if (leftRangeLine.first < wallDistance/3){
-    msg.angular.z = M_PI / 5;
+    msg.angular.z = M_PI / (5*(linearVelocity/0.3));
     msg.linear.x = crashVelocity;
     // case if a robot is too close to the circle
     if (circleFoundMode){
@@ -266,7 +268,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   }
 
   // when a robot is next to the wall
-  if (rightRangeLine.first < wallDistance * 1.3 && right.first < wallDistance * 1.3 && !circleFoundMode) {
+  if (rightRangeLine.first < wallDistance * 1.5 && right.first < wallDistance * 1.5 && !circleFoundMode) {
     start = false;
     for (auto i = 0; i < vec.size(); i++) {
       // take the closest line to the robot with respect to its front
@@ -283,7 +285,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
       m = M_PI / 2;
     }
 
-    msg.angular.z = (this->getCurrentAngle() + m) / 5;
+    msg.angular.z = (this->getCurrentAngle() + m) / (5*(0.6/linearVelocity));
     this->setCurrentAngle(this->getCurrentAngle() + m);
 
     followWall = true;
@@ -295,7 +297,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     if (right.first < wallDistance*5/2){
       msg.angular.z = -M_PI / 10;
     } else {
-      msg.angular.z = -M_PI / 5;
+      msg.angular.z = -M_PI / (5*(0.6/linearVelocity));
     }
     
     return msg;
@@ -312,9 +314,9 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
 
   // in case of deviation turn according to the wall to the right
   if (correcting) {
-    float variation = 90 - rightRangeLine.second;
-    std::cout << turnCorrection * variation << std::endl;
-    msg.angular.z = std::min(MAX_TURN, turnCorrection * variation)/5;
+    float variation = 120 - rightRangeLine.second;
+    std::cout << turnCorrection * variation/2 << std::endl;
+    msg.angular.z = std::min(MAX_TURN, turnCorrection * variation/2)/(10*(0.6/linearVelocity));
     this->setCorrecting(false);
   }
   return msg;
