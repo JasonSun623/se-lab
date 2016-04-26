@@ -73,6 +73,7 @@ private:
    */
   CrashRecoverer::State currentState;
 
+  /** @brief Count the number of steps already taken in the current recovery */
   int recoveryTimer;
 };
 
