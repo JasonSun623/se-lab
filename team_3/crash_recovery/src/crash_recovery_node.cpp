@@ -18,19 +18,25 @@
 int main(int argc, char **argv) {
   ROS_ASSERT(argc > 4);
 
-  std::string laser_topic = argv[1];
-  std::string crash_topic = argv[2];
+  std::string crash_topic = argv[1];
+  std::string laser_topic = argv[2];
 
   ros::init(argc, argv, crash_topic);
 
-  ros::NodeHandle n;
+  ros::NodeHandle node(argv[1]);
 
-  CrashRecoverer recoverer;
+  float crash_distance;
+  int recovery_steps;
+
+  ROS_ASSERT(node.getParam("CRASH_DISTANCE", crash_distance));
+  ROS_ASSERT(node.getParam("RECOVERY_STEPS", recovery_steps));
+
+  CrashRecoverer recoverer(crash_distance, recovery_steps);
 
   ros::Subscriber sub =
-      n.subscribe(laser_topic, 1, &CrashRecoverer::receiveLaserScan, &recoverer);
+      node.subscribe(laser_topic, 1, &CrashRecoverer::receiveLaserScan, &recoverer);
 
-  ros::Publisher pub = n.advertise< geometry_msgs::Twist >(crash_topic, 1);
+  ros::Publisher pub = node.advertise< geometry_msgs::Twist >(crash_topic, 1);
 
   ros::Rate rate(10);
 
