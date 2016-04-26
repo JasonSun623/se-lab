@@ -18,12 +18,12 @@
 	<env name="CRASH_DISTANCE" value="0.05" />
 
 	<!-- For wall-following strategy -->
-	<env name="LINEAR_VEL" value="0.6" />
-	<env name="WALL_FOLLOWING_DISTANCE" value="0.2" />
+	<env name="LINEAR_VEL" value="0.3" />
+	<env name="WALL_FOLLOWING_DISTANCE" value="0.25" />
 
 	<!-- Linear velocity value that is used in case a robot is too close
  	to the wall -->
-	<env name= "CRASH_VELOCITY" value= "-0.1" />
+	<env name= "CRASH_VELOCITY" value= "-0.2" />
 
 	<!-- Angular velocity value that is used to turn (multiplier for proportional controller) -->
 	<env name="TURN_CORRECTION" value="0.01" />
