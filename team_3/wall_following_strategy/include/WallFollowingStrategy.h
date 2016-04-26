@@ -49,28 +49,70 @@
  */
 class WallFollowingStrategy {
 private:
+  /** @brief true if the circle is currently visible */
   bool circleVisible = false;
+
+  /** @brief Counts the number of times a circle has been seen */
   int circleSeenCount = 0; // initialize stuff to 0 in constructor?
+
+  /** @brief The angle of the circle relative to the robot (in radian) */
   float circleAngle;
+
+  /** @brief The distance of the circle (in meters) */
   float circleDistance;
+
+  /** @brief RobotAngle */
   float robotAngle;
+
+  /** @brief Counter for deciding circleFoundMode */
   int circleCallCount = 0;
+
+  /** @brief true if CrashRecovery has reported a crash */
   bool crashMode;
+
+  /** @brief true if we're following a wall */
   bool followWall;
+
+  /** @brief true if we're prioritizing following the circle over other maneuvers */
   bool circleFoundMode;
+
+  /** @brief true if the robot is steering to chase the circle */
   bool correcting;
+
+  /** @brief Current ununsed */
   bool stuck;
+
+  /** @brief true if we're freely maneuvering (for example in the beginning) */
   bool start;
+
+  /** @brief Velocity of the robot when moving in a straight line */
   float linearVelocity = 0.3;
+
+  /** @brief The distance the wall will be followed at */
   float wallDistance = 0.3;
+
+  /** @brief Used when robot is very close to an obstacle */
   float crashVelocity = -0.1;
+
+  /** @brief This value is multiplied by the error, in order to turn around walls */
   float turnCorrection = 0.01;
+
+  /** @brief This value is multiplied by the error, to steer into the circle */
   float turnCircleCorrection = 0.035;
 
+  /** @brief Resulting line segments */
   std::vector<cv::Vec4i> res;
+
+  /** @brief Records the first line that was chosen */
   std::vector<std::pair<float, float>> initialLineChoice;
+
+  /** @brief Stores the last received laser scan message */
   sensor_msgs::LaserScan lastScan;
+
+  /** @brief Data source for line detection */
   cv::Mat src;
+
+  /** @brief Stores the current crash resolution obtained from CrashRecovery */
   geometry_msgs::Twist crashHandler;
 
 public:
