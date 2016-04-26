@@ -5,17 +5,19 @@
   */
 #include "../include/HalfCircleDetector.h"
 
-HalfCircleDetector::HalfCircleDetector(float laserRange, float minimumDistance, int stretchFactor, float halfCircleRadius, float minCirclePercentage, float maxInlierDist, float maxCircleDensity, int maxCirclePoints) {
-    this->laserRange = laserRange;
-    this->minimumDistance = minimumDistance;
-    this->halfCircleRadius = halfCircleRadius;
-    this->stretchFactor = stretchFactor;
-    this->minCirclePercentage = minCirclePercentage;
-    this->maxInlierDist = maxInlierDist;
-    this->maxCircleDensity = maxCircleDensity;
-    this->maxCirclePoints = maxCirclePoints;
+HalfCircleDetector::HalfCircleDetector(
+    float laserRange, float minimumDistance, int stretchFactor,
+    float halfCircleRadius, float minCirclePercentage, float maxInlierDist,
+    float maxCircleDensity, int maxCirclePoints) {
+  this->laserRange = laserRange;
+  this->minimumDistance = minimumDistance;
+  this->halfCircleRadius = halfCircleRadius;
+  this->stretchFactor = stretchFactor;
+  this->minCirclePercentage = minCirclePercentage;
+  this->maxInlierDist = maxInlierDist;
+  this->maxCircleDensity = maxCircleDensity;
+  this->maxCirclePoints = maxCirclePoints;
 }
-
 
 void HalfCircleDetector::receiveLaserScan(
     const sensor_msgs::LaserScan::ConstPtr &laserScan) {
@@ -73,16 +75,17 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     image.at< unsigned char >(cv::Point(x, y)) = 255;
   }
 
-//  for(int i = 0; i < HalfCircleDetector::points.size()-10; ++i) {
-//    cv::Point a = points[i];
-//    for(int j = 0; j < 10; ++j) {
-//      cv::Point b = points[i+j];
-//      
-//      /* Very basic interpolation. Makes up for the fact that at lines/corners
-//       * the resolution is much higher than at semicircles. */
-//      image.at< unsigned char >(cv::Point((a.x+b.x)/2, (a.y+b.y)/2));
-//    }
-//  }
+  //  for(int i = 0; i < HalfCircleDetector::points.size()-10; ++i) {
+  //    cv::Point a = points[i];
+  //    for(int j = 0; j < 10; ++j) {
+  //      cv::Point b = points[i+j];
+  //
+  //      /* Very basic interpolation. Makes up for the fact that at
+  //      lines/corners
+  //       * the resolution is much higher than at semicircles. */
+  //      image.at< unsigned char >(cv::Point((a.x+b.x)/2, (a.y+b.y)/2));
+  //    }
+  //  }
 
   return image;
 }
@@ -93,7 +96,8 @@ float HalfCircleDetector::verifyCircle(cv::Mat dt, cv::Point2f center,
   int inlier = 0;
 
   // choose samples along the circle and count inlier percentage
-  for (float t = semiCircleStart+M_PI/5; t < semiCircleStart + 4*M_PI/5; t += 0.01f) {
+  for (float t = semiCircleStart + M_PI / 5; t < semiCircleStart + 4 * M_PI / 5;
+       t += 0.01f) {
     counter++;
     float cX = radius * cos(t) + center.x;
     float cY = radius * sin(t) + center.y;
@@ -145,7 +149,7 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
   float halfCircleRadiusPixel = halfCircleRadius * stretchFactor;
 
   while (rightIndex < static_cast< int >(v.size())) {
-    float difference = fabs(norm(v[rightIndex]-v[leftIndex]));
+    float difference = fabs(norm(v[rightIndex] - v[leftIndex]));
 
     if (difference > (halfCircleRadiusPixel * 2 + errorMargin)) {
       ++leftIndex;
@@ -164,18 +168,19 @@ void HalfCircleDetector::getSamplePoints(int &first, int &second, int &third,
   third = (leftIndex + rightIndex - 1) / 2;
 }
 
-bool HalfCircleDetector::verifyCircleDensity(std::pair<int, int>& boundaries) {
+bool HalfCircleDetector::verifyCircleDensity(
+    std::pair< int, int > &boundaries) {
   int difference = boundaries.second - boundaries.first;
 
   ROS_ASSERT(difference > 0);
 
   float sum = 0;
-  for(int i = boundaries.first; i < boundaries.second; ++i) {
-    sum += cv::norm(points[i+1]-points[i]);
+  for (int i = boundaries.first; i < boundaries.second; ++i) {
+    sum += cv::norm(points[i + 1] - points[i]);
   }
 
-  sum /= static_cast<float>(difference); 
- 
+  sum /= static_cast< float >(difference);
+
   ROS_INFO("\nDifference in index: %d\n Average dist: %lf", difference, sum);
 
   return (sum > maxCircleDensity) && (difference < maxCirclePoints);
@@ -189,7 +194,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   cv::distanceTransform(255 - image, dt, CV_DIST_L1, 3);
 
   cv::Point2f bestCircleCenter;
-  std::pair<int, int> bestCircleBoundaries;
+  std::pair< int, int > bestCircleBoundaries;
   float bestCircleRadius = 0;
   float bestCirclePercentage = 0;
   float minRadius = halfCircleRadius - 0.03;
@@ -199,19 +204,19 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   int leftIndex = 0;
   int maxNrOfIterations = HalfCircleDetector::points.size();
 
-  for(int its = 0; std::max(its, rightIndex) < maxNrOfIterations; ++its) {
-    //choose 3 point and create a circle:
+  for (int its = 0; std::max(its, rightIndex) < maxNrOfIterations; ++its) {
+    // choose 3 point and create a circle:
     int idx1 = 0;
     int idx2 = 0;
     int idx3 = 0;
-    getSamplePoints(idx1, idx2, idx3, leftIndex, rightIndex, HalfCircleDetector::points);
+    getSamplePoints(idx1, idx2, idx3, leftIndex, rightIndex,
+                    HalfCircleDetector::points);
 
     // create circle from 3 points:
     float radius;
     cv::Point2f center;
-    std::pair<int, int> boundaries(idx1, idx3);
-    getCircle(points[idx1], points[idx2], points[idx3],
-              center, radius);
+    std::pair< int, int > boundaries(idx1, idx3);
+    getCircle(points[idx1], points[idx2], points[idx3], center, radius);
 
     float m_x = (image.cols / 2 - center.x);
     float m_y = (image.rows / 2 - center.y);
@@ -222,13 +227,12 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     float cPerc = verifyCircle(dt, center, radius, alpha);
 
     // update best circle information if necessary
-    if (cPerc >= bestCirclePercentage && 
-          radius / stretchFactor >= minRadius &&
-          radius / stretchFactor <= maxRadius) {
-        bestCirclePercentage = cPerc;
-        bestCircleRadius = radius;
-        bestCircleCenter = center;
-        bestCircleBoundaries = boundaries;
+    if (cPerc >= bestCirclePercentage && radius / stretchFactor >= minRadius &&
+        radius / stretchFactor <= maxRadius) {
+      bestCirclePercentage = cPerc;
+      bestCircleRadius = radius;
+      bestCircleCenter = center;
+      bestCircleBoundaries = boundaries;
     }
   }
 
@@ -238,7 +242,8 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   pose.theta = -1;
 
   // signal if good circle was found
-  if (bestCirclePercentage >= minCirclePercentage && verifyCircleDensity(bestCircleBoundaries)) {
+  if (bestCirclePercentage >= minCirclePercentage &&
+      verifyCircleDensity(bestCircleBoundaries)) {
     pose = createPose(bestCircleCenter.x, bestCircleCenter.y, image.cols / 2,
                       image.rows / 2);
     drawHalfCircle(image, bestCircleRadius, bestCircleCenter);
@@ -249,12 +254,14 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   return pose;
 }
 
-void HalfCircleDetector::drawHalfCircle(cv::Mat image, float bestCircleRadius, cv::Point2f bestCircleCenter) {
+void HalfCircleDetector::drawHalfCircle(cv::Mat image, float bestCircleRadius,
+                                        cv::Point2f bestCircleCenter) {
   cv::Mat color(image);
 
   cv::cvtColor(color, color, CV_GRAY2BGR);
 
-  //cv::circle(color, bestCircleCenter, bestCircleRadius, cv::Scalar(255, 255, 0), 1);
+  // cv::circle(color, bestCircleCenter, bestCircleRadius, cv::Scalar(255, 255,
+  // 0), 1);
 
   float m_x = (image.cols / 2 - bestCircleCenter.x);
   float m_y = (image.rows / 2 - bestCircleCenter.y);
@@ -265,7 +272,8 @@ void HalfCircleDetector::drawHalfCircle(cv::Mat image, float bestCircleRadius, c
               bestCircleCenter.y + sin(semiCircleStart) * bestCircleRadius);
 
   // draw tested points
-  for (float t = semiCircleStart+M_PI/5; t < semiCircleStart + 4*M_PI/5; t += 0.01f) {
+  for (float t = semiCircleStart + M_PI / 5; t < semiCircleStart + 4 * M_PI / 5;
+       t += 0.01f) {
     float cX = bestCircleRadius * cos(t) + bestCircleCenter.x;
     float cY = bestCircleRadius * sin(t) + bestCircleCenter.y;
     cv::circle(color, cv::Point2f(cX, cY), 1, cv::Scalar(0, 0, 255), 1);

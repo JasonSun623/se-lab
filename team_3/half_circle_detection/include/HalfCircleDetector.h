@@ -46,14 +46,15 @@
   */
 class HalfCircleDetector {
 public:
-  /** 
+  /**
    * @brief Constructor for HalfCircleDetector.
    */
   HalfCircleDetector(float laserRange, float mimimumDistance, int stretchFactor,
-    float halfCircleRadius, float minCirclePercentage, float maxInlierDist, 
-    float maxCircleDensity, int maxCirclePoints);
+                     float halfCircleRadius, float minCirclePercentage,
+                     float maxInlierDist, float maxCircleDensity,
+                     int maxCirclePoints);
 
-  /** 
+  /**
    * @brief Processes a sensor_msgs::LaserScan and calls necessary other
    * functions.
    *
@@ -65,31 +66,35 @@ public:
    */
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
-  /** 
+  /**
    * @brief Returns last processed half-circle pose
    * @return Last computed half-circle position.
    */
   geometry_msgs::Pose2D getHalfCirclePose();
 
-  /** 
+  /**
    * @brief Returns image from last processed LaserScan.
    * @return Latest OpenCV-image.
    */
   cv::Mat getLaserScanImage() { return laserScanImage; };
 
 private:
-  float laserRange; ///< Maximum measurement distance of laserScanner.
-  float minimumDistance; ///< Prevent taking corners as half-circles if robot too close.
+  float laserRange;       ///< Maximum measurement distance of laserScanner.
+  float minimumDistance;  ///< Prevent taking corners as half-circles if robot
+                          ///too close.
   float halfCircleRadius; ///< Approximate radius of half-circle in meters.
   int stretchFactor; ///< Factor to scale data to image (e.g. 100 px for 1m).
-  float minCirclePercentage; ///< Cutoff threshold for considering something as half circle.
-  float maxInlierDist; ///< Maximum distance of point to object to count as circle inlier.
+  float minCirclePercentage; ///< Cutoff threshold for considering something as
+                             ///half circle.
+  float maxInlierDist;    ///< Maximum distance of point to object to count as
+                          ///circle inlier.
   float maxCircleDensity; ///< Maximum density of points for half-circle.
-  int maxCirclePoints; ///< Maximum number of data points on half-circle.
+  int maxCirclePoints;    ///< Maximum number of data points on half-circle.
 
   cv::Mat laserScanImage; ///< OpenCV representation of latest laserScan.
   geometry_msgs::Pose2D halfCirclePose; ///< Last computed half-circle pose.
-  std::vector< cv::Point2f > points; ///< Contains points drawn onto the last OpenCV-image.
+  std::vector< cv::Point2f >
+      points; ///< Contains points drawn onto the last OpenCV-image.
 
   /**
    * @brief Takes a LaserScan and returns an OpenCV-image
@@ -104,7 +109,7 @@ private:
   cv::Mat createOpenCVImageFromLaserScan(
       const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
-  /** 
+  /**
    * @brief Takes an OpenCV image and returns the position of the half-circle
    * if it finds one and otherwise (-1, -1).
    *
@@ -132,7 +137,7 @@ private:
    */
   geometry_msgs::Pose2D createPose(int posX, int posY, int robotX, int robotY);
 
-  /** 
+  /**
    * @brief Computes how much of the circle given is actually present in the
    * picture.
    *
@@ -143,30 +148,31 @@ private:
    * distance transform.
    * @param[in] center Center of the circle to be verified.
    * @param[in] radius Radius of the circle to be verified.
-   * @param[in] semiCircleStart Angle in radius from which semiCircle is searched
+   * @param[in] semiCircleStart Angle in radius from which semiCircle is
+   *searched
    * for (starting at bottom and going clockwise).
    * @return Percentage of circle covered [0,1]
    *
    * @see http://stackoverflow.com/a/26234137
    */
   float verifyCircle(cv::Mat dt, cv::Point2f center, float radius,
-    float semiCircleStart);
+                     float semiCircleStart);
 
-  /** 
+  /**
    * @brief Constructs a circle out of three given points on the circle.
    * @param[in] p1,p2,p3 Points on circle
    * @param[out] center Center of circle constructed from given points.
-   * @param [out] radius Radius of circle constructed from given points. 
+   * @param [out] radius Radius of circle constructed from given points.
    * @return Void.
    * @see http://stackoverflow.com/a/26234137
    */
   void getCircle(cv::Point2f &p1, cv::Point2f &p2, cv::Point2f &p3,
                  cv::Point2f &center, float &radius);
 
-  /** 
+  /**
    * @brief Computes possible candidates for being on the circle.
    * @param[out] first,second,third Points to sample circle from.
-   * @param[in] rightIndex,leftIndex Indexes of last rightmost/leftmost points. 
+   * @param[in] rightIndex,leftIndex Indexes of last rightmost/leftmost points.
    * @param[in] v Points on OpenCV image.
    * @return Void.
    */
@@ -176,24 +182,25 @@ private:
   /**
    * @brief Checks if the point density of the detected semiCircle.
    *
-   * A high laserScan-point density might hint towards a false positive 
+   * A high laserScan-point density might hint towards a false positive
    * (i.e. it is actually a corner).
    *
-   * @param[in] boundaries Left and right index of laserScan points circle is constructed from.
+   * @param[in] boundaries Left and right index of laserScan points circle is
+   *constructed from.
    * @return True if it is a real semi-circle.
    */
-  bool verifyCircleDensity(std::pair<int, int>& boundaries);
+  bool verifyCircleDensity(std::pair< int, int > &boundaries);
 
-  /** 
+  /**
    * @brief Sets last processed half-circle pose
-   * @param pose New half-circle pose 
+   * @param pose New half-circle pose
    * @return Void.
    */
   void setHalfCirclePose(geometry_msgs::Pose2D &pose);
 
-  /** 
+  /**
    * @brief Sets image created from last LaserScan.
-   * @param image Latest image 
+   * @param image Latest image
    * @return Void.
    */
   void setLaserScanImage(cv::Mat image) { laserScanImage = image; };
@@ -202,7 +209,7 @@ private:
    * @brief Ouputs an image indicating the best guess for a half circle.
    * @return Void.
    */
-  void drawHalfCircle(cv::Mat image, float bestCircleRadius, cv::Point2f bestCircleCenter);
+  void drawHalfCircle(cv::Mat image, float bestCircleRadius,
+                      cv::Point2f bestCircleCenter);
 };
 #endif
-

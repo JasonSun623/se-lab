@@ -16,9 +16,9 @@
 
 #include "../include/HalfCircleDetector.h"
 
-/** @brief Starts the node. 
+/** @brief Starts the node.
   * @param[in] argc Number of Arguments
-  * @param[in] argv Array of Arguments 
+  * @param[in] argv Array of Arguments
   *   - [0] Program name
   *   - [1] Topic name for receiving LaserScans
   *   - [2] Topic name for publishing detected half circles
@@ -26,7 +26,9 @@
   *   - ... other ros-specific arguments
   */
 int main(int argc, char **argv) {
-  ROS_ASSERT_MSG(argc > 5, "Not enough arguments for topic names. 6 expected, %d given.", argc);
+  ROS_ASSERT_MSG(argc > 5,
+                 "Not enough arguments for topic names. 6 expected, %d given.",
+                 argc);
 
   ros::init(argc, argv, argv[1]);
 
@@ -42,7 +44,7 @@ int main(int argc, char **argv) {
   int maxCirclePoints;
 
   ROS_ASSERT(node.getParam("laserRange", laserRange));
-  ROS_ASSERT(node.getParam("minimumDistance", minimumDistance)); 
+  ROS_ASSERT(node.getParam("minimumDistance", minimumDistance));
   ROS_ASSERT(node.getParam("stretchFactor", stretchFactor));
   ROS_ASSERT(node.getParam("halfCircleRadius", halfCircleRadius));
   ROS_ASSERT(node.getParam("minCirclePercentage", minCirclePercentage));
@@ -51,8 +53,8 @@ int main(int argc, char **argv) {
   ROS_ASSERT(node.getParam("maxCirclePoints", maxCirclePoints));
 
   HalfCircleDetector detector(laserRange, minimumDistance, stretchFactor,
-    halfCircleRadius, minCirclePercentage, maxInlierDist, maxCircleDensity, 
-    maxCirclePoints);
+                              halfCircleRadius, minCirclePercentage,
+                              maxInlierDist, maxCircleDensity, maxCirclePoints);
 
   /** Subscribers */
   ros::Subscriber sub = node.subscribe(
@@ -69,7 +71,7 @@ int main(int argc, char **argv) {
     posePub.publish(detector.getHalfCirclePose());
 
     sensor_msgs::ImagePtr imagePtr =
-        cv_bridge::CvImage(std_msgs::Header(), "CV_8U",
+        cv_bridge::CvImage(std_msgs::Header(), "mono8",
                            detector.getLaserScanImage()).toImageMsg();
     imagePub.publish(imagePtr);
 
