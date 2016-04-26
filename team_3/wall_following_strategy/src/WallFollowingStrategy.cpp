@@ -229,19 +229,19 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   }
 
   // finding of circle is prioritized to other maneuvers
-  // if (circleVisible && circleDistance != 0) {
-  //   ROS_INFO("Found Circle!");
-  //   circleCallCount++;
-  //   if (circleCallCount > 2){
-  //     circleFoundMode = true; 
-  //   }
-  //   // the angle to follow with respect to the norm
-  //   float variationToCircle = 90 - circleAngle;
-  //   msg.angular.z = std::min(MAX_TURN, turnCircleCorrection * variationToCircle);
-  //   msg.linear.x = linearVelocity;
-  //   return msg;
+  if (circleVisible && circleDistance != 0) {
+    ROS_INFO("Found Circle!");
+    circleCallCount++;
+    if (circleCallCount > 2){
+      circleFoundMode = true; 
+    }
+    // the angle to follow with respect to the norm
+    float variationToCircle = 90 - circleAngle;
+    msg.angular.z = std::min(MAX_TURN, turnCircleCorrection * variationToCircle);
+    msg.linear.x = linearVelocity;
+    return msg;
     
-  // }
+  }
 
 
   //TODO: create macros/variables for all magic numbers here (0.3,0.5,...)
@@ -251,14 +251,14 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     if (start){
       ROS_INFO("Moving forward");
       return msg;
-    } else if (leftRangeLine.first > 1.8* wallDistance && rightRangeLine.first > 1.8* wallDistance ){
+    } else if (leftRangeLine.first > 2* wallDistance && rightRangeLine.first > 2* wallDistance ){
       start = true;
     }
   }
 
   // if the robot is too close to the obstacle on its left
   std::cout << leftRangeLine.first << std::endl;
-  if (leftRangeLine.first < wallDistance/2){
+  if (leftRangeLine.first < wallDistance/2 && !circleFoundMode){
     ROS_INFO("here");
     msg.angular.z = M_PI;
     msg.linear.x = crashVelocity;
@@ -271,7 +271,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   }
 
   // when a robot is next to the wall
-  if (rightRangeLine.first < wallDistance * 1.5 && right.first < wallDistance * 1.5 && !circleFoundMode) {
+  if (rightRangeLine.first < wallDistance * 1.2 && right.first < wallDistance * 1.2 && !circleFoundMode) {
     start = false;
     for (auto i = 0; i < vec.size(); i++) {
       // take the closest line to the robot with respect to its front

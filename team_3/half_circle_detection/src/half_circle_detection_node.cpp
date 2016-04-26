@@ -52,9 +52,7 @@ int main(int argc, char **argv) {
   while (ros::ok()) {
     posePub.publish(detector.getHalfCirclePose());
 
-    sensor_msgs::ImagePtr imagePtr =
-        cv_bridge::CvImage(std_msgs::Header(), "CV_8U",
-                           detector.getLaserScanImage()).toImageMsg();
+    sensor_msgs::ImagePtr imagePtr = cv_bridge::CvImage(std_msgs::Header(), "mono8", detector.getLaserScanImage()).toImageMsg();
     imagePub.publish(imagePtr);
 
     ros::spinOnce();
