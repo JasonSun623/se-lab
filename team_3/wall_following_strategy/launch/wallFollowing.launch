@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
+  <!-- declaration of topic names -->
+  <arg name="half_circle_topic" default="half_circle_detection" />
+  <arg name="laserScan_image_topic" default="laserScan_image" />
+  <arg name="half_circle_node_name" default="half_circle_publisher" />
 
   <!-- For half circle detection -->
   <!-- Threshold (in meters) from which on distance values are not considered objects anymore. -->
@@ -10,10 +14,11 @@
 	<env name="STRETCH_FACTOR" value="100" />
 
   <!-- If the robot is too close to a wall the half-circle detection does not work properly. This is the threshold in meters that define 'too close'. -->
-  	<env name="HALFCIRCLE_DETECTION_DISTANCE" value="0.3" />
-  	<!-- Radius of the half circle to be detected in meters. -->
-  	<env name="HALFCIRCLE_RADIUS" value="0.25" />
-
+  <env name="HALFCIRCLE_DETECTION_DISTANCE" value="0.15" />
+  <!-- Radius of the half circle to be detected in meters. -->
+  <env name="HALFCIRCLE_RADIUS" value="0.18" />
+  <!-- Cutoff threshold for considering sth. as a half circle -->
+  <env name="MIN_CIRCLE_PERCENTAGE" value="0.50" />
 	<!-- For crash recovery -->
 	<env name="CRASH_DISTANCE" value="0.05" />
 
@@ -29,8 +34,11 @@
 	<env name="TURN_CORRECTION" value="0.01" />
 	<env name="TURN_CIRCLE_CORRECTION" value="0.035" />
 
+  <!-- Internal scaling for OpenCV images -->
+  <env name="STRETCH_FACTOR" value="100" />
+
 	<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition03.world"/>
-	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" output="screen"/>
+	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" args="$(arg half_circle_node_name) $(arg half_circle_topic) $(arg laserScan_image_topic)" output="screen"/>
 	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen"/>
 	<node pkg="crash_recovery" type="crash_recovery_node" name="crash_recovery" output="screen"/>
 </launch>
