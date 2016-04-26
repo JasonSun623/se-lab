@@ -249,11 +249,7 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
     drawHalfCircle(image, bestCircleRadius, bestCircleCenter);
   }
 
-<<<<<<< HEAD
-  ROS_INFO("Circle certainty: %lf", bestCirclePercentage);
-=======
   ROS_DEBUG("Circle certainty: %lf", bestCirclePercentage);
->>>>>>> feature-wall-following-strategy
 
   return pose;
 }
