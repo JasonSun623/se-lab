@@ -1,28 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
   <!-- declaration of topic names -->
-  <arg name="half_circle_topic" default="half_circle_detection" />
-  <arg name="laserScan_image_topic" default="laserScan_image" />
-  <arg name="half_circle_node_name" default="half_circle_publisher" />
+  <arg name="half_circle_topic" default="/half_circle_detection" />
+  <arg name="laserScan_image_topic" default="/laserScan_image" />
+  <arg name="half_circle_node_name" default="half_circle_detection" />
 
-  <!-- For half circle detection -->
-  <!-- Threshold (in meters) from which on distance values are not considered objects anymore. -->
-	<env name="LASER_RANGE" value="3.9" />
-	<env name="RANGE" value="10.0" />
-  <!-- If the robot is too close to a wall the half-circle detection does not work properly. 
-       This is the threshold in meters that define 'too close'. -->
-  <env name="HALFCIRCLE_DETECTION_DISTANCE" value="0.2" />
-  <!-- Radius of the half circle to be detected in meters. -->
-  <env name="HALFCIRCLE_RADIUS" value="0.15" />
-  <!-- Cutoff threshold for considering sth. as a half circle -->
-  <env name="MIN_CIRCLE_PERCENTAGE" value="0.50" />
+<env name="RANGE" value="10.0" />
+
 	<!-- For crash recovery -->
 	<env name="CRASH_DISTANCE" value="0.05" />
 
-  <!-- Internal scaling for OpenCV images -->
-  <env name="STRETCH_FACTOR" value="100" />
+	<!-- Upper limit for turn correction -->
+	<env name="MAX_TURN" value="0.8" />
 
-	<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition01.world"/>
+	<!-- Angular velocitiy when scanning for circle -->
+	<env name="SCAN_VELOCITY" value="0.5" />
+
+	<!-- Minimum distance allowed toward obstacles -->
+	<env name="MIN_DISTANCE" value="0.5" />
+
 	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" args="$(arg half_circle_node_name) $(arg half_circle_topic) $(arg laserScan_image_topic)" output="screen" />
 	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen">
     <param name="LINEAR_VEL" value="0.3" />
@@ -33,6 +29,27 @@
   	<!-- Angular velocity value that is used to turn (multiplier for proportional controller) -->
   	<param name="TURN_CORRECTION" value="0.01" />
   	<param name="TURN_CIRCLE_CORRECTION" value="0.035" />
+  </node>
+
+  <node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition03.world"/>
+	<node pkg="half_circle_detection" type="half_circle_detection_node" name="$(arg half_circle_node_name)" args="$(arg half_circle_node_name) $(arg half_circle_topic) $(arg laserScan_image_topic)" output="screen">
+    <!-- Threshold (in meters) from which on distance values are not considered objects anymore. -->
+  	<param name="laserRange" value="3.9" />
+    <!-- If the robot is too close to a wall the half-circle detection does not work 
+properly. This is the threshold in meters that define 'too close'. -->
+    <param name="minimumDistance" value="0.15" />
+    <!-- Internal scaling for OpenCV images -->
+    <param name="stretchFactor" value="250" />
+    <!-- Radius of the half circle to be detected in meters. -->
+    <param name="halfCircleRadius" value="0.18" />
+     <!-- Cutoff threshold for considering sth. as a half circle -->
+    <param name="minCirclePercentage" value="0.70" />
+    <!-- Maximum Distance to be considered an inlier of a circle in px -->
+    <param name="maxInlierDist" value="2.5" />
+    <!-- Maximum average density of points on half-circle -->
+    <param name="maxCircleDensity" value="1.5" />
+    <!-- Maximum number of points on half-circle -->
+    <param name="maxCirclePoints" value="40" />
   </node>
 	<node pkg="crash_recovery" type="crash_recovery_node" name="crash_recovery" output="screen"/>
 </launch>
