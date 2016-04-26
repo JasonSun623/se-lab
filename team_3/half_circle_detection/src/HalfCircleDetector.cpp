@@ -246,8 +246,9 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
       verifyCircleDensity(bestCircleBoundaries)) {
     pose = createPose(bestCircleCenter.x, bestCircleCenter.y, image.cols / 2,
                       image.rows / 2);
-    drawHalfCircle(image, bestCircleRadius, bestCircleCenter);
   }
+
+  drawHalfCircle(image, bestCircleRadius, bestCircleCenter);
 
   ROS_DEBUG("Circle certainty: %lf", bestCirclePercentage);
 
