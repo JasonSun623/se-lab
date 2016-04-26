@@ -19,6 +19,16 @@
  *
  *  (Note: for the installation from the given VM there are no additional installations necessary. )
  *
+ * ## Build
+ *  * To build our modules, run ```catkin_make``` in the workspace root.
+ *  * To run our unit tests, run ```catkin_make run_tests``` in the workspace root.
+ *  * To run our solution, first source: ```source devel/setup.bash```
+ *  * Then start the lab_simulator: ```roslaunch lab_simulator simulator.launch```
+ *  * Then start our solution: ```roslaunch wall_following_strategy wallFollowing.launch```
+ *  * Our robot is well-trained. This means that you only have to wait long enough,
+ *    and it will find the circle.
+ *  * Alternatively, we provide a ```launch.sh``` script for your convenience
+ *
  * ## Contained packages
  *
  *  - ```half_circle_detection``` to convert laser data into circle positions
@@ -32,18 +42,18 @@
  *
  * ### Wall Following Strategy
  * The ```wall_following_strategy``` package contains the strategy node,
- * which takes inputs from the half_circle_detection and crash recovery 
+ * which takes inputs from the half_circle_detection and crash recovery
  * modules to follow walls until a circle is seen. Once a circle
  * has been seen, the strategy drives the robot straight towards it.
  *
  * ### Crash Recovery
  * The crash recovery node performs a 'reverse-and-turn' maneuver if the robot
- * impacts with its surrounding. 
- * 
+ * impacts with its surrounding.
+ *
  * ## Further comments
  * The individual contributions of the team members were so far quite heterogeneous.
  * Further improvement on team collaboration and integration of pair programming
- * need to be considered in the future work. The test coverage is low at the moment, 
+ * need to be considered in the future work. The test coverage is low at the moment,
  * although it has been increased since the last sprint.
  *
  * We would also like to thank the TAs. Keep up the good work!
