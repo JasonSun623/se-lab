@@ -50,7 +50,7 @@
 class WallFollowingStrategy {
 private:
   bool circleVisible = false;
-  int circleSeenCount = 0; //initialize stuff to 0 in constructor?
+  int circleSeenCount = 0; // initialize stuff to 0 in constructor?
   float circleAngle;
   float circleDistance;
   float robotAngle;
@@ -59,31 +59,34 @@ private:
   bool followWall;
   bool circleFoundMode;
   bool correcting;
-  bool cornerEdge;
-
+  bool stuck;
+  bool start;
   float linearVelocity = 0.3;
   float wallDistance = 0.3;
   float crashVelocity = -0.1;
   float turnCorrection = 0.01;
   float turnCircleCorrection = 0.035;
 
-  std::vector< cv::Vec4i > res;
-  std::vector< std::pair< float, float > > initialLineChoice;
+  std::vector<cv::Vec4i> res;
+  std::vector<std::pair<float, float>> initialLineChoice;
   sensor_msgs::LaserScan lastScan;
   cv::Mat src;
   geometry_msgs::Twist crashHandler;
 
 public:
-
   /** @brief Constructor for HalfCircleDetector.
    *  Here the environment variables are loaded.
    */
-  WallFollowingStrategy() {
-    getEnvironmentVariable("LINEAR_VEL", linearVelocity);
-    getEnvironmentVariable("WALL_FOLLOWING_DISTANCE", wallDistance);
-    getEnvironmentVariable("CRASH_VELOCITY", crashVelocity);
-    getEnvironmentVariable("TURN_CORRECTION", turnCorrection);
-    getEnvironmentVariable("TURN_CIRCLE_CORRECTION", turnCircleCorrection);
+  WallFollowingStrategy(float linearVelocity, float wallDistance,
+                        float crashVelocity, float turnCorrection,
+                        float turnCircleCorrection) {
+    start = true;
+
+    this->linearVelocity = linearVelocity;
+    this->wallDistance = wallDistance;
+    this->crashVelocity = crashVelocity;
+    this->turnCorrection = turnCorrection;
+    this->turnCircleCorrection = turnCircleCorrection;
   }
 
   /**
@@ -103,7 +106,7 @@ public:
    * @brief Callback for receiving OpenCV images from half_circle_detection.
    * @param msg Pointer to the new OpenCV image
    */
-  void receiveOpenCVImage(const sensor_msgs::ImageConstPtr& msg);
+  void receiveOpenCVImage(const sensor_msgs::ImageConstPtr &msg);
 
   /**
   * @brief Receives a message from crash_recovery topic of robot behavior
@@ -141,8 +144,8 @@ public:
   * @return A value that is convertible to bool and shows the order of two
   * coordinates
   */
-  static int compareEnd(std::pair< cv::Vec4i, float > one,
-                        std::pair< cv::Vec4i, float > two) {
+  static int compareEnd(std::pair<cv::Vec4i, float> one,
+                        std::pair<cv::Vec4i, float> two) {
     return (one.first[2] > two.first[2]);
   }
 
@@ -153,8 +156,8 @@ public:
   * @return A value that is convertible to bool and shows the order of two
   * coordinates
   */
-  static int compareSlope(std::pair< cv::Vec4i, float > one,
-                          std::pair< cv::Vec4i, float > two) {
+  static int compareSlope(std::pair<cv::Vec4i, float> one,
+                          std::pair<cv::Vec4i, float> two) {
     return (one.second < two.second);
   }
 
@@ -188,7 +191,7 @@ public:
   * @param vec a vector of pairs of line segment and slope
   * @return Slope of the line segment
   */
-  cv::Vec4i getAverLine(std::vector< std::pair< cv::Vec4i, float > > vec);
+  cv::Vec4i getAverLine(std::vector<std::pair<cv::Vec4i, float>> vec);
 
   /**
   * @brief Finds the difference(not absolute one) between two integers
@@ -201,7 +204,7 @@ public:
   * @brief Print lines from a vector to the image (cv::Mat)
   * @param dst, lines  destination image, lines to be mapped to the image
   */
-  void printLinesImage(cv::Mat dst, std::vector< cv::Vec4i > lines);
+  void printLinesImage(cv::Mat dst, std::vector<cv::Vec4i> lines);
 
   /**
   * @brief Remove unnecessary lines from a vector of line segments (cv::Mat)
@@ -213,7 +216,7 @@ public:
   * @param lines1 a vector of line segments taken for processing after applying
   * HoughLinesP function from OpenCV
   */
-  void removeLines(std::vector< cv::Vec4i > lines1);
+  void removeLines(std::vector<cv::Vec4i> lines1);
 
   /** @brief Gets number of line segments after elimination
   */
@@ -250,13 +253,13 @@ public:
   /** @brief Gets the vector of line segments that were processed after line
    * removal
   */
-  std::vector< cv::Vec4i > getLines() { return res; }
+  std::vector<cv::Vec4i> getLines() { return res; }
 
   /** @brief Finds the minimum distance in the range of laser scan message
   *   @param left, right left and right boundaries
   *   @return Returns the slope and the distance to the line segment
   */
-  std::pair< float, float > findMinimDistance(int left, int right);
+  std::pair<float, float> findMinimDistance(int left, int right);
 
   /** @brief Implements the main logic of the wall-following strategy
   *   @return Returns the twist message containing the next move to be sent
@@ -277,17 +280,19 @@ public:
    */
   bool lineCondition(std::pair<cv::Vec4i, float>, cv::Vec4i);
 
-  /** @brief Helper function for retrieving float environment variables declared in the launch file. */
-  void getEnvironmentVariable(const char* varString, float& var) {
-    char* c;
+  /** @brief Helper function for retrieving float environment variables declared
+   * in the launch file. */
+  void getEnvironmentVariable(const char *varString, float &var) {
+    char *c;
 
-    c = std::getenv(varString); 
-    if(!c) { 
-      ROS_INFO("Environment variable %s not found. Using %lf as a default value.", varString, var);
+    c = std::getenv(varString);
+    if (!c) {
+      ROS_INFO(
+          "Environment variable %s not found. Using %lf as a default value.",
+          varString, var);
     } else {
-      var = std::stof(std::string(c)); 
+      var = std::stof(std::string(c));
     }
   }
 };
 #endif
-

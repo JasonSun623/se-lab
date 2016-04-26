@@ -173,7 +173,6 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   float minRadius = halfCircleRadius - 0.01;
   float maxRadius = halfCircleRadius + 0.01;
 
-
   int maxNrOfIterations = edgePositions.size();
 
   int rightIndex = 0;
@@ -228,7 +227,11 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
                       image.rows / 2);
   }
 
+<<<<<<< HEAD
   ROS_INFO("Circle certainty: %lf", bestCirclePercentage);
+=======
+  ROS_DEBUG("Circle certainty: %lf", bestCirclePercentage);
+>>>>>>> feature-wall-following-strategy
 
   drawHalfCircle(image, bestCircleRadius, bestCircleCenter);
 

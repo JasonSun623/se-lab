@@ -8,26 +8,42 @@
 int main(int argc, char **argv) {
   ros::init(argc, argv, "wall_following_strategy");
 
-  ros::NodeHandle n;
-  WallFollowingStrategy strategy;
+  ros::NodeHandle node("wall_following_strategy");
 
-  ros::Subscriber laserSub = n.subscribe(
-      "base_scan", 1, &WallFollowingStrategy::receiveLaserScan, &strategy);
+  float linearVelocity;
+  float wallDistance;
+  float crashVelocity;
+  float turnCorrection;
+  float turnCircleCorrection;
+
+  ROS_ASSERT(node.getParam("LINEAR_VEL", linearVelocity));
+  ROS_ASSERT(node.getParam("WALL_FOLLOWING_DISTANCE", wallDistance));
+  ROS_ASSERT(node.getParam("CRASH_VELOCITY", crashVelocity));
+  ROS_ASSERT(node.getParam("TURN_CORRECTION", turnCorrection));
+  ROS_ASSERT(node.getParam("TURN_CIRCLE_CORRECTION", turnCircleCorrection));
+
+  WallFollowingStrategy strategy(linearVelocity, wallDistance, crashVelocity,
+                                 turnCorrection, turnCircleCorrection);
+
+  /** Subscribers */
+  ros::Subscriber laserSub = node.subscribe(
+      "/base_scan", 1, &WallFollowingStrategy::receiveLaserScan, &strategy);
   ros::Subscriber circleSub =
-      n.subscribe("half_circle_detection", 1,
-                  &WallFollowingStrategy::receiveCirclePosition, &strategy);
-  ros::Subscriber crashSub = n.subscribe(
-      "crash_recovery", 1, &WallFollowingStrategy::getCrashRecovery, &strategy);
+      node.subscribe("/half_circle_detection", 1,
+                     &WallFollowingStrategy::receiveCirclePosition, &strategy);
+  ros::Subscriber crashSub =
+      node.subscribe("/crash_recovery", 1,
+                     &WallFollowingStrategy::getCrashRecovery, &strategy);
 
-  ros::NodeHandle imageHandle;
-  image_transport::ImageTransport imageTransport(imageHandle);
+  image_transport::ImageTransport imageTransport(node);
   image_transport::Subscriber imageSub;
 
   imageSub = imageTransport.subscribe(
-      "laserScan_image", 1, &WallFollowingStrategy::receiveOpenCVImage,
+      "/laserScan_image", 1, &WallFollowingStrategy::receiveOpenCVImage,
       &strategy);
 
-  ros::Publisher pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+  /** Publishers */
+  ros::Publisher pub = node.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
 
   ros::Rate rate(10);
 
