@@ -44,10 +44,19 @@
  */
 #define SLOPE_EPSILON 0.1f
 
+/**
+ * @brief Threshold for the number of circles detected in order to start approaching the circle
+ */
 #define CIRCLE_COUNT 3
 
+/**
+ * @brief Wall variation threshold while wall following
+ */
 #define GLOBAL_WALL_VARIATION 0.1f
 
+/**
+ * @brief Bigger distance from the wall is considered as "lost-in-space" state
+ */
 #define LOST_THRESHOLD 1.0f
 
 /**
@@ -346,5 +355,8 @@ public:
       var = std::stof(std::string(c));
     }
   }
+  /** @brief Increments the turning angle of the robot [deg]
+   */
+  void incrementTurn(float);
 };
 #endif

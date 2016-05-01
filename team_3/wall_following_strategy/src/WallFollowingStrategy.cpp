@@ -186,6 +186,10 @@ std::pair<float, float> WallFollowingStrategy::findMinimDistance(int left,
   return p;
 }
 
+void WallFollowingStrategy::incrementTurn(float m){
+  this->setCurrentAngle(this->getCurrentAngle() + m);
+}
+
 const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   geometry_msgs::Twist msg;
   int minim = INT_MAX;
@@ -287,7 +291,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
 
     // update the current angle of rotation for the robot
     msg.angular.z = (this->getCurrentAngle() + m) / 5;
-    this->setCurrentAngle(this->getCurrentAngle() + m);
+    incrementTurn(m);
     ROS_INFO("Turning Mode %f", right.first);
     // set the flag of following the wall
     followWall = true;
