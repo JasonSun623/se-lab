@@ -100,6 +100,8 @@ private:
   /** @brief This value is multiplied by the error, to steer into the circle */
   float turnCircleCorrection = 0.035;
 
+  float wallDistanceTurn = 0.5;
+
   /** @brief Resulting line segments */
   std::vector<cv::Vec4i> res;
 

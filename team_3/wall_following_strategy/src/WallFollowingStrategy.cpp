@@ -26,15 +26,9 @@ void WallFollowingStrategy::getCrashRecovery(
 void WallFollowingStrategy::receiveCirclePosition(
     const geometry_msgs::Pose2D::ConstPtr &circlePose) {
   if (fabs(circlePose->x + 1) < 0.02) {
-    //    circleSeenCount = std::max(circleSeenCount - 1, 0);
-    //    if(circleSeenCount == 0) {
     circleVisible = false;
-    circleFoundMode = false;
-    //    }
     return;
   }
-
-  //  circleSeenCount = std::min(circleSeenCount + 1, 4);
   circleVisible = true;
   circleAngle = circlePose->theta * (180 / M_PI);
   circleDistance = sqrt(pow(circlePose->x, 2) + pow(circlePose->y, 2));
@@ -186,7 +180,6 @@ std::pair<float, float> WallFollowingStrategy::findMinimDistance(int left,
     if (p.first == scan.ranges[i]) {
       // will represent an angle from the robot to the line segment
       p.second = i;
-      // ROS_INFO("Min %f\n", scan.ranges[i]);
     }
   }
 
@@ -202,30 +195,24 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   if (getLaserScan().ranges.size() == 0) {
     return msg;
   }
-
   int scanSize = WallFollowingStrategy::getLaserScan().ranges.size();
+
   // the global closest line to the robot
-  std::pair<float, float> rightRangeLine =
-      WallFollowingStrategy::findMinimDistance(0, scanSize / 2);
+  std::pair< float, float > line =
+      WallFollowingStrategy::findMinimDistance(0, scanSize/2);
   std::pair<float, float> leftRangeLine =
       WallFollowingStrategy::findMinimDistance(scanSize / 2, scanSize - 1);
-  std::vector<cv::Vec4i> vec = getLines();
+  std::pair<float, float> rightRangeLine =
+      WallFollowingStrategy::findMinimDistance(0, scanSize / 2);
+  std::vector< cv::Vec4i > vec = getLines();
 
   // closest line segment on the right range of laser scan with respect to the
   // robot
-  std::pair<float, float> right =
-      this->findMinimDistance(scanSize / 4, scanSize / 3);
-
+  std::pair< float, float > right = this->findMinimDistance(scanSize/8, scanSize/3);
+  ROS_INFO("Min right %f", right.first);
   // if no data is received yet
-  if (!src.size().height) {
+  if (!src.data) {
     msg.linear.x = 0;
-    return msg;
-  }
-
-  if (crashMode) {
-    ROS_INFO("Crash!");
-    msg.linear.x = crashHandler.linear.x;
-    msg.angular.z = crashHandler.angular.z;
     return msg;
   }
 
@@ -237,44 +224,41 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
       circleFoundMode = true;
     }
     // the angle to follow with respect to the norm
-    float variationToCircle = 90 - circleAngle;
+    float variationToCircle = 120 - circleAngle;
     msg.angular.z =
-        std::min(MAX_TURN, turnCircleCorrection * variationToCircle);
+        std::min(MAX_TURN, 0.045f * variationToCircle);
     msg.linear.x = linearVelocity;
+    return msg;
+  } else {
+    circleCallCount = 0;
+    circleFoundMode = false;
+  }
+
+  if (crashMode && !circleFoundMode) {
+    ROS_INFO("Crash!");
+    msg.linear.x = crashHandler.linear.x;
+    msg.angular.z = crashHandler.angular.z;
+
     return msg;
   }
 
-  // TODO: create macros/variables for all magic numbers here (0.3,0.5,...)
   // movement of the robot in free space
-  if (rightRangeLine.first > wallDistance && !followWall && !circleFoundMode &&
-      !correcting) {
+  if (line.first > 0.3 && !followWall && !circleFoundMode) {
     msg.linear.x = linearVelocity;
-    if (start) {
-      ROS_INFO("Moving forward");
-      return msg;
-    } else if (leftRangeLine.first > 2 * wallDistance &&
-               rightRangeLine.first > 2 * wallDistance) {
-      start = true;
-    }
+    return msg;
   }
 
   // if the robot is too close to the obstacle on its left
   std::cout << leftRangeLine.first << std::endl;
-  if (leftRangeLine.first < wallDistance / 2 && !circleFoundMode) {
-    ROS_INFO("here");
+  if (leftRangeLine.first < 0.1 && !circleFoundMode) {
     msg.angular.z = M_PI;
     msg.linear.x = crashVelocity;
     // case if a robot is too close to the circle
-    if (circleFoundMode) {
-      circleFoundMode = false;
-      circleCallCount = 0;
-    }
     return msg;
   }
 
   // when a robot is next to the wall
-  if (rightRangeLine.first < wallDistance * 1.2 &&
-      right.first < wallDistance * 1.2 && !circleFoundMode) {
+  if (line.first < wallDistance + 0.1 && right.first < 0.5 && !circleFoundMode) {
     start = false;
     for (auto i = 0; i < vec.size(); i++) {
       // take the closest line to the robot with respect to its front
@@ -283,54 +267,50 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
         k = i;
       }
     }
+
     float den = vec[k][2] - vec[k][0];
     float num = vec[k][3] - vec[k][1];
     float m = 0;
-    if (den < EPSILON_SLOPE || num < EPSILON_SLOPE ||
-        num / den < EPSILON_SLOPE) {
+    if (den < 0.1 || num < 0.1) {
       m = M_PI / 2;
     } else {
-      ROS_INFO("Turning Wall Mode");
-      std::cout << den << " " << num << std::endl;
-      m = num / den;
+      m = num/den;
     }
-    msg.angular.z =
-        (this->getCurrentAngle() + m) / (5 * (0.6 / linearVelocity));
-    this->setCurrentAngle(this->getCurrentAngle() + m);
 
+    msg.angular.z = (this->getCurrentAngle() + m) / 5;
+    this->setCurrentAngle(this->getCurrentAngle() + m);
+    ROS_INFO("Turning Mode %f", right.first);
     followWall = true;
     return msg;
     // if the robot is approaching the end of the wall
-  } else if (right.first > wallDistance * 2 && !circleFoundMode) {
+  } 
+  // else if ((right.first > wallDistance + 0.1 || right.first < wallDistance - 0.1 )&& !circleFoundMode) {
+  //   this->setCorrecting(true);
+  //   ROS_INFO("Correction %f", right.first);
+  //   followWall = false;
+   else if (right.first > wallDistance + 0.2 && !circleFoundMode) {
     ROS_INFO("Turning End Wall Mode %f", right.first);
-    msg.linear.x = linearVelocity / 2;
-    if (right.first < wallDistance * 5 / 2) {
-      msg.angular.z = -M_PI / 5;
-    } else {
-      followWall = true;
-      msg.angular.z = -M_PI / 10;
+    msg.linear.x = linearVelocity - linearVelocity/3;
+    msg.angular.z = -M_PI*(linearVelocity/0.3)/ 5;
+    if (rightRangeLine.first > 1 && leftRangeLine.first > 1){
+      msg.angular.z = 0;
     }
-
-    return msg;
-  }
-
-  // robot is following the wall and deviates from it
-  if ((right.first < wallDistance * 0.5 || right.first > wallDistance * 1.3) &&
-      !circleFoundMode && followWall) {
-    ROS_INFO("Correction");
-    this->setCorrecting(true);
-    followWall = false;
+    if (right.first > wallDistance + 0.3){
+      return msg;
+    } else {
+      this->setCorrecting(true);
+    }
+    
   } else {
     msg.linear.x = linearVelocity;
   }
 
   // in case of deviation turn according to the wall to the right
   if (correcting) {
-    float variation = 120 - rightRangeLine.second;
-    std::cout << turnCorrection *variation / 2 << std::endl;
-    msg.angular.z = std::min(MAX_TURN, turnCorrection * variation / 2) /
-                    (10 * (0.6 / linearVelocity));
+    float variation = 90 - right.second;
+    msg.angular.z = -std::min(MAX_TURN, turnCorrection * variation)/5;
     this->setCorrecting(false);
   }
+
   return msg;
 }

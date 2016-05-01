@@ -23,11 +23,11 @@
   <!-- Internal scaling for OpenCV images -->
   <env name="STRETCH_FACTOR" value="100" />
 
-	<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition01.world"/>
+	<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition06.world"/>
 	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" args="$(arg half_circle_node_name) $(arg half_circle_topic) $(arg laserScan_image_topic)" output="screen" />
 	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" output="screen">
-    <param name="LINEAR_VEL" value="0.3" />
-  	<param name="WALL_FOLLOWING_DISTANCE" value="0.25" />
+    <param name="LINEAR_VEL" value="0.6" />
+  	<param name="WALL_FOLLOWING_DISTANCE" value="0.2" />
   	<!-- Linear velocity value that is used in case a robot is too close
    	to the wall -->
   	<param name= "CRASH_VELOCITY" value= "-0.2" />
