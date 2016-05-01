@@ -42,7 +42,13 @@
 /**
  * @brief Smaller values for slope of the line segment are neglected
  */
-#define EPSILON_SLOPE 0.1f
+#define SLOPE_EPSILON 0.1f
+
+#define CIRCLE_COUNT 3
+
+#define GLOBAL_WALL_VARIATION 0.1f
+
+#define LOST_THRESHOLD 1.0f
 
 /**
  * @brief Compound class for wall-following strategy implementation
@@ -102,6 +108,8 @@ private:
 
   float wallDistanceTurn = 0.5;
 
+  bool lostMode;
+
   /** @brief Resulting line segments */
   std::vector<cv::Vec4i> res;
 
@@ -125,7 +133,7 @@ public:
                         float crashVelocity, float turnCorrection,
                         float turnCircleCorrection) {
     start = true;
-
+    lostMode = false;
     this->linearVelocity = linearVelocity;
     this->wallDistance = wallDistance;
     this->crashVelocity = crashVelocity;
