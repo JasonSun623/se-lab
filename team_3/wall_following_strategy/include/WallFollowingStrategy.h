@@ -47,12 +47,12 @@
 /**
  * @brief Threshold for the number of circles detected in order to start approaching the circle
  */
-#define CIRCLE_COUNT 3
+#define CIRCLE_COUNT 4
 
 /**
  * @brief Wall variation threshold while wall following
  */
-#define GLOBAL_WALL_VARIATION 0.1f
+#define GLOBAL_WALL_VARIATION 0.05f
 
 /**
  * @brief Bigger distance from the wall is considered as "lost-in-space" state
@@ -65,10 +65,7 @@
 class WallFollowingStrategy {
 private:
   /** @brief true if the circle is currently visible */
-  bool circleVisible = false;
-
-  /** @brief Counts the number of times a circle has been seen */
-  int circleSeenCount = 0; // initialize stuff to 0 in constructor?
+  bool circleVisible;
 
   /** @brief The angle of the circle relative to the robot (in radian) */
   float circleAngle;
@@ -80,7 +77,7 @@ private:
   float robotAngle;
 
   /** @brief Counter for deciding circleFoundMode */
-  int circleCallCount = 0;
+  int circleCallCount;
 
   /** @brief true if CrashRecovery has reported a crash */
   bool crashMode;
@@ -136,8 +133,10 @@ public:
   /** @brief Default constructor for Wall Following Strategy.
    */
   WallFollowingStrategy() {
+    circleFoundMode = false;
     start = true;
     lostMode = false;
+    circleCallCount = 0;
     this->linearVelocity = 0.3;
     this->wallDistance = 0.3;
     this->crashVelocity = -0.2;
@@ -152,6 +151,8 @@ public:
                         float turnCircleCorrection) {
     start = true;
     lostMode = false;
+    circleCallCount = 0;
+    circleFoundMode = false;
     this->linearVelocity = linearVelocity;
     this->wallDistance = wallDistance;
     this->crashVelocity = crashVelocity;
@@ -305,6 +306,24 @@ public:
   *   @return the image
   */
   cv::Mat getImage() { return src; }
+
+  /**@brief Sets the number of detected circles
+   * @param count number to be set
+   */
+  void setCount(int count) {
+    if (count < 0){
+      std::cerr << "Incorrect input data" << std::endl;
+      return;
+    }
+    circleCallCount = count;
+  }
+
+  /**@brief Gets the number of detected circles
+   * @return the number of detected circles
+   */
+  int getCount() {
+    return circleCallCount;
+  }
 
   /** @brief Clears the vector of line segments in order to process the new
   * image

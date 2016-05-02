@@ -236,17 +236,17 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   if (circleVisible && circleDistance != 0) {
     ROS_INFO("Found Circle!");
     circleCallCount++;
-    /*if more than 3 reports are registered - move to the circle*/
-    if (circleCallCount > 4) {
-      circleFoundMode = true;
-    }
     // the angle to follow with respect to the norm
     float variationToCircle = 90 - circleAngle;
     msg.angular.z =
         std::min(MAX_TURN, turnCircleCorrection * variationToCircle);
     msg.linear.x = linearVelocity;
     this->clearData();
-    return msg;
+    /*if more than 4 reports are registered - move to the circle*/
+    if (circleCallCount > CIRCLE_COUNT) {
+      circleFoundMode = true;
+      return msg;
+    }
   } else {
     circleCallCount = 0;
     //circleFoundMode = false;
@@ -312,7 +312,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     this->clearData();
     return msg;
     // if the robot is approaching the end of the wall or staying too far from the wall
-  } else if (right.first > wallDistance + 2*GLOBAL_WALL_VARIATION && !circleFoundMode && followWall) {
+  } else if (right.first > wallDistance + 2*GLOBAL_WALL_VARIATION && !circleFoundMode) {
     ROS_INFO("Turning End Wall Mode %f", right.first);
     msg.linear.x = linearVelocity - linearVelocity/6;
     msg.angular.z = -M_PI*(linearVelocity/0.3)/ 5;
@@ -337,7 +337,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   // in case of deviation turn according to the wall to the right
   if (correcting) {
     float variation = 90 - right.second;
-    msg.angular.z = -std::min(MAX_TURN, turnCorrection * variation)/5;
+    msg.angular.z = -std::min(MAX_TURN, turnCorrection * variation)/10;
     this->setCorrecting(false);
   }
   this->clearData();
