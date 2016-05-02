@@ -61,8 +61,6 @@ int main(int argc, char **argv) {
 
   ros::Rate rate(10);
 
-  cv::Mat bw, s;
-  std::vector<cv::Vec4i> lines;
   ros::spinOnce();
 
   strategy.setCurrentAngle(0);
@@ -70,19 +68,9 @@ int main(int argc, char **argv) {
   while (ros::ok()) {
     geometry_msgs::Twist msg;
 
-    if (strategy.getImage().size().height) {
-      s = strategy.getImage();
-      cv::Canny(s, bw, 50, 200, 3);
-      cv::HoughLinesP(bw, lines, 1, CV_PI / 180, 20, 10, 10);
-      strategy.removeLines(lines);
-    }
-
     msg = strategy.controlMovement();
 
     pub.publish(msg);
-
-    lines.clear();
-    strategy.clearData();
 
     ros::spinOnce();
     rate.sleep();

@@ -101,21 +101,19 @@ private:
   bool start;
 
   /** @brief Velocity of the robot when moving in a straight line */
-  float linearVelocity = 0.3;
+  float linearVelocity;
 
   /** @brief The distance the wall will be followed at */
-  float wallDistance = 0.3;
+  float wallDistance;
 
   /** @brief Used when robot is very close to an obstacle */
-  float crashVelocity = -0.1;
+  float crashVelocity;
 
   /** @brief This value is multiplied by the error, in order to turn around walls */
-  float turnCorrection = 0.01;
+  float turnCorrection;
 
   /** @brief This value is multiplied by the error, to steer into the circle */
-  float turnCircleCorrection = 0.035;
-
-  float wallDistanceTurn = 0.5;
+  float turnCircleCorrection;
 
   bool lostMode;
 
@@ -135,7 +133,18 @@ private:
   geometry_msgs::Twist crashHandler;
 
 public:
-  /** @brief Constructor for HalfCircleDetector.
+  /** @brief Default constructor for Wall Following Strategy.
+   */
+  WallFollowingStrategy() {
+    start = true;
+    lostMode = false;
+    this->linearVelocity = 0.3;
+    this->wallDistance = 0.3;
+    this->crashVelocity = -0.2;
+    this->turnCorrection = 0.01;
+    this->turnCircleCorrection = 0.035;
+  }
+  /** @brief Constructor for Wall Following Strategy.
    *  Here the environment variables are loaded.
    */
   WallFollowingStrategy(float linearVelocity, float wallDistance,

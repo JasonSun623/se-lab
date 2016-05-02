@@ -194,8 +194,18 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   geometry_msgs::Twist msg;
   int minim = INT_MAX;
   int k = 0;
+  cv::Mat bw,s;
+  std::vector<cv::Vec4i> lines;
+
+  if (this->getImage().size().height) {
+      s = this->getImage();
+      cv::Canny(s, bw, 50, 200, 3);
+      cv::HoughLinesP(bw, lines, 1, CV_PI / 180, 20, 10, 10);
+      this->removeLines(lines);
+  }
 
   if (getLaserScan().ranges.size() == 0) {
+    this->clearData();
     return msg;
   }
   int scanSize = WallFollowingStrategy::getLaserScan().ranges.size();
@@ -218,6 +228,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   // if no data is received yet
   if (!src.data) {
     msg.linear.x = 0;
+    this->clearData();
     return msg;
   }
 
@@ -226,7 +237,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     ROS_INFO("Found Circle!");
     circleCallCount++;
     /*if more than 3 reports are registered - move to the circle*/
-    if (circleCallCount > CIRCLE_COUNT) {
+    if (circleCallCount > 4) {
       circleFoundMode = true;
     }
     // the angle to follow with respect to the norm
@@ -234,6 +245,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     msg.angular.z =
         std::min(MAX_TURN, turnCircleCorrection * variationToCircle);
     msg.linear.x = linearVelocity;
+    this->clearData();
     return msg;
   } else {
     circleCallCount = 0;
@@ -244,7 +256,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     ROS_INFO("Crash!");
     msg.linear.x = crashHandler.linear.x;
     msg.angular.z = crashHandler.angular.z;
-
+    this->clearData();
     return msg;
   }
 
@@ -253,6 +265,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     msg.linear.x = linearVelocity;
     // move forward from the starting point or in case of being lost in space
     if (start || lostMode){
+      this->clearData();
       return msg;
     }
   }
@@ -263,6 +276,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     // move backwards from the wall
     msg.angular.z = M_PI;
     msg.linear.x = crashVelocity;
+    this->clearData();
     return msg;
   }
 
@@ -295,6 +309,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     ROS_INFO("Turning Mode %f", right.first);
     // set the flag of following the wall
     followWall = true;
+    this->clearData();
     return msg;
     // if the robot is approaching the end of the wall or staying too far from the wall
   } else if (right.first > wallDistance + 2*GLOBAL_WALL_VARIATION && !circleFoundMode && followWall) {
@@ -309,6 +324,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     }
     // turning around the wall
     if (right.first > wallDistance + 3*GLOBAL_WALL_VARIATION){
+      this->clearData();
       return msg;
     // otherwise correcting the movement
     } else {
@@ -324,6 +340,6 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     msg.angular.z = -std::min(MAX_TURN, turnCorrection * variation)/5;
     this->setCorrecting(false);
   }
-
+  this->clearData();
   return msg;
 }

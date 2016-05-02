@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   HalfCircleDetector detector;
 
   ros::Subscriber sub = poseNode.subscribe(
-      "base_scan", 1, &HalfCircleDetector::receiveLaserScan, &detector);
+      "/base_scan", 1, &HalfCircleDetector::receiveLaserScan, &detector);
 
   ros::Publisher posePub =
       poseNode.advertise< geometry_msgs::Pose2D >(argv[2], 1);
