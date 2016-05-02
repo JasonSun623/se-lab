@@ -299,7 +299,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     // if the robot is approaching the end of the wall or staying too far from the wall
   } else if (right.first > wallDistance + 2*GLOBAL_WALL_VARIATION && !circleFoundMode && followWall) {
     ROS_INFO("Turning End Wall Mode %f", right.first);
-    msg.linear.x = linearVelocity - linearVelocity/3;
+    msg.linear.x = linearVelocity - linearVelocity/6;
     msg.angular.z = -M_PI*(linearVelocity/0.3)/ 5;
     // if the robot is far from all the walls cosider it being "lost"
     if (rightRangeLine.first > LOST_THRESHOLD && leftRangeLine.first > LOST_THRESHOLD){

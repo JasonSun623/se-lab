@@ -5,10 +5,24 @@
   */
 #include "../include/WallFollowingStrategy.h"
 
-int main(int argc, char **argv) {
-  ros::init(argc, argv, "wall_following_strategy");
+/** @brief Starts the node.
+  * @param[in] argc Number of Arguments
+  * @param[in] argv Array of Arguments
+  *   - [0] Program name
+  *   - [1] Topic name for the node
+  *   - [2] Topic name for receiving position of detected half circles
+  *   - [3] Topic name for receiving movement commands in case of crashing into the obstacle
+  *   - [4] Topic name for receiving OpenCV images
+  *   - ... other ros-specific arguments
+  */
 
-  ros::NodeHandle node("wall_following_strategy");
+int main(int argc, char **argv) {
+  ROS_ASSERT_MSG(argc > 4,
+                 "Not enough arguments for topic names. 5 expected, %d given.",
+                 argc);
+
+  ros::init(argc, argv, argv[1]);
+  ros::NodeHandle node(argv[1]);
 
   float linearVelocity;
   float wallDistance;
@@ -29,17 +43,17 @@ int main(int argc, char **argv) {
   ros::Subscriber laserSub = node.subscribe(
       "/base_scan", 1, &WallFollowingStrategy::receiveLaserScan, &strategy);
   ros::Subscriber circleSub =
-      node.subscribe("/half_circle_detection", 1,
+      node.subscribe(argv[2], 1,
                      &WallFollowingStrategy::receiveCirclePosition, &strategy);
   ros::Subscriber crashSub =
-      node.subscribe("/crash_recovery", 1,
+      node.subscribe(argv[3], 1,
                      &WallFollowingStrategy::getCrashRecovery, &strategy);
 
   image_transport::ImageTransport imageTransport(node);
   image_transport::Subscriber imageSub;
 
   imageSub = imageTransport.subscribe(
-      "/laserScan_image", 1, &WallFollowingStrategy::receiveOpenCVImage,
+      argv[4], 1, &WallFollowingStrategy::receiveOpenCVImage,
       &strategy);
 
   /** Publishers */
