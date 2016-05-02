@@ -3,8 +3,8 @@
   * The robot starts to move straight until it finds a wall
   * Using right-hand rule robot follows the wall and try to avoid
   * single walls, corners by not touching them
-  * @author Mariia Gladkova
-  * @author Felix Schmoll
+  * @author Mariia Gladkova (mgladkova)
+  * @author Felix Schmoll (LiftnLearn)
   */
 
 #ifndef WALLFOLLOWING_H

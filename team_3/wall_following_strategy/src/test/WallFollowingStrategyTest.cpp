@@ -1,7 +1,7 @@
 /** @file WallFollowingStrategyTest.cpp
   * Unit testing of functionality of wall following package
-  * @author Mariia Gladkova
-  * @author Leonhard Kuboschek
+  * @author Mariia Gladkova (mgladkova)
+  * @author Leonhard Kuboschek (kuboschek)
   */
 
 /* Includes */

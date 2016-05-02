@@ -1,7 +1,7 @@
 /** @file WallFollowingStrategy.cpp
   * Implementation of WallFollowingStrategy.h
-  * @author Mariia Gladkova
-  * @author Felix Schmoll
+  * @author Mariia Gladkova (mgladkova)
+  * @author Felix Schmoll (LiftnLearn)
   */
 #include "../include/WallFollowingStrategy.h"
 
