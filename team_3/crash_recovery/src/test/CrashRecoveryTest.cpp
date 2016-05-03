@@ -16,7 +16,7 @@ TEST(CrashRecovererTestSuite, crashRecoveryTestCase) {
 
   // read LaserScan-messages from .bag-file
   std::string path = ros::package::getPath("half_circle_detection");
-  path += "/src/test/crashRecovery_crash.bag";
+  path += "/src/test/laserScan_Corner.bag";
 
   rosbag::Bag bag;
   bag.open(path, rosbag::bagmode::Read);
