@@ -1,7 +1,7 @@
 /** @file CrashRecoverer.cpp
   * @brief Standard implementation of the header.
   *
-  * @author Leonhard Kuboschek
+  * @author Leonhard Kuboschek (kuboschek)
   */
 
 #include <algorithm>

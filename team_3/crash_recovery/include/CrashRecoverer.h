@@ -7,7 +7,7 @@
  *  Returns a Twist message containing zeros when all is good, otherwise
  *  a Twist message indicating how to move, to resolve it.
  *
- * @author Leonhard Kuboschek
+ * @author Leonhard Kuboschek (kuboschek)
  */
 
 #ifndef CRASHRECOVERER_H
@@ -78,4 +78,3 @@ private:
 };
 
 #endif
-
