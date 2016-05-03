@@ -27,12 +27,13 @@ void HalfCircleDetector::receiveLaserScan(
   pose.theta = -1;
 
   // ignore measurements if wall too close
-  // if (*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) >
-  // minimumDistance) {
-  cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
-  setLaserScanImage(image);
-  pose = HalfCircleDetector::detectHalfCircle(image);
-  //}
+  if (*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) >
+      minimumDistance) {
+    cv::Mat image =
+        HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
+    setLaserScanImage(image);
+    pose = HalfCircleDetector::detectHalfCircle(image);
+  }
 
   setHalfCirclePose(pose);
 }
@@ -184,8 +185,8 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   std::pair< int, int > bestCircleBoundaries;
   float bestCircleRadius = 0;
   float bestCirclePercentage = 0;
-  float minRadius = halfCircleRadius - 0.01;
-  float maxRadius = halfCircleRadius + 0.01;
+  float minRadius = halfCircleRadius - 0.03;
+  float maxRadius = halfCircleRadius + 0.03;
 
   int rightIndex = 0;
   int leftIndex = 0;
@@ -233,9 +234,8 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
       verifyCircleDensity(bestCircleBoundaries)) {
     pose = createPose(bestCircleCenter.x, bestCircleCenter.y, image.cols / 2,
                       image.rows / 2);
+    drawHalfCircle(image, bestCircleRadius, bestCircleCenter);
   }
-
-  drawHalfCircle(image, bestCircleRadius, bestCircleCenter);
 
   ROS_DEBUG("Circle certainty: %lf", bestCirclePercentage);
 

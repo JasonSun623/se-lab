@@ -16,11 +16,7 @@
 
 #include "../include/HalfCircleDetector.h"
 
-<<<<<<< HEAD
 /** @brief Starts the node.
-=======
-/** @brief Starts the program.
->>>>>>> feature-crash-recovery
   * @param[in] argc Number of Arguments
   * @param[in] argv Array of Arguments
   *   - [0] Program name
@@ -33,8 +29,6 @@ int main(int argc, char **argv) {
   ROS_ASSERT_MSG(argc > 5,
                  "Not enough arguments for topic names. 6 expected, %d given.",
                  argc);
-
-  std::cout << argc << std::endl;
 
   ros::init(argc, argv, argv[1]);
 
@@ -75,7 +69,10 @@ int main(int argc, char **argv) {
 
   while (ros::ok()) {
     posePub.publish(detector.getHalfCirclePose());
-    sensor_msgs::ImagePtr imagePtr = cv_bridge::CvImage(std_msgs::Header(), "mono8", detector.getLaserScanImage()).toImageMsg();
+
+    sensor_msgs::ImagePtr imagePtr =
+        cv_bridge::CvImage(std_msgs::Header(), "mono8",
+                           detector.getLaserScanImage()).toImageMsg();
     imagePub.publish(imagePtr);
 
     ros::spinOnce();

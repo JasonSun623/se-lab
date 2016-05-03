@@ -12,7 +12,7 @@
 
 TEST(CrashRecovererTestSuite, crashRecoveryTestCase) {
   // TODO Write test for crash recoverer
-  CrashRecoverer r;
+  CrashRecoverer r(0.05,20);
 
   // read LaserScan-messages from .bag-file
   std::string path = ros::package::getPath("half_circle_detection");
