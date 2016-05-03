@@ -6,6 +6,7 @@
   <arg name="half_circle_node_name" default="/half_circle_publisher" />
   <arg name="wall_following_node_name" default="/wall_following_strategy" />
   <arg name="crash_recovery_topic" default="/crash_recovery" />
+  <arg name="laserScan_topic" default="/base_scan" />
 
   <node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition03.world"/>
 	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" args="$(arg wall_following_node_name) $(arg half_circle_topic) $(arg crash_recovery_topic) $(arg laserScan_image_topic)" output="screen">
@@ -40,5 +41,12 @@ properly. This is the threshold in meters that define 'too close'. -->
     <!-- Maximum number of points on half-circle -->
     <param name="maxCirclePoints" value="40" />
   </node>
-	<node pkg="crash_recovery" type="crash_recovery_node" name="crash_recovery" output="screen"/>
+	<node pkg="crash_recovery" type="crash_recovery_node" name="crash_recovery" args="$(arg crash_recovery_topic) $(arg laserScan_topic)" output="screen">
+    <!-- If any point in the laser scan is below this distance, we've crashed -->
+    <param name="CRASH_DISTANCE" value="0.05" />
+    <!-- The length of the recovery maneuver in 'steps'. One step is equal
+       to one iteration of this package's node's loop. -->
+    <param name="RECOVERY_STEPS" value="20" />
+  </node>
 </launch>
+

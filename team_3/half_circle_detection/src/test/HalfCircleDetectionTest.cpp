@@ -57,21 +57,21 @@ TEST(HalfCircleDetectionTestSuite, falsePositiveTestCase) {
 TEST(HalfCircleDetectionTestSuite, circleDetectionTestCase) {
   HalfCircleDetector h(3.9, 0.15, 250, 0.18, 0.50, 2.5, 1.5, 40);
 
-  //read LaserScan-messages from .bag-file
+  // read LaserScan-messages from .bag-file
   std::string path = ros::package::getPath("half_circle_detection");
   path += "/src/test/laserScan_HalfCircle.bag";
 
   rosbag::Bag bag;
   bag.open(path, rosbag::bagmode::Read);
 
-  std::vector<std::string> topics = {"base_scan"};
+  std::vector< std::string > topics = {"base_scan"};
 
   rosbag::View view(bag, rosbag::TopicQuery(topics));
 
-  //ensure semicircle is being detected
+  // ensure semicircle is being detected
   for (rosbag::MessageInstance m : view) {
     sensor_msgs::LaserScan::ConstPtr ptr =
-        m.instantiate<sensor_msgs::LaserScan>();
+        m.instantiate< sensor_msgs::LaserScan >();
     if (ptr != NULL) {
       h.receiveLaserScan(ptr);
 
@@ -94,21 +94,21 @@ TEST(HalfCircleDetectionTestSuite, circleDetectionTestCase) {
 TEST(HalfCircleDetectionTestSuite, CornerTestCase) {
   HalfCircleDetector h(3.9, 0.15, 250, 0.12, 0.50, 2.5, 1.5, 40);
 
-  //read LaserScan-messages from .bag-file
+  // read LaserScan-messages from .bag-file
   std::string path = ros::package::getPath("half_circle_detection");
   path += "/src/test/laserScan_Corner.bag";
 
   rosbag::Bag bag;
   bag.open(path, rosbag::bagmode::Read);
 
-  std::vector<std::string> topics = {"base_scan"};
+  std::vector< std::string > topics = {"base_scan"};
 
   rosbag::View view(bag, rosbag::TopicQuery(topics));
 
   //verify that no semicircle is being detected
   for (rosbag::MessageInstance m : view) {
     sensor_msgs::LaserScan::ConstPtr ptr =
-        m.instantiate<sensor_msgs::LaserScan>();
+        m.instantiate< sensor_msgs::LaserScan >();
     if (ptr != NULL) {
       h.receiveLaserScan(ptr);
 

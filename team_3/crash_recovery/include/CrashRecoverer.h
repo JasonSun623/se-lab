@@ -27,44 +27,55 @@
   */
 class CrashRecoverer {
 public:
+
   /**
-    * @brief Setter for LaserScans. Calls logic to update output.
-    * @param laserScan LaserScan with distances to walls.
-    * @return No return value.
-    */
+   * @brief Constructor initializing configuration values.
+   */
+  CrashRecoverer(float crash_distance, int recovery_steps);
+
+  /**
+   * @brief Setter for LaserScans. Calls logic to update output.
+   * @param laserScan LaserScan with distances to walls.
+   * @return No return value.
+   */
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
   /**
-    * @brief Returns latest resolution advice
-    * Decides on where to move next and by how much.
-    * @return Next move to be done.
-    */
+   * @brief Returns latest resolution advice
+   * Decides on where to move next and by how much.
+   * @return Next move to be done.
+   */
   const geometry_msgs::Twist getResolution();
 
 private:
+  float crash_distance; ///> Distance considered crash in meters.
+  int recovery_steps; ///> Number of steps for recovery.
+
   /**
-    * @brief Current output of the algorithm
-    */
+   * @brief Current output of the algorithm
+   */
   geometry_msgs::Twist currentOut;
 
   /**
-    * @brief Find the smallest laser scan reading
-    * @return Minimum distance to an object.
-    */
+   * @brief Find the smallest laser scan reading
+   * @return Minimum distance to an object.
+   */
   float findMinim(const sensor_msgs::LaserScan::ConstPtr &scan,
                   int num_readings);
 
   /**
-    * @brief States of this class
-    */
+   * @brief States of this class
+   */
   enum State { OK, CRASH };
 
   /**
-    * @brief Current state of the class
-    */
+   * @brief Current state of the class
+   */
   CrashRecoverer::State currentState;
 
+  /** @brief Count the number of steps already taken in the current recovery */
   int recoveryTimer;
 };
 
 #endif
+

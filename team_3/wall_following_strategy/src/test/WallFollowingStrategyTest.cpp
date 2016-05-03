@@ -17,7 +17,7 @@
 
 #include "../../include/WallFollowingStrategy.h"
 
-typedef std::shared_ptr<WallFollowingStrategy> WallFollowingStrategyPtr;
+typedef std::shared_ptr< WallFollowingStrategy > WallFollowingStrategyPtr;
 
 /** @brief Tests if the node is successfully detecting a circle and not giving
  * false positives.
@@ -37,10 +37,24 @@ TEST(WallFollowingStrategyTest, noCircleTestCase) {
   ASSERT_FALSE(ptr->getCircleVisible());
 }
 
+<<<<<<< HEAD
 /** @brief Tests if the node is successfully detecting a circle and not giving
  * false positives
  */
 TEST(WallFollowingStrategyTest, CircleTestCase) {
+=======
+TEST(WallFollowingStrategyTest, imageSettingTestCase) {
+  WallFollowingStrategyPtr ptr(new WallFollowingStrategy());
+  ASSERT_FALSE(ptr->getImage().data);
+  std::string path = ros::package::getPath("wall_following_strategy");
+  path += "/src/Image.jpg";
+  cv::Mat image = cv::imread(path);
+  ptr->setImage(image);
+  ASSERT_TRUE(ptr->getImage().data);
+}
+
+TEST(WallFollowingStrategyTest, controlMovementTestCase) {
+>>>>>>> feature-crash-recovery
 
   geometry_msgs::Pose2D pose;
   pose.x = 1.0;

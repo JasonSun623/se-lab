@@ -56,7 +56,7 @@ float WallFollowingStrategy::calcSlope(cv::Vec4i one) {
 }
 
 cv::Vec4i WallFollowingStrategy::getAverLine(
-    std::vector<std::pair<cv::Vec4i, float>> vec) {
+    std::vector< std::pair< cv::Vec4i, float > > vec) {
   cv::Vec4i average;
   // initial vector is sorted by x position of the starting point
   // thus the leftmost is taken
@@ -76,7 +76,7 @@ cv::Vec4i WallFollowingStrategy::getAverLine(
 int WallFollowingStrategy::getDifference(int a, int b) { return abs(a - b); }
 
 void WallFollowingStrategy::printLinesImage(cv::Mat dst,
-                                            std::vector<cv::Vec4i> lines) {
+                                            std::vector< cv::Vec4i > lines) {
   for (size_t i = 0; i < lines.size(); i++) {
     line(dst, cv::Point(lines[i][0], lines[i][1]),
          cv::Point(lines[i][2], lines[i][3]), cv::Scalar(0, 0, 255), 3, 8);
@@ -95,9 +95,9 @@ bool WallFollowingStrategy::lineCondition(std::pair<cv::Vec4i, float> line,
              compareY(line.first[1], line.first[3]);
 }
 
-void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines) {
+void WallFollowingStrategy::removeLines(std::vector< cv::Vec4i > lines) {
   // "bucket" for each of the group of "similar" lines
-  std::vector<std::pair<cv::Vec4i, float>> temp;
+  std::vector< std::pair< cv::Vec4i, float > > temp;
   // sort the lines by the x coordinate of the starting point
   std::sort(lines.begin(), lines.end(), compareStart);
 
@@ -113,7 +113,7 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines) {
     }
     // if the bucket is empty push the current line to be processed
     if (temp.empty()) {
-      std::pair<cv::Vec4i, float> p = std::make_pair(lines[i], slope);
+      std::pair< cv::Vec4i, float > p = std::make_pair(lines[i], slope);
       temp.push_back(p);
 
       /* case 1 of similar line segments: the slopes are almost the same,
@@ -123,7 +123,7 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines) {
          segments are not too far apart in y-direction
          (e.g. two  parallel walls) */
     } else if (lineCondition(lastLine, lines[i])) {
-      std::pair<cv::Vec4i, float> p = std::make_pair(lines[i], slope);
+      std::pair< cv::Vec4i, float > p = std::make_pair(lines[i], slope);
       temp.push_back(p);
 
       /* case 2 and 3 of similar lines: the slopes are almost the same, but
@@ -131,11 +131,11 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines) {
          bit farther from the endpoint of the first line segment */
     } else if (slope < 0 && fabs(lastLine.second - slope) < 0.3 &&
                abs(lastLine.first[2] - lines[i][0]) < 2) {
-      std::pair<cv::Vec4i, float> p = std::make_pair(lines[i], slope);
+      std::pair< cv::Vec4i, float > p = std::make_pair(lines[i], slope);
       temp.push_back(p);
     } else if (slope > 0 && compareY(lastLine.first[3], lines[i][1]) < 2 &&
                fabs(lastLine.second - slope) < 0.3) {
-      std::pair<cv::Vec4i, float> p = std::make_pair(lines[i], slope);
+      std::pair< cv::Vec4i, float > p = std::make_pair(lines[i], slope);
       temp.push_back(p);
     } else {
       /* all the similar line segments were pushed - find the average of them
@@ -155,7 +155,7 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines) {
       }
 
       if (pushed) {
-        std::pair<cv::Vec4i, float> p = std::make_pair(lines[i], slope);
+        std::pair< cv::Vec4i, float > p = std::make_pair(lines[i], slope);
         temp.push_back(p);
         pushed = true;
       }
@@ -170,10 +170,10 @@ void WallFollowingStrategy::removeLines(std::vector<cv::Vec4i> lines) {
   }
 }
 
-std::pair<float, float> WallFollowingStrategy::findMinimDistance(int left,
-                                                                 int right) {
+std::pair< float, float > WallFollowingStrategy::findMinimDistance(int left,
+                                                                   int right) {
   sensor_msgs::LaserScan scan = WallFollowingStrategy::getLaserScan();
-  std::pair<float, float> p = std::make_pair(scan.ranges[left], 0);
+  std::pair< float, float > p = std::make_pair(scan.ranges[left], 0);
 
   for (int i = left; i < right; i++) {
     p.first = std::min(p.first, scan.ranges[i]);
@@ -298,7 +298,7 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
       m = M_PI / 2;
     // otherwise find the slope of the line to align to it
     } else {
-      m = num/den;
+      m = num / den;
     }
 
     // update the current angle of rotation for the robot

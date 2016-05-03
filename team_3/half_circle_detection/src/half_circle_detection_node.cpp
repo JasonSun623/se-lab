@@ -16,7 +16,11 @@
 
 #include "../include/HalfCircleDetector.h"
 
+<<<<<<< HEAD
 /** @brief Starts the node.
+=======
+/** @brief Starts the program.
+>>>>>>> feature-crash-recovery
   * @param[in] argc Number of Arguments
   * @param[in] argv Array of Arguments
   *   - [0] Program name

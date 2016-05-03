@@ -10,12 +10,14 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   rostest
   roslib
+  rosbag
 )
 
 find_package(OpenCV REQUIRED)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed

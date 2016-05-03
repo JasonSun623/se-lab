@@ -27,12 +27,11 @@ void HalfCircleDetector::receiveLaserScan(
   pose.theta = -1;
 
   // ignore measurements if wall too close
-  //if (*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) >
-     // minimumDistance) {
-    cv::Mat image =
-        HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
-    setLaserScanImage(image);
-    pose = HalfCircleDetector::detectHalfCircle(image);
+  // if (*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) >
+  // minimumDistance) {
+  cv::Mat image = HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
+  setLaserScanImage(image);
+  pose = HalfCircleDetector::detectHalfCircle(image);
   //}
 
   setHalfCirclePose(pose);
