@@ -75,18 +75,6 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
     image.at< unsigned char >(cv::Point(x, y)) = 255;
   }
 
-  //  for(int i = 0; i < HalfCircleDetector::points.size()-10; ++i) {
-  //    cv::Point a = points[i];
-  //    for(int j = 0; j < 10; ++j) {
-  //      cv::Point b = points[i+j];
-  //
-  //      /* Very basic interpolation. Makes up for the fact that at
-  //      lines/corners
-  //       * the resolution is much higher than at semicircles. */
-  //      image.at< unsigned char >(cv::Point((a.x+b.x)/2, (a.y+b.y)/2));
-  //    }
-  //  }
-
   return image;
 }
 
