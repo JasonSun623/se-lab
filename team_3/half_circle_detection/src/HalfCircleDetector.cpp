@@ -27,13 +27,13 @@ void HalfCircleDetector::receiveLaserScan(
   pose.theta = -1;
 
   // ignore measurements if wall too close
-  //if (*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) >
-     // minimumDistance) {
+  if (*std::min_element(laserScan->ranges.begin(), laserScan->ranges.end()) >
+      minimumDistance) {
     cv::Mat image =
         HalfCircleDetector::createOpenCVImageFromLaserScan(laserScan);
     setLaserScanImage(image);
     pose = HalfCircleDetector::detectHalfCircle(image);
-  //}
+  }
 
   setHalfCirclePose(pose);
 }
@@ -74,18 +74,6 @@ cv::Mat HalfCircleDetector::createOpenCVImageFromLaserScan(
 
     image.at< unsigned char >(cv::Point(x, y)) = 255;
   }
-
-  //  for(int i = 0; i < HalfCircleDetector::points.size()-10; ++i) {
-  //    cv::Point a = points[i];
-  //    for(int j = 0; j < 10; ++j) {
-  //      cv::Point b = points[i+j];
-  //
-  //      /* Very basic interpolation. Makes up for the fact that at
-  //      lines/corners
-  //       * the resolution is much higher than at semicircles. */
-  //      image.at< unsigned char >(cv::Point((a.x+b.x)/2, (a.y+b.y)/2));
-  //    }
-  //  }
 
   return image;
 }
@@ -197,8 +185,8 @@ geometry_msgs::Pose2D HalfCircleDetector::detectHalfCircle(cv::Mat &image) {
   std::pair< int, int > bestCircleBoundaries;
   float bestCircleRadius = 0;
   float bestCirclePercentage = 0;
-  float minRadius = halfCircleRadius - 0.01;
-  float maxRadius = halfCircleRadius + 0.01;
+  float minRadius = halfCircleRadius - 0.03;
+  float maxRadius = halfCircleRadius + 0.03;
 
   int rightIndex = 0;
   int leftIndex = 0;

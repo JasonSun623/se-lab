@@ -1,14 +1,28 @@
 /** @file WallFollowingStrategy.cpp
   * Implementation of WallFollowingStrategy.h
-  * @author Mariia Gladkova
-  * @author Felix Schmoll
+  * @author Mariia Gladkova (mgladkova)
+  * @author Felix Schmoll (LiftnLearn)
   */
 #include "../include/WallFollowingStrategy.h"
 
-int main(int argc, char **argv) {
-  ros::init(argc, argv, "wall_following_strategy");
+/** @brief Starts the node.
+  * @param[in] argc Number of Arguments
+  * @param[in] argv Array of Arguments
+  *   - [0] Program name
+  *   - [1] Topic name for the node
+  *   - [2] Topic name for receiving position of detected half circles
+  *   - [3] Topic name for receiving movement commands in case of crashing into the obstacle
+  *   - [4] Topic name for receiving OpenCV images
+  *   - ... other ros-specific arguments
+  */
 
-  ros::NodeHandle node("wall_following_strategy");
+int main(int argc, char **argv) {
+  ROS_ASSERT_MSG(argc > 4,
+                 "Not enough arguments for topic names. 5 expected, %d given.",
+                 argc);
+
+  ros::init(argc, argv, argv[1]);
+  ros::NodeHandle node(argv[1]);
 
   float linearVelocity;
   float wallDistance;
@@ -29,17 +43,17 @@ int main(int argc, char **argv) {
   ros::Subscriber laserSub = node.subscribe(
       "/base_scan", 1, &WallFollowingStrategy::receiveLaserScan, &strategy);
   ros::Subscriber circleSub =
-      node.subscribe("/half_circle_detection", 1,
+      node.subscribe(argv[2], 1,
                      &WallFollowingStrategy::receiveCirclePosition, &strategy);
   ros::Subscriber crashSub =
-      node.subscribe("/crash_recovery", 1,
+      node.subscribe(argv[3], 1,
                      &WallFollowingStrategy::getCrashRecovery, &strategy);
 
   image_transport::ImageTransport imageTransport(node);
   image_transport::Subscriber imageSub;
 
   imageSub = imageTransport.subscribe(
-      "/laserScan_image", 1, &WallFollowingStrategy::receiveOpenCVImage,
+      argv[4], 1, &WallFollowingStrategy::receiveOpenCVImage,
       &strategy);
 
   /** Publishers */
@@ -47,8 +61,6 @@ int main(int argc, char **argv) {
 
   ros::Rate rate(10);
 
-  cv::Mat bw, s;
-  std::vector<cv::Vec4i> lines;
   ros::spinOnce();
 
   strategy.setCurrentAngle(0);
@@ -56,19 +68,9 @@ int main(int argc, char **argv) {
   while (ros::ok()) {
     geometry_msgs::Twist msg;
 
-    if (strategy.getImage().size().height) {
-      s = strategy.getImage();
-      cv::Canny(s, bw, 50, 200, 3);
-      cv::HoughLinesP(bw, lines, 1, CV_PI / 180, 20, 10, 10);
-      strategy.removeLines(lines);
-    }
-
     msg = strategy.controlMovement();
 
     pub.publish(msg);
-
-    lines.clear();
-    strategy.clearData();
 
     ros::spinOnce();
     rate.sleep();
