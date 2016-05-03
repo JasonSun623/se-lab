@@ -36,13 +36,13 @@
 #include <cmath>
 
 /**
-  * @brief Limiting integers to be within a certain range.
-  */
+ * @brief Limiting integers to be within a certain range.
+ */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
 /**
-  * @brief Compound class for detecting half-circles.
-  */
+ * @brief Compound class for detecting half-circles.
+ */
 class HalfCircleDetector {
 public:
   /**
