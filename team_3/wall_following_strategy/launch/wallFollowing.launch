@@ -24,7 +24,7 @@
   <!-- Internal scaling for OpenCV images -->
   <env name="STRETCH_FACTOR" value="100" />
 
-	<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition04.world"/>
+	<node name="simulator" pkg="stage_ros" type="stageros" args="$(find lab_simulator)/worlds/lab-worlds/lab-competition02.world"/>
 	<node pkg="half_circle_detection" type="half_circle_detection_node" name="half_circle_publisher" args="$(arg half_circle_node_name) $(arg half_circle_topic) $(arg laserScan_image_topic)" output="screen" />
 	<node pkg="wall_following_strategy" type="wall_following_strategy_node" name="wall_following_strategy" args="$(arg wall_following_node_name) $(arg half_circle_topic) $(arg crash_recovery_topic) $(arg laserScan_image_topic)" output="screen">
   <param name="LINEAR_VEL" value="0.3" />

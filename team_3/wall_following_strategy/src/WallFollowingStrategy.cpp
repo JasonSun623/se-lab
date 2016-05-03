@@ -224,7 +224,6 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
   /* As wall following strategy considers right-hand rule we consider the range to the right
      from the robot. We disregard all the information besides the one lies between [150,210] degree range*/
   std::pair< float, float > right = this->findMinimDistance(scanSize/8, scanSize/3);
-  ROS_INFO("Min right %f", right.first);
   // if no data is received yet
   if (!src.data) {
     msg.linear.x = 0;
@@ -306,14 +305,13 @@ const geometry_msgs::Twist WallFollowingStrategy::controlMovement() {
     // update the current angle of rotation for the robot
     msg.angular.z = (this->getCurrentAngle() + m) / 5;
     incrementTurn(m);
-    ROS_INFO("Turning Mode %f", right.first);
+    //ROS_INFO("Turning Mode %f", right.first);
     // set the flag of following the wall
     followWall = true;
     this->clearData();
     return msg;
     // if the robot is approaching the end of the wall or staying too far from the wall
   } else if (right.first > wallDistance + 2*GLOBAL_WALL_VARIATION && !circleFoundMode) {
-    ROS_INFO("Turning End Wall Mode %f", right.first);
     msg.linear.x = linearVelocity - linearVelocity/6;
     msg.angular.z = -M_PI*(linearVelocity/0.3)/ 5;
     // if the robot is far from all the walls cosider it being "lost"

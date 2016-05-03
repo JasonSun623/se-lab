@@ -112,6 +112,7 @@ private:
   /** @brief This value is multiplied by the error, to steer into the circle */
   float turnCircleCorrection;
 
+  /** @brief true if the robot is too far from the walls so next step is not known */
   bool lostMode;
 
   /** @brief Resulting line segments */
