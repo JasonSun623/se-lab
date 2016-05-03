@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   image_transport
+  rosbag
   roslib
   rostest
   cv_bridge

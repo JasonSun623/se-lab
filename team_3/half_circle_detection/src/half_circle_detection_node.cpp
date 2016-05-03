@@ -30,6 +30,8 @@ int main(int argc, char **argv) {
                  "Not enough arguments for topic names. 6 expected, %d given.",
                  argc);
 
+  std::cout << argc << std::endl;
+
   ros::init(argc, argv, argv[1]);
 
   ros::NodeHandle node(argv[1]);

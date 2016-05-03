@@ -3,8 +3,8 @@
   * The robot starts to move straight until it finds a wall
   * Using right-hand rule robot follows the wall and try to avoid
   * single walls, corners by not touching them
-  * @author Mariia Gladkova
-  * @author Felix Schmoll
+  * @author Mariia Gladkova (mgladkova)
+  * @author Felix Schmoll (LiftnLearn)
   */
 
 #ifndef WALLFOLLOWING_H
@@ -42,46 +42,118 @@
 /**
  * @brief Smaller values for slope of the line segment are neglected
  */
-#define EPSILON_SLOPE 0.1f
+#define SLOPE_EPSILON 0.1f
+
+/**
+ * @brief Threshold for the number of circles detected in order to start approaching the circle
+ */
+#define CIRCLE_COUNT 4
+
+/**
+ * @brief Wall variation threshold while wall following
+ */
+#define GLOBAL_WALL_VARIATION 0.05f
+
+/**
+ * @brief Bigger distance from the wall is considered as "lost-in-space" state
+ */
+#define LOST_THRESHOLD 1.0f
 
 /**
  * @brief Compound class for wall-following strategy implementation
  */
 class WallFollowingStrategy {
 private:
-  bool circleVisible = false;
-  int circleSeenCount = 0; // initialize stuff to 0 in constructor?
-  float circleAngle;
-  float circleDistance;
-  float robotAngle;
-  int circleCallCount = 0;
-  bool crashMode;
-  bool followWall;
-  bool circleFoundMode;
-  bool correcting;
-  bool stuck;
-  bool start;
-  float linearVelocity = 0.3;
-  float wallDistance = 0.3;
-  float crashVelocity = -0.1;
-  float turnCorrection = 0.01;
-  float turnCircleCorrection = 0.035;
+  /** @brief true if the circle is currently visible */
+  bool circleVisible;
 
+  /** @brief The angle of the circle relative to the robot (in radian) */
+  float circleAngle;
+
+  /** @brief The distance of the circle (in meters) */
+  float circleDistance;
+
+  /** @brief RobotAngle */
+  float robotAngle;
+
+  /** @brief Counter for deciding circleFoundMode */
+  int circleCallCount;
+
+  /** @brief true if CrashRecovery has reported a crash */
+  bool crashMode;
+
+  /** @brief true if we're following a wall */
+  bool followWall;
+
+  /** @brief true if we're prioritizing following the circle over other maneuvers */
+  bool circleFoundMode;
+
+  /** @brief true if the robot is steering to chase the circle */
+  bool correcting;
+
+  /** @brief Current ununsed */
+  bool stuck;
+
+  /** @brief true if we're freely maneuvering (for example in the beginning) */
+  bool start;
+
+  /** @brief Velocity of the robot when moving in a straight line */
+  float linearVelocity;
+
+  /** @brief The distance the wall will be followed at */
+  float wallDistance;
+
+  /** @brief Used when robot is very close to an obstacle */
+  float crashVelocity;
+
+  /** @brief This value is multiplied by the error, in order to turn around walls */
+  float turnCorrection;
+
+  /** @brief This value is multiplied by the error, to steer into the circle */
+  float turnCircleCorrection;
+
+  /** @brief true if the robot is too far from the walls so next step is not known */
+  bool lostMode;
+
+  /** @brief Resulting line segments */
   std::vector<cv::Vec4i> res;
+
+  /** @brief Records the first line that was chosen */
   std::vector<std::pair<float, float>> initialLineChoice;
+
+  /** @brief Stores the last received laser scan message */
   sensor_msgs::LaserScan lastScan;
+
+  /** @brief Data source for line detection */
   cv::Mat src;
+
+  /** @brief Stores the current crash resolution obtained from CrashRecovery */
   geometry_msgs::Twist crashHandler;
 
 public:
-  /** @brief Constructor for HalfCircleDetector.
+  /** @brief Default constructor for Wall Following Strategy.
+   */
+  WallFollowingStrategy() {
+    circleFoundMode = false;
+    start = true;
+    lostMode = false;
+    circleCallCount = 0;
+    this->linearVelocity = 0.3;
+    this->wallDistance = 0.3;
+    this->crashVelocity = -0.2;
+    this->turnCorrection = 0.01;
+    this->turnCircleCorrection = 0.035;
+  }
+  /** @brief Constructor for Wall Following Strategy.
    *  Here the environment variables are loaded.
    */
   WallFollowingStrategy(float linearVelocity, float wallDistance,
                         float crashVelocity, float turnCorrection,
                         float turnCircleCorrection) {
     start = true;
-
+    lostMode = false;
+    circleCallCount = 0;
+    circleFoundMode = false;
     this->linearVelocity = linearVelocity;
     this->wallDistance = wallDistance;
     this->crashVelocity = crashVelocity;
@@ -236,6 +308,24 @@ public:
   */
   cv::Mat getImage() { return src; }
 
+  /**@brief Sets the number of detected circles
+   * @param count number to be set
+   */
+  void setCount(int count) {
+    if (count < 0){
+      std::cerr << "Incorrect input data" << std::endl;
+      return;
+    }
+    circleCallCount = count;
+  }
+
+  /**@brief Gets the number of detected circles
+   * @return the number of detected circles
+   */
+  int getCount() {
+    return circleCallCount;
+  }
+
   /** @brief Clears the vector of line segments in order to process the new
   * image
   * from laser scan
@@ -294,5 +384,8 @@ public:
       var = std::stof(std::string(c));
     }
   }
+  /** @brief Increments the turning angle of the robot [deg]
+   */
+  void incrementTurn(float);
 };
 #endif
