@@ -8,9 +8,8 @@
  * Returns a pose describing the angle and distance of the detected circle
  * relative to the robot.
  *
- * @author Felix Schmoll
- * @author Leonhard Kuboschek
- * @author Jehanzeb Ayaz
+ * @author Felix Schmoll (LiftnLearn)
+ * @author Leonhard Kuboschek (kuboschek)
  */
 
 #ifndef HALFCIRCLEDETECTOR_H
