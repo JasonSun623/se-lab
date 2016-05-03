@@ -3,8 +3,8 @@
   * The robot starts to move straight until it finds a wall
   * Using right-hand rule robot follows the wall and try to avoid
   * single walls, corners by not touching them
-  * @author Mariia Gladkova
-  * @author Felix Schmoll
+  * @author Mariia Gladkova (mgladkova)
+  * @author Felix Schmoll (LiftnLearn)
   */
 
 #ifndef WALLFOLLOWING_H
@@ -18,9 +18,12 @@
 
 /** include messages */
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/image_encodings.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/Polygon.h>
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
 
 /** include OpenCV */
 #include <opencv2/opencv.hpp>
@@ -31,82 +34,133 @@
 #include <algorithm>
 #include <cmath>
 
-#define RANGES 250
-
-#define LASER_RANGE 3.9
-
-#define LINEAR_VEL 1.0
-
-/**
- * @brief The amount of variation that is allowed before direction is corrected
- * [deg]
- */
-#define VARIATION_THRESHOLD 8
-
-/**
-  * @brief The value for which realignment is being done. If the value is
- * smaller we don't correct anymore. [deg]
-  */
-#define HYSTERESIS 2
-
-/**
- * @brief Angular velocity value that is used to turn
- */
-#define TURN_CORRECTION 0.01
-
 /**
   * @brief Upper speed for turning rate
   */
-#define MAX_TURN 0.8
+#define MAX_TURN 0.8f
 
 /**
- * @brief Angular velocity for scanning for circle
+ * @brief Smaller values for slope of the line segment are neglected
  */
-#define SCAN_VELOCITY 0.5
+#define SLOPE_EPSILON 0.1f
 
 /**
- * @brief Minimum allowed distance to obstacles
+ * @brief Threshold for the number of circles detected in order to start approaching the circle
  */
-#define MIN_DISTANCE 0.5
+#define CIRCLE_COUNT 4
 
 /**
-  * @brief Limiting integers to be within a certain range.
-  */
-#define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
+ * @brief Wall variation threshold while wall following
+ */
+#define GLOBAL_WALL_VARIATION 0.05f
 
 /**
-  * @brief Factor to define an image dimensions
-  */
-
-#define STRETCH_FACTOR 100
+ * @brief Bigger distance from the wall is considered as "lost-in-space" state
+ */
+#define LOST_THRESHOLD 1.0f
 
 /**
-  * @brief Compound class for wall-following strategy implementation
-  */
-
+ * @brief Compound class for wall-following strategy implementation
+ */
 class WallFollowingStrategy {
 private:
+  /** @brief true if the circle is currently visible */
   bool circleVisible;
+
+  /** @brief The angle of the circle relative to the robot (in radian) */
   float circleAngle;
+
+  /** @brief The distance of the circle (in meters) */
   float circleDistance;
+
+  /** @brief RobotAngle */
   float robotAngle;
 
-  bool crashMode;
-  bool cornerStuck;
-  bool followWall;
-  bool circleFoundMode;
-  bool correcting;
-  bool cornerEdge;
+  /** @brief Counter for deciding circleFoundMode */
+  int circleCallCount;
 
-  std::vector< cv::Vec4i > res;
-  std::vector< std::pair< float, float > > initialLineChoice;
-  std::vector< std::pair< int, int > > points;
+  /** @brief true if CrashRecovery has reported a crash */
+  bool crashMode;
+
+  /** @brief true if we're following a wall */
+  bool followWall;
+
+  /** @brief true if we're prioritizing following the circle over other maneuvers */
+  bool circleFoundMode;
+
+  /** @brief true if the robot is steering to chase the circle */
+  bool correcting;
+
+  /** @brief Current ununsed */
+  bool stuck;
+
+  /** @brief true if we're freely maneuvering (for example in the beginning) */
+  bool start;
+
+  /** @brief Velocity of the robot when moving in a straight line */
+  float linearVelocity;
+
+  /** @brief The distance the wall will be followed at */
+  float wallDistance;
+
+  /** @brief Used when robot is very close to an obstacle */
+  float crashVelocity;
+
+  /** @brief This value is multiplied by the error, in order to turn around walls */
+  float turnCorrection;
+
+  /** @brief This value is multiplied by the error, to steer into the circle */
+  float turnCircleCorrection;
+
+  /** @brief true if the robot is too far from the walls so next step is not known */
+  bool lostMode;
+
+  /** @brief Resulting line segments */
+  std::vector<cv::Vec4i> res;
+
+  /** @brief Records the first line that was chosen */
+  std::vector<std::pair<float, float>> initialLineChoice;
+
+  /** @brief Stores the last received laser scan message */
   sensor_msgs::LaserScan lastScan;
+
+  /** @brief Data source for line detection */
   cv::Mat src;
-  geometry_msgs::Twist cornerHandler;
+
+  /** @brief Stores the current crash resolution obtained from CrashRecovery */
   geometry_msgs::Twist crashHandler;
 
 public:
+  /** @brief Default constructor for Wall Following Strategy.
+   */
+  WallFollowingStrategy() {
+    circleFoundMode = false;
+    start = true;
+    lostMode = false;
+    circleCallCount = 0;
+    this->linearVelocity = 0.3;
+    this->wallDistance = 0.3;
+    this->crashVelocity = -0.2;
+    this->turnCorrection = 0.01;
+    this->turnCircleCorrection = 0.035;
+  }
+  /** @brief Constructor for Wall Following Strategy.
+   *  Here the environment variables are loaded.
+   */
+  WallFollowingStrategy(float linearVelocity, float wallDistance,
+                        float crashVelocity, float turnCorrection,
+                        float turnCircleCorrection) {
+    start = true;
+    lostMode = false;
+    circleCallCount = 0;
+    circleFoundMode = false;
+    this->linearVelocity = linearVelocity;
+    this->wallDistance = wallDistance;
+    this->crashVelocity = crashVelocity;
+    this->turnCorrection = turnCorrection;
+    this->turnCircleCorrection = turnCircleCorrection;
+  }
+
   /**
   * @brief Gets position of a circle if detected as a Pose2D message
   * @param circlePos Pose2D message about location of the circle(x,y coordinates
@@ -115,23 +169,21 @@ public:
   void receiveCirclePosition(const geometry_msgs::Pose2D::ConstPtr &circlePos);
 
   /**
-  * @brief Receives a laser scan message and creates an OpenCV image
+  * @brief Receives a laser scan message
   * @param laserScan LaserScan Message with information about the distances
   */
   void receiveLaserScan(const sensor_msgs::LaserScan::ConstPtr &laserScan);
 
   /**
-  * @brief Receives a message from corner_handling topic of robot behavior
-  * in case of detecting a corner or an obstacle
-  * @detail Slowly moves the robot out of the corner or in the opposite to
-  * the wall direction without touching touching other obstacles/walls.
-  */
-  void getCornerRecovery(const geometry_msgs::Twist::ConstPtr &cornerOut);
+   * @brief Callback for receiving OpenCV images from half_circle_detection.
+   * @param msg Pointer to the new OpenCV image
+   */
+  void receiveOpenCVImage(const sensor_msgs::ImageConstPtr &msg);
 
   /**
   * @brief Receives a message from crash_recovery topic of robot behavior
   * in case of crashing into the obstacle
-  * @detail Slowly moves the robot opposite to
+  * @details Slowly moves the robot opposite to
   * the wall direction without touching other obstacles/walls.
   */
   void getCrashRecovery(const geometry_msgs::Twist::ConstPtr &crashOut);
@@ -144,14 +196,10 @@ public:
   * @brief Returns whether a robot crashed into the obstacle or not
   */
   bool getCrashMode();
-  /**
-  * @brief Returns whether a robot has stuck in a corner or not
-  */
-  bool getCornerHandle();
 
   /**
   * @brief Comparison function for std::sort
-  * @detail Compares the x-coordinates of starting points of the line segments
+  * @details Compares the x-coordinates of starting points of the line segments
   * @param one, two Starting and ending position coordinates of line segments
   * @return A value that is convertible to bool and shows the order of two
   * coordinates
@@ -162,26 +210,26 @@ public:
 
   /**
   * @brief Comparison function for std::sort
-  * @detail Compares the x-coordinates of ending points of the line segments
+  * @details Compares the x-coordinates of ending points of the line segments
   * @param one, two Vectors with 4 parameters (Starting and ending position
   * coordinates of line segments)
   * @return A value that is convertible to bool and shows the order of two
   * coordinates
   */
-  static int compareEnd(std::pair< cv::Vec4i, float > one,
-                        std::pair< cv::Vec4i, float > two) {
+  static int compareEnd(std::pair<cv::Vec4i, float> one,
+                        std::pair<cv::Vec4i, float> two) {
     return (one.first[2] > two.first[2]);
   }
 
   /**
   * @brief Comparison function for std::sort
-  * @detail Compares the slopes of the line segments
+  * @details Compares the slopes of the line segments
   * @param one, two pairs of a vector with 4 parameters and a slope
   * @return A value that is convertible to bool and shows the order of two
   * coordinates
   */
-  static int compareSlope(std::pair< cv::Vec4i, float > one,
-                          std::pair< cv::Vec4i, float > two) {
+  static int compareSlope(std::pair<cv::Vec4i, float> one,
+                          std::pair<cv::Vec4i, float> two) {
     return (one.second < two.second);
   }
 
@@ -207,7 +255,7 @@ public:
 
   /**
   * @brief Finds the average line segment
-  * @detail All the similar lines (please see the strategy in line detection
+  * @details All the similar lines (please see the strategy in line detection
   * package)
   * are gathered in the vector, then the critical points are taken for the
   * endpoints
@@ -215,7 +263,7 @@ public:
   * @param vec a vector of pairs of line segment and slope
   * @return Slope of the line segment
   */
-  cv::Vec4i getAverLine(std::vector< std::pair< cv::Vec4i, float > > vec);
+  cv::Vec4i getAverLine(std::vector<std::pair<cv::Vec4i, float>> vec);
 
   /**
   * @brief Finds the difference(not absolute one) between two integers
@@ -228,30 +276,19 @@ public:
   * @brief Print lines from a vector to the image (cv::Mat)
   * @param dst, lines  destination image, lines to be mapped to the image
   */
-  void printLinesImage(cv::Mat dst, std::vector< cv::Vec4i > lines);
+  void printLinesImage(cv::Mat dst, std::vector<cv::Vec4i> lines);
 
   /**
   * @brief Remove unnecessary lines from a vector of line segments (cv::Mat)
-  * @detail As laser scan has noise we detect for each wall a lot of unnecessary
+  * @details As laser scan has noise we detect for each wall a lot of
+  * unnecessary
   * lines
   * we eliminate the lines that represent the same wall by finding the slope
   * along with computing the location of endpoints with respect to each other
   * @param lines1 a vector of line segments taken for processing after applying
   * HoughLinesP function from OpenCV
   */
-  void removeLines(std::vector< cv::Vec4i > lines1);
-  /**
-  * @brief Converts the laserScan-data from polar into cartesian coordinates.
-  * Then cleans the data from various problems and finally translates the points
-  * into pixels on an actual image (in form of an OpenCV-matrix).
-  */
-  cv::Mat
-  createOpenCVImageFromLaserScan(const sensor_msgs::LaserScan::ConstPtr &);
-
-  /** @brief Interpolates the data up to the requested resolution using linear
-  * interpolation.
-  */
-  float interpolate(int, int, std::vector< float >);
+  void removeLines(std::vector<cv::Vec4i> lines1);
 
   /** @brief Gets number of line segments after elimination
   */
@@ -271,6 +308,24 @@ public:
   */
   cv::Mat getImage() { return src; }
 
+  /**@brief Sets the number of detected circles
+   * @param count number to be set
+   */
+  void setCount(int count) {
+    if (count < 0){
+      std::cerr << "Incorrect input data" << std::endl;
+      return;
+    }
+    circleCallCount = count;
+  }
+
+  /**@brief Gets the number of detected circles
+   * @return the number of detected circles
+   */
+  int getCount() {
+    return circleCallCount;
+  }
+
   /** @brief Clears the vector of line segments in order to process the new
   * image
   * from laser scan
@@ -288,13 +343,13 @@ public:
   /** @brief Gets the vector of line segments that were processed after line
    * removal
   */
-  std::vector< cv::Vec4i > getLines() { return res; }
+  std::vector<cv::Vec4i> getLines() { return res; }
 
   /** @brief Finds the minimum distance in the range of laser scan message
   *   @param left, right left and right boundaries
   *   @return Returns the slope and the distance to the line segment
   */
-  std::pair< float, float > findMinimDistance(int left, int right);
+  std::pair<float, float> findMinimDistance(int left, int right);
 
   /** @brief Implements the main logic of the wall-following strategy
   *   @return Returns the twist message containing the next move to be sent
@@ -307,7 +362,30 @@ public:
   float getCurrentAngle() { return robotAngle; }
 
   /** @brief Sets the angle of the robot in the global frame
- */
+   */
   void setCurrentAngle(float angle) { robotAngle = angle; }
+
+  /** @brief Returns whether the condition for elimination of line
+   * segments is satisfied
+   */
+  bool lineCondition(std::pair<cv::Vec4i, float>, cv::Vec4i);
+
+  /** @brief Helper function for retrieving float environment variables declared
+   * in the launch file. */
+  void getEnvironmentVariable(const char *varString, float &var) {
+    char *c;
+
+    c = std::getenv(varString);
+    if (!c) {
+      ROS_INFO(
+          "Environment variable %s not found. Using %lf as a default value.",
+          varString, var);
+    } else {
+      var = std::stof(std::string(c));
+    }
+  }
+  /** @brief Increments the turning angle of the robot [deg]
+   */
+  void incrementTurn(float);
 };
 #endif

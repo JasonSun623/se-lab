@@ -9,7 +9,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   image_transport
+  rosbag
   roslib
+  rostest
+  cv_bridge
 )
 
 find_package(OpenCV REQUIRED)
@@ -186,10 +189,14 @@ target_link_libraries(wall_following_strategy_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-#catkin_add_gtest(${PROJECT_NAME}-test test/test_corner_handling.cpp)
-#if(TARGET ${PROJECT_NAME}-test)
-#  target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-#endif()
+catkin_add_gtest(tests_wall_following_strategy 
+  src/test/WallFollowingStrategyTest.cpp src/WallFollowingStrategy.cpp)
+
+target_link_libraries(tests_wall_following_strategy ${catkin_LIBRARIES} ${GTEST_LIBRARIES} ${OpenCV_LIBRARIES})
+# if(TARGET ${PROJECT_NAME}-test)
+#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+

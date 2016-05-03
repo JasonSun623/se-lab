@@ -1,35 +1,51 @@
+/** @file crash_recovery_node.cpp
+ *  @brief Main executable of crash_recovery_noe
+ *
+ *  @author Leonhard Kuboschek (kuboschek)
+ *  @author Felix Schmoll (LiftnLearn)
+ */
+
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Pose2D.h>
 #include "../include/CrashRecoverer.h"
+
 
 /** Main executable for crash resolution advice node.
  *
  *  Subscribes to ```base_scan``` for laser data.
  *  Publishes to ```crash_recovery``` for publishing resolution advice. */
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "crash_recovery");
+  ROS_ASSERT(argc > 4);
 
-  ros::NodeHandle n;
+  std::string crash_topic = argv[1];
+  std::string laser_topic = argv[2];
 
-  CrashRecoverer *recover = new CrashRecoverer();
+  ros::init(argc, argv, crash_topic);
+
+  ros::NodeHandle node(argv[1]);
+
+  float crash_distance;
+  int recovery_steps;
+
+  ROS_ASSERT(node.getParam("CRASH_DISTANCE", crash_distance));
+  ROS_ASSERT(node.getParam("RECOVERY_STEPS", recovery_steps));
+
+  CrashRecoverer recoverer(crash_distance, recovery_steps);
 
   ros::Subscriber sub =
-      n.subscribe("base_scan", 1, &CrashRecoverer::receiveLaserScan, recover);
+      node.subscribe(laser_topic, 1, &CrashRecoverer::receiveLaserScan, &recoverer);
 
-  ros::Publisher pub =
-      n.advertise<geometry_msgs::Twist>("crash_recovery", 1);
+  ros::Publisher pub = node.advertise< geometry_msgs::Twist >(crash_topic, 1);
+
   ros::Rate rate(10);
 
   while (ros::ok()) {
-
-    pub.publish(recover->getResolution());
+    pub.publish(recoverer.getResolution());
 
     ros::spinOnce();
     rate.sleep();
   }
-
-  delete recover;
 
   return 0;
 }
