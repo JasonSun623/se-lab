@@ -3,8 +3,14 @@
 ## How to run
 
 Run all nodes using the following command:
-`roslaunch movement movementSimulator.launch`
+`roslaunch wall_following_strategy wallFollowingSimulator.launch`
 `rviz -d ``rospack find movement``/rviz/basic.rviz`
+
+If you want to change the world for the simulator, please choose between lab-competition01.world, lab-competition02.world and lab-competition03.world(line 11 in `wallFollowingSimulator.launch`).
+Keep in mind that for successful run you need to change halfCircleRadius parameter in `wallFollowingSimulator.launch`:
+* lab-competition02.world has value `0.25`
+* lab-competition02.world has value `0.25`
+* lab-competition03.world has value `0.18`
 
 If ROS tells you that no package with the name "lab_simulator" exists, you may have forgotten to source your workspace. Fix it by:
 
