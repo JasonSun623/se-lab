@@ -48,8 +48,8 @@ public:
   const geometry_msgs::Twist getResolution();
 
 private:
-  float crash_distance; ///> Distance considered crash in meters.
-  int recovery_steps; ///> Number of steps for recovery.
+  float crash_distance; ///< Distance considered crash in meters.
+  int recovery_steps; ///< Number of steps for recovery.
 
   /**
    * @brief Current output of the algorithm
