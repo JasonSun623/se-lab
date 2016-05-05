@@ -8,9 +8,8 @@
  * Returns a pose describing the angle and distance of the detected circle
  * relative to the robot.
  *
- * @author Felix Schmoll
- * @author Leonhard Kuboschek
- * @author Jehanzeb Ayaz
+ * @author Felix Schmoll (LiftnLearn)
+ * @author Leonhard Kuboschek (kuboschek)
  */
 
 #ifndef HALFCIRCLEDETECTOR_H
@@ -37,13 +36,13 @@
 #include <cmath>
 
 /**
-  * @brief Limiting integers to be within a certain range.
-  */
+ * @brief Limiting integers to be within a certain range.
+ */
 #define RANGE(l, x, r) (std::max((l), std::min((r), (x))))
 
 /**
-  * @brief Compound class for detecting half-circles.
-  */
+ * @brief Compound class for detecting half-circles.
+ */
 class HalfCircleDetector {
 public:
   /**

@@ -1,7 +1,7 @@
 /** @file HalfCircleDetector.cpp
   * @brief Implementation of the corresponding header.
   *
-  * @author Felix Schmoll
+  * @author Felix Schmoll (LiftnLearn)
   */
 #include "../include/HalfCircleDetector.h"
 

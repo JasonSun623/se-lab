@@ -1,13 +1,8 @@
-/**
- *
- * @mainpage Team 3
- *
  * @author Leonhard Kuboschek (kuboschek)
  * @author Felix Schmoll (LiftnLearn)
  * @author Maria Gladkova (mgladkova)
  *
  * ## Team members
- *
  *  * Maria Gladkova (mgladkova)
  *  * Leonhard Kuboschek (kuboschek)
  *  * Felix Schmoll (LiftnLearn)
@@ -38,23 +33,22 @@
  * ### Half circle detection
  *  The general idea is that the ```laserScan```-data are received by the
  * ```half_circle_detection```-package and it is processing whether it can find a
- * half-circle. It then publishes its result on another topic.
+ * half-circle. It then publishes its result on another topic
  *
  * ### Wall Following Strategy
  * The ```wall_following_strategy``` package contains the strategy node,
- * which takes inputs from the half_circle_detection and crash recovery
+ * which takes inputs from the ```half_circle_detection``` and ```crash_recovery``` 
  * modules to follow walls until a circle is seen. Once a circle
  * has been seen, the strategy drives the robot straight towards it.
  *
  * ### Crash Recovery
- * The crash recovery node performs a 'reverse-and-turn' maneuver if the robot
- * impacts with its surrounding.
- *
+ * The ```crash_recovery``` node performs a 'reverse-and-turn' maneuver if the robot
+ * impacts with its surrounding. 
+ * 
  * ## Further comments
  * The individual contributions of the team members were so far quite heterogeneous.
  * Further improvement on team collaboration and integration of pair programming
- * need to be considered in the future work. The test coverage is low at the moment,
- * although it has been increased since the last sprint.
+ * need to be considered in the future work. 
  *
  * We would also like to thank the TAs. Keep up the good work!
  *
